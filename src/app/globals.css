@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #16274e;
+  --color-navy-dark: #0e1d35;
+  --color-navy-deep: #0b1830;
+  --color-brand: #d32f2f;
+  --color-brand-dark: #b71c1c;
+  --color-brand-soft: #fdecea;
+  --color-surface: #f6f7fb;
+  --color-line: #e8eaf1;
+  --color-muted: #5b6478;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply bg-white text-navy antialiased;
+}
+
+/* garis fokus aksesibel untuk elemen interaktif */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  @apply outline-2 outline-offset-2 outline-navy;
+}
