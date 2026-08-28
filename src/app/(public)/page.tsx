@@ -49,18 +49,20 @@ export default async function HomePage() {
               diaspora Indonesia. Terhubung dengan pemilik produk untuk
               berkolaborasi, membeli, atau mendukung.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="#produk-terbaru"
-                className="inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy-dark active:scale-[0.98]"
+                className="group inline-flex items-center gap-2 rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-dark active:scale-[0.98]"
               >
-                Lihat Produk ↓
+                <span>Jelajahi Produk</span>
+                <span className="transition-transform duration-200 group-hover:translate-y-0.5">↓</span>
               </a>
               <a
                 href="#cara-kerja"
-                className="inline-flex items-center justify-center rounded-lg border border-line bg-white px-6 py-3 text-sm font-semibold text-navy transition hover:bg-surface active:scale-[0.98]"
+                className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-5 py-3 text-sm font-semibold text-navy/90 shadow-sm transition hover:border-navy/30 hover:bg-surface active:scale-[0.98]"
               >
-                Cara Kerja
+                <span>Alur Pengajuan</span>
+                <span className="text-muted transition-transform duration-200 group-hover:translate-x-0.5">→</span>
               </a>
             </div>
             <div className="mt-8 max-w-lg">
@@ -139,45 +141,52 @@ export default async function HomePage() {
       </section>
 
       {/* ===== Cara Kerja ===== */}
-      <section id="cara-kerja" className="border-t border-line bg-gradient-to-b from-white to-surface py-20 scroll-mt-20">
+      <section id="cara-kerja" className="relative border-t border-line/80 bg-surface/50 py-20 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="text-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand">
-              Alur Platform
+          <div className="flex flex-col items-center text-center">
+            <span className="rounded-full border border-brand/20 bg-brand-soft px-3.5 py-1 text-xs font-semibold text-brand">
+              Proses Transparan
             </span>
-            <h2 className="mt-1.5 text-3xl font-extrabold text-navy">Cara Kerja</h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm text-muted">
-              Empat langkah mudah menampilkan dan menemukan produk karya diaspora Indonesia.
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-navy sm:text-4xl">
+              Alur Platform & Cara Kerja
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
+              Dari pengajuan hingga terhubung dengan publik — 4 langkah sederhana publikasi karya diaspora.
             </p>
           </div>
 
-          <div className="relative mt-14">
-            {/* Garis penghubung titik-titik antar langkah (desktop only) */}
-            <div
-              className="absolute top-7 left-[12%] right-[12%] hidden h-0.5 border-t-2 border-dashed border-navy/15 lg:block"
-              aria-hidden="true"
-            />
+          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((s, idx) => (
+              <div
+                key={s.title}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-navy/30 hover:shadow-lg"
+              >
+                {/* Visual Numbering Watermark */}
+                <span className="absolute -top-3 -right-2 select-none text-6xl font-black tracking-tighter text-surface/80 transition duration-300 group-hover:text-brand-soft/80">
+                  0{idx + 1}
+                </span>
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {STEPS.map((s, idx) => (
-                <div
-                  key={s.title}
-                  className="group relative flex flex-col items-center rounded-2xl border border-line/80 bg-white p-7 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-md"
-                >
-                  {/* Badge Nomor Langkah */}
-                  <span className="absolute -top-3.5 right-6 rounded-full bg-brand-soft px-3 py-0.5 text-xs font-bold text-brand">
-                    0{idx + 1}
-                  </span>
-
-                  <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface text-navy transition duration-300 group-hover:bg-brand group-hover:text-white">
-                    <s.icon className="h-6 w-6" aria-hidden="true" />
+                <div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line/60 bg-surface text-navy transition duration-300 group-hover:border-navy/20 group-hover:bg-navy group-hover:text-white">
+                    <s.icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   
-                  <h3 className="mt-5 text-base font-bold text-navy">{s.title.replace(/^\d+\.\s*/, "")}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-muted">{s.desc}</p>
+                  <h3 className="mt-6 text-base font-bold text-navy">
+                    {s.title.replace(/^\d+\.\s*/, "")}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted/90">
+                    {s.desc}
+                  </p>
                 </div>
-              ))}
-            </div>
+
+                <div className="mt-6 flex items-center justify-between border-t border-line/60 pt-4">
+                  <span className="text-[11px] font-medium text-muted">Langkah {idx + 1} dari 4</span>
+                  <span className="text-xs font-semibold text-brand opacity-0 transition duration-200 group-hover:opacity-100">
+                    Tahap {idx + 1}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
