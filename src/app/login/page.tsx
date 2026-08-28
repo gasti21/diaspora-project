@@ -19,7 +19,6 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/submit";
   const [error, setError] = useState<string | null>(() => {
     // Error dikirim dari /auth/callback lewat query param.
     switch (params.get("error")) {
@@ -42,10 +41,15 @@ function LoginContent() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
+    // Param `next` hanya dikirim bila eksplisit; callback punya routing cerdas
+    // sendiri (admin -> /admin, user -> /submit atau /pengajuan).
+    const explicit = params.get("next");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: explicit
+          ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(explicit)}`
+          : `${window.location.origin}/auth/callback`,
         queryParams: { prompt: "select_account" },
       },
     });
