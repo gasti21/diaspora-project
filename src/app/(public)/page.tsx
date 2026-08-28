@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CATEGORIES } from "@/lib/constants";
@@ -50,18 +51,20 @@ export default async function HomePage() {
                 className="group inline-flex items-center gap-2.5 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition duration-300 hover:bg-navy-dark hover:shadow-md"
               >
                 <span>Jelajahi Produk</span>
-                <svg className="h-4 w-4 text-white/80 transition-transform duration-300 ease-out group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
-                </svg>
+                <ArrowDown
+                  className="h-4 w-4 text-white/80 transition-transform duration-300 ease-out group-hover:translate-y-0.5"
+                  aria-hidden="true"
+                />
               </a>
               <a
                 href="#cara-kerja"
                 className="group relative inline-flex items-center gap-2 py-3 text-sm font-semibold text-navy transition-colors duration-300 hover:text-navy-dark"
               >
                 <span>Cara Kerja</span>
-                <svg className="h-4 w-4 text-muted transition-transform duration-300 ease-out group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5-7.5M21 12H3" />
-                </svg>
+                <ArrowRight
+                  className="h-4 w-4 text-muted transition-transform duration-300 ease-out group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
                 <span
                   aria-hidden="true"
                   className="absolute inset-x-0 bottom-1 h-px origin-left scale-x-0 bg-navy transition-transform duration-300 ease-out group-hover:scale-x-100"
@@ -147,10 +150,7 @@ export default async function HomePage() {
       <section id="cara-kerja" className="border-t border-line/80 bg-white py-20 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-              Cara Kerja
-            </span>
-            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-navy sm:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-navy sm:text-4xl">
               Alur Platform &amp; Cara Kerja
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
