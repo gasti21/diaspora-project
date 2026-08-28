@@ -139,19 +139,45 @@ export default async function HomePage() {
       </section>
 
       {/* ===== Cara Kerja ===== */}
-      <section id="cara-kerja" className="bg-navy-deep py-16 text-white scroll-mt-20">
+      <section id="cara-kerja" className="border-t border-line bg-gradient-to-b from-white to-surface py-20 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="text-center text-2xl font-extrabold">Cara Kerja</h2>
-          <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s) => (
-              <div key={s.title} className="flex flex-col items-center text-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10">
-                  <s.icon className="h-6 w-6" aria-hidden="true" />
-                </span>
-                <h3 className="mt-4 font-bold">{s.title}</h3>
-                <p className="mt-1.5 text-sm text-white/70">{s.desc}</p>
-              </div>
-            ))}
+          <div className="text-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand">
+              Alur Platform
+            </span>
+            <h2 className="mt-1.5 text-3xl font-extrabold text-navy">Cara Kerja</h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-muted">
+              Empat langkah mudah menampilkan dan menemukan produk karya diaspora Indonesia.
+            </p>
+          </div>
+
+          <div className="relative mt-14">
+            {/* Garis penghubung titik-titik antar langkah (desktop only) */}
+            <div
+              className="absolute top-7 left-[12%] right-[12%] hidden h-0.5 border-t-2 border-dashed border-navy/15 lg:block"
+              aria-hidden="true"
+            />
+
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {STEPS.map((s, idx) => (
+                <div
+                  key={s.title}
+                  className="group relative flex flex-col items-center rounded-2xl border border-line/80 bg-white p-7 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-md"
+                >
+                  {/* Badge Nomor Langkah */}
+                  <span className="absolute -top-3.5 right-6 rounded-full bg-brand-soft px-3 py-0.5 text-xs font-bold text-brand">
+                    0{idx + 1}
+                  </span>
+
+                  <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface text-navy transition duration-300 group-hover:bg-brand group-hover:text-white">
+                    <s.icon className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  
+                  <h3 className="mt-5 text-base font-bold text-navy">{s.title.replace(/^\d+\.\s*/, "")}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted">{s.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
