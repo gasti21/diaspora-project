@@ -371,8 +371,9 @@ export function SubmitForm({ categories, user }: Props) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-brand py-4 text-sm font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-4 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
           >
+            {submitting && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
             {submitting ? "Mengirim..." : "Submit Produk Sekarang"}
           </button>
 

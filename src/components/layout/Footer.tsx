@@ -24,10 +24,10 @@ export function Footer() {
             Navigasi
           </h4>
           <ul className="space-y-2.5 text-sm text-white/70">
-            <li><Link href="/explore" className="hover:text-white">Explore Produk</Link></li>
-            <li><Link href="/submit" className="hover:text-white">Submit Produk</Link></li>
-            <li><Link href="/tentang" className="hover:text-white">Tentang Kami</Link></li>
-            <li><Link href="/kontak" className="hover:text-white">Contact</Link></li>
+            <li><Link href="/explore" className="transition-colors duration-200 hover:text-white">Explore Produk</Link></li>
+            <li><Link href="/submit" className="transition-colors duration-200 hover:text-white">Submit Produk</Link></li>
+            <li><Link href="/tentang" className="transition-colors duration-200 hover:text-white">Tentang Kami</Link></li>
+            <li><Link href="/kontak" className="transition-colors duration-200 hover:text-white">Contact</Link></li>
           </ul>
         </div>
 
@@ -36,10 +36,10 @@ export function Footer() {
             Kategori
           </h4>
           <ul className="space-y-2.5 text-sm text-white/70">
-            <li><Link href="/explore?kategori=makanan-minuman" className="hover:text-white">Makanan &amp; Minuman</Link></li>
-            <li><Link href="/explore?kategori=aplikasi-software" className="hover:text-white">Aplikasi &amp; Software</Link></li>
-            <li><Link href="/explore?kategori=umkm-kerajinan" className="hover:text-white">UMKM &amp; Kerajinan</Link></li>
-            <li><Link href="/explore" className="hover:text-white">Lainnya</Link></li>
+            <li><Link href="/explore?kategori=makanan-minuman" className="transition-colors duration-200 hover:text-white">Makanan &amp; Minuman</Link></li>
+            <li><Link href="/explore?kategori=aplikasi-software" className="transition-colors duration-200 hover:text-white">Aplikasi &amp; Software</Link></li>
+            <li><Link href="/explore?kategori=umkm-kerajinan" className="transition-colors duration-200 hover:text-white">UMKM &amp; Kerajinan</Link></li>
+            <li><Link href="/explore" className="transition-colors duration-200 hover:text-white">Lainnya</Link></li>
           </ul>
         </div>
 

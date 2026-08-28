@@ -33,7 +33,7 @@ export function ProductTabs({ product }: { product: Product }) {
         ))}
       </div>
 
-      <div className="pt-6">
+      <div key={tab} className="animate-fade-in pt-6">
         {tab === "Deskripsi" && (
           <div className="rounded-xl border border-line bg-white p-6">
             <div className="space-y-4 whitespace-pre-line text-sm leading-relaxed text-navy/90">

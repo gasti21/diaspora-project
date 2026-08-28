@@ -43,10 +43,10 @@ export function Pagination({
             aria-current={p === page ? "page" : undefined}
             aria-label={`Halaman ${p}`}
             className={cn(
-              "flex h-9 min-w-9 items-center justify-center rounded-lg px-2.5 text-sm font-medium transition",
+              "flex h-9 min-w-9 items-center justify-center rounded-lg px-2.5 text-sm font-medium transition-all duration-200 active:scale-95",
               p === page
-                ? "bg-navy text-white"
-                : "border border-line bg-white text-navy hover:border-navy/40"
+                ? "bg-navy text-white shadow-sm"
+                : "border border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:bg-surface hover:shadow-sm"
             )}
           >
             {p}
@@ -83,7 +83,7 @@ function PageLink({
     <Link
       href={href}
       aria-label={label}
-      className="flex h-9 min-w-9 items-center justify-center rounded-lg border border-line bg-white text-navy transition hover:border-navy/40"
+      className="flex h-9 min-w-9 items-center justify-center rounded-lg border border-line bg-white text-navy transition-all duration-200 hover:-translate-y-0.5 hover:border-navy/40 hover:bg-surface hover:shadow-sm active:translate-y-0"
     >
       <Icon className="h-4 w-4" />
     </Link>

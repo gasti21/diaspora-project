@@ -63,7 +63,7 @@ function LoginContent() {
         <button
           onClick={signInWithGoogle}
           disabled={loading}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-line bg-white px-5 py-3.5 text-sm font-semibold text-navy shadow-sm transition hover:bg-surface disabled:opacity-60"
+          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-line bg-white px-5 py-3.5 text-sm font-semibold text-navy shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-surface hover:shadow-md active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
         >
           {loading ? (
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-navy/30 border-t-navy" />
