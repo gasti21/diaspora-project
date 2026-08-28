@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { getSessionUser, isAdminEmail } from "@/lib/auth";
 import { adminAllowlistActive } from "@/lib/supabase/config";
@@ -6,8 +5,6 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { LogoMark } from "@/components/branding/Logo";
 
 export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = { title: "Dashboard Admin" };
 
 export default async function AdminPage() {
   const user = await getSessionUser();

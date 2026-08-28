@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Globe, Handshake, Target, type LucideIcon } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Tentang Kami",
   description: "Tentang KaryaDiaspora dan PPID DPBD.",
 };
 

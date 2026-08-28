@@ -10,7 +10,6 @@ import { listPublicProducts, listCountries } from "@/lib/data";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Explore Produk",
   description:
     "Temukan berbagai produk dan karya diaspora Indonesia dari seluruh dunia.",
 };

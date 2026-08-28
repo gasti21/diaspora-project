@@ -8,7 +8,6 @@ import { LogoMark } from "@/components/branding/Logo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Submit Produk",
   description:
     "Kirimkan produk atau karya Anda untuk ditayangkan di KaryaDiaspora.",
 };

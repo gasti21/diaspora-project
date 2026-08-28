@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Landmark, Mail, MessageCircle, type LucideIcon } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact",
   description: "Hubungi tim KaryaDiaspora - PPID DPBD.",
 };
 
