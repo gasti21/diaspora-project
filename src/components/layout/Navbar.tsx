@@ -3,7 +3,7 @@ import { CircleUserRound } from "lucide-react";
 import { Logo } from "@/components/branding/Logo";
 import { NavLinks } from "./NavLinks";
 import { UserMenu } from "./UserMenu";
-import { getSessionUser, isAdminEmail, getAdminUser } from "@/lib/auth";
+import { getSessionUser, getAdminUser } from "@/lib/auth";
 
 // Desktop + mobile: link halaman yang sedang dibuka disembunyikan otomatis
 // oleh <NavLinks> (lihat NavLinks.tsx).
@@ -25,7 +25,7 @@ const MOBILE_LINKS = [
 
 export async function Navbar() {
   const user = await getSessionUser();
-  const admin = user && isAdminEmail(user.email) ? await getAdminUser() : null;
+  const admin = user ? await getAdminUser() : null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">

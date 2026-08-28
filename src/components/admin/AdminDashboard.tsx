@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { LogoMark } from "@/components/branding/Logo";
+import { AdminManager } from "@/components/admin/AdminManager";
 import { CategoryBadge, StageBadge, StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
 import { PER_PAGE } from "@/lib/constants";
@@ -52,6 +53,7 @@ const STAT_CARDS: {
 
 export function AdminDashboard({ adminName }: { adminName: string }) {
   const router = useRouter();
+  const [view, setView] = useState<"produk" | "admin">("produk");
   const [tab, setTab] = useState<Tab>("pending");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
@@ -140,10 +142,10 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
 
         <nav className="mt-8 flex-1 space-y-1 text-sm">
           <button
-            onClick={() => setTab("all")}
+            onClick={() => { setTab("all"); setView("produk"); }}
             className={cn(
               "flex w-full items-center gap-3 rounded-lg px-3.5 py-2.5 font-medium transition",
-              tab === "all" ? "bg-white/10" : "text-white/75 hover:bg-white/5"
+              tab === "all" && view === "produk" ? "bg-white/10" : "text-white/75 hover:bg-white/5"
             )}
           >
             <LayoutDashboard className="h-4.5 w-4.5" aria-hidden="true" /> Dashboard Semua
@@ -151,7 +153,7 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
           {TABS.map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
+              onClick={() => { setTab(t.key); setView("produk"); }}
               className={cn(
                 "flex w-full items-center justify-between gap-3 rounded-lg px-3.5 py-2.5 font-medium transition",
                 tab === t.key ? "bg-white/10" : "text-white/75 hover:bg-white/5"
@@ -181,9 +183,17 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
           ))}
 
           <div className="!mt-6 border-t border-white/10 pt-4 text-white/40">
-            <span className="flex items-center gap-3 rounded-lg px-3.5 py-2.5" title="Rencana Fase 2">
-              <Users className="h-4.5 w-4.5" aria-hidden="true" /> Users - Fase 2
-            </span>
+            <button
+              onClick={() => setView("admin")}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-3.5 py-2.5 font-medium transition",
+                view === "admin"
+                  ? "bg-white/10 text-white"
+                  : "text-white/75 hover:bg-white/5"
+              )}
+            >
+              <Users className="h-4.5 w-4.5" aria-hidden="true" /> Kelola Admin
+            </button>
             <span className="flex items-center gap-3 rounded-lg px-3.5 py-2.5" title="Rencana Fase 2">
               <Settings className="h-4.5 w-4.5" aria-hidden="true" /> Pengaturan - Fase 2
             </span>
@@ -206,17 +216,21 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-extrabold">
-              {TABS.find((t) => t.key === tab)?.label ?? "Semua Produk"}
+              {view === "admin"
+                ? "Kelola Admin"
+                : TABS.find((t) => t.key === tab)?.label ?? "Semua Produk"}
             </h1>
             <p className="mt-1 text-sm text-muted">
-              Satu database, dikendalikan filter status - sesuai alur MVP.
+              {view === "admin"
+                ? "Tambah atau hapus admin platform."
+                : "Satu database, dikendalikan filter status - sesuai alur MVP."}
             </p>
           </div>
           <div className="flex gap-2 lg:hidden">
             {TABS.map((t) => (
               <button
                 key={t.key}
-                onClick={() => { setTab(t.key); setPage(1); }}
+                onClick={() => { setTab(t.key); setPage(1); setView("produk"); }}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-xs font-semibold",
                   tab === t.key ? "bg-navy text-white" : "bg-white text-navy border border-line"
@@ -228,12 +242,16 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
           </div>
         </header>
 
+        {view === "admin" ? (
+          <AdminManager />
+        ) : (
+        <>
         {/* Stat cards */}
         <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
           {STAT_CARDS.map((c) => (
             <button
               key={c.key}
-              onClick={() => { setTab(c.key as Tab); setPage(1); }}
+              onClick={() => { setTab(c.key as Tab); setPage(1); setView("produk"); }}
               className={cn(
                 "rounded-2xl border bg-white p-5 text-left transition hover:shadow-md",
                 tab === c.key ? "border-navy" : "border-line"
@@ -375,6 +393,8 @@ export function AdminDashboard({ adminName }: { adminName: string }) {
               totalProducts={total}
             />
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

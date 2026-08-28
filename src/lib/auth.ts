@@ -1,6 +1,12 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured, adminEmails, adminAllowlistActive } from "@/lib/supabase/config";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+
+/**
+ * Email admin pemilik platform (owner).
+ * Tidak dapat dihapus / diturunkan rolenya lewat dashboard maupun API.
+ */
+export const PROTECTED_ADMIN_EMAIL = "karyadiaspora@gmail.com";
 
 export interface SessionUser {
   id: string;
@@ -31,17 +37,27 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   };
 });
 
-/** Cek email terhadap allowlist admin (ADMIN_EMAILS). */
-export function isAdminEmail(email?: string | null) {
-  if (!email) return false;
-  if (!adminAllowlistActive) return true; // dev tanpa allowlist
-  if (adminEmails.length === 0) return process.env.NODE_ENV !== "production";
-  return adminEmails.includes(email.toLowerCase());
-}
+/**
+ * Cek role admin dari database - SATU-SATUNYA sumber kebenaran.
+ * Tidak ada lagi fallback env/allowlist: hanya profiles.role = 'admin'.
+ */
+export const isDbAdmin = cache(async (userId: string): Promise<boolean> => {
+  if (!isSupabaseConfigured) return false;
 
-/** User login yang sekaligus admin, atau null. */
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  return data?.role === "admin";
+});
+
+/** User login yang sekaligus admin (berdasarkan profiles.role), atau null. */
 export async function getAdminUser(): Promise<SessionUser | null> {
   const user = await getSessionUser();
-  if (!user || !isAdminEmail(user.email)) return null;
+  if (!user) return null;
+  if (!(await isDbAdmin(user.id))) return null;
   return user;
 }
