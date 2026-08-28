@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Landmark, Mail, MessageCircle, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   description: "Hubungi tim KaryaDiaspora - PPID DPBD.",
@@ -19,15 +20,14 @@ export default function KontakPage() {
           icon={Mail}
           title="Email"
           desc="Balasan dalam 1–2 hari kerja."
-          value="info@karyadiaspora.example"
-          href="mailto:info@karyadiaspora.example"
+          value="karyadiaspora@ppi.id"
+          href="mailto:karyadiaspora@gmail.com"
         />
         <Card
           icon={MessageCircle}
           title="WhatsApp"
           desc="Jam kerja 09.00–17.00 WIB."
           value="Hubungi via WhatsApp"
-          href="https://wa.me/6281234567890"
         />
         <Card
           icon={Landmark}
@@ -61,15 +61,15 @@ function Card({
   title: string;
   desc: string;
   value: string;
-  href: string;
+  /** Kosongkan untuk kartu non-tautan (belum aktif). */
+  href?: string;
 }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-4 rounded-2xl border border-line bg-white p-5 transition hover:border-navy/30 hover:shadow-md"
-    >
+  const cls = cn(
+    "flex items-center gap-4 rounded-2xl border border-line bg-white p-5",
+    href && "transition hover:border-navy/30 hover:shadow-md"
+  );
+  const body = (
+    <>
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
         <Icon className="h-5.5 w-5.5" aria-hidden="true" />
       </span>
@@ -78,6 +78,15 @@ function Card({
         <p className="text-sm text-muted">{desc}</p>
         <p className="mt-0.5 text-sm font-semibold text-brand">{value}</p>
       </div>
+    </>
+  );
+
+  // Kartu tanpa href dirender sebagai div non-klik (link WA menyusul nanti).
+  if (!href) return <div className={cls}>{body}</div>;
+
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+      {body}
     </a>
   );
 }
