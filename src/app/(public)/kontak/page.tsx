@@ -34,7 +34,7 @@ export default function KontakPage() {
           title="PPI Dunia"
           desc="Perhimpunan Pelajar Indonesia (PPI) Dunia."
           value="Kunjungi situs PPI Dunia"
-          href="https://dpbd.org"
+          href="https://ppi.id/"
         />
       </div>
 
