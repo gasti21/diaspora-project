@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ClipboardCheck, FileUp, Handshake, Mail } from "lucide-react";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CATEGORIES } from "@/lib/constants";
@@ -9,24 +8,20 @@ export const dynamic = "force-dynamic";
 
 const STEPS = [
   {
-    title: "1. Submit Produk",
+    title: "Submit Produk",
     desc: "Kirim informasi produk Anda dengan mudah.",
-    icon: FileUp,
   },
   {
-    title: "2. Admin Review",
+    title: "Admin Review",
     desc: "Tim kami akan memverifikasi produk.",
-    icon: ClipboardCheck,
   },
   {
-    title: "3. Produk Tampil",
+    title: "Produk Tampil",
     desc: "Produk Anda ditampilkan di platform kami.",
-    icon: Mail,
   },
   {
-    title: "4. Terhubung",
+    title: "Terhubung",
     desc: "Pengunjung menghubungi Anda jika tertarik.",
-    icon: Handshake,
   },
 ];
 
@@ -49,24 +44,28 @@ export default async function HomePage() {
               diaspora Indonesia. Terhubung dengan pemilik produk untuk
               berkolaborasi, membeli, atau mendukung.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
               <a
                 href="#produk-terbaru"
-                className="group inline-flex items-center gap-2 rounded-xl bg-navy px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-navy/10 transition duration-200 hover:bg-navy-dark hover:shadow-lg active:scale-[0.98]"
+                className="group inline-flex items-center gap-2.5 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition duration-300 hover:bg-navy-dark hover:shadow-md"
               >
                 <span>Jelajahi Produk</span>
-                <svg className="h-4 w-4 text-white/80 transition-transform duration-200 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="h-4 w-4 text-white/80 transition-transform duration-300 ease-out group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
                 </svg>
               </a>
               <a
                 href="#cara-kerja"
-                className="group inline-flex items-center gap-2 rounded-xl border border-line bg-white px-6 py-3.5 text-sm font-bold text-navy shadow-sm transition duration-200 hover:border-navy/40 hover:bg-surface hover:shadow-md active:scale-[0.98]"
+                className="group relative inline-flex items-center gap-2 py-3 text-sm font-semibold text-navy transition-colors duration-300 hover:text-navy-dark"
               >
                 <span>Cara Kerja</span>
-                <svg className="h-4 w-4 text-muted transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="h-4 w-4 text-muted transition-transform duration-300 ease-out group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5-7.5M21 12H3" />
                 </svg>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-1 h-px origin-left scale-x-0 bg-navy transition-transform duration-300 ease-out group-hover:scale-x-100"
+                />
               </a>
             </div>
             <div className="mt-8 max-w-lg">
@@ -145,50 +144,36 @@ export default async function HomePage() {
       </section>
 
       {/* ===== Cara Kerja ===== */}
-      <section id="cara-kerja" className="relative border-t border-line/80 bg-surface/50 py-20 scroll-mt-20">
+      <section id="cara-kerja" className="border-t border-line/80 bg-white py-20 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex flex-col items-center text-center">
-            <span className="rounded-full border border-brand/20 bg-brand-soft px-3.5 py-1 text-xs font-semibold text-brand">
-              Proses Transparan
+          <div className="max-w-2xl">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+              Cara Kerja
             </span>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-navy sm:text-4xl">
-              Alur Platform & Cara Kerja
+              Alur Platform &amp; Cara Kerja
             </h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-              Dari pengajuan hingga terhubung dengan publik — 4 langkah sederhana publikasi karya diaspora.
+            <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+              Dari pengajuan hingga terhubung dengan publik — 4 langkah sederhana
+              publikasi karya diaspora.
             </p>
           </div>
 
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid gap-y-10 sm:grid-cols-2 sm:gap-x-12 lg:grid-cols-4 lg:gap-x-0 lg:divide-x lg:divide-line">
             {STEPS.map((s, idx) => (
               <div
                 key={s.title}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-navy/30 hover:shadow-lg"
+                className="group lg:px-8 lg:first:pl-0 lg:last:pr-0"
               >
-                {/* Visual Numbering Watermark */}
-                <span className="absolute -top-3 -right-2 select-none text-6xl font-black tracking-tighter text-surface/80 transition duration-300 group-hover:text-brand-soft/80">
-                  0{idx + 1}
+                <span className="text-sm font-medium tabular-nums text-muted transition-colors duration-300 group-hover:text-brand">
+                  {String(idx + 1).padStart(2, "0")}
                 </span>
-
-                <div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line/60 bg-surface text-navy transition duration-300 group-hover:border-navy/20 group-hover:bg-navy group-hover:text-white">
-                    <s.icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  
-                  <h3 className="mt-6 text-base font-bold text-navy">
-                    {s.title.replace(/^\d+\.\s*/, "")}
-                  </h3>
-                  <p className="mt-2 text-xs leading-relaxed text-muted/90">
-                    {s.desc}
-                  </p>
-                </div>
-
-                <div className="mt-6 flex items-center justify-between border-t border-line/60 pt-4">
-                  <span className="text-[11px] font-medium text-muted">Langkah {idx + 1} dari 4</span>
-                  <span className="text-xs font-semibold text-brand opacity-0 transition duration-200 group-hover:opacity-100">
-                    Tahap {idx + 1}
-                  </span>
-                </div>
+                <span
+                  aria-hidden="true"
+                  className="mt-3 block h-0.5 w-6 bg-brand transition-[width] duration-300 ease-out group-hover:w-12"
+                />
+                <h3 className="mt-4 text-base font-bold text-navy">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{s.desc}</p>
               </div>
             ))}
           </div>
