@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CircleCheck, Info, LoaderCircle, Plus, ShieldCheck, X } from "lucide-react";
 import { LogoMark } from "@/components/branding/Logo";
+import { useToast } from "@/components/toast/ToastProvider";
 import { CATEGORIES, STAGES, COUNTRIES, NEEDS, BACKGROUND_TYPES, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SubmissionPayload, Stage } from "@/lib/types";
@@ -45,8 +46,8 @@ export function SubmitForm({ categories, user }: Props) {
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const toast = useToast();
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -64,7 +65,6 @@ export function SubmitForm({ categories, user }: Props) {
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
-    setServerError(null);
 
     const room = MAX_IMAGES - images.length;
     const picked = Array.from(files).slice(0, room);
@@ -90,9 +90,9 @@ export function SubmitForm({ categories, user }: Props) {
         const res = await fetch("/api/upload", { method: "POST", body });
         const json = await res.json();
         if (res.ok && json.url) uploaded.push(json.url);
-        else setServerError(json.error ?? "Gagal mengunggah foto.");
+        else toast.error(json.error ?? "Gagal mengunggah foto.");
       } catch {
-        setServerError("Gagal mengunggah foto. Coba lagi.");
+        toast.error("Gagal mengunggah foto. Coba lagi.");
       }
     }
     if (uploaded.length) {
@@ -122,7 +122,6 @@ export function SubmitForm({ categories, user }: Props) {
 
   async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault();
-    setServerError(null);
     if (!validate()) {
       document.querySelector(".form-section")?.scrollIntoView({ behavior: "smooth" });
       return;
@@ -158,9 +157,9 @@ export function SubmitForm({ categories, user }: Props) {
       });
       const json = await res.json();
       if (res.ok) setDone(true);
-      else setServerError(json.error ?? "Gagal mengirim produk. Coba lagi.");
+      else toast.error(json.error ?? "Gagal mengirim produk. Coba lagi.");
     } catch {
-      setServerError("Terjadi kesalahan jaringan. Coba lagi.");
+      toast.error("Terjadi kesalahan jaringan. Coba lagi.");
     }
     setSubmitting(false);
   }
@@ -363,10 +362,6 @@ export function SubmitForm({ categories, user }: Props) {
               menghubungi melalui email atau WhatsApp.
             </p>
           </div>
-
-          {serverError && (
-            <p className="rounded-lg bg-red-50 p-3 text-sm text-brand">{serverError}</p>
-          )}
 
           <button
             type="submit"

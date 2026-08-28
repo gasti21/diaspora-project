@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CircleUserRound, LoaderCircle, Search, ShieldCheck, UserRound } from "lucide-react";
 import { STATS_EVENT } from "./admin-nav";
@@ -28,7 +28,6 @@ export function MembersView({ users }: Props) {
   const [role, setRole] = useState<RoleFilter>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const scrolled = useRef(false);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
