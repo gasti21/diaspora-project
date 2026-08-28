@@ -87,7 +87,7 @@ export default async function ProductDetailPage({
             <span>{countryFlag(product.country)}</span>
             {formatLocation(product)}
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-navy/85">
+          <p className="mt-3 text-justify text-sm leading-relaxed text-navy/85">
             {product.shortDescription}
           </p>
 

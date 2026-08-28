@@ -38,7 +38,7 @@ export default function KontakPage() {
         />
       </div>
 
-      <div className="mt-10 rounded-2xl bg-surface p-6 text-sm leading-relaxed text-navy/85">
+      <div className="mt-10 rounded-2xl bg-surface p-6 text-justify text-sm leading-relaxed text-navy/85">
         <h2 className="font-bold">Catatan untuk pemilik produk</h2>
         <p className="mt-2 text-muted">
           Setelah Anda mengirimkan produk melalui halaman Submit, admin akan

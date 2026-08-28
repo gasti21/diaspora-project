@@ -13,7 +13,7 @@ export function Footer() {
               Karya<span className="text-red-400">Diaspora</span>
             </span>
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-white/70">
+          <p className="mt-4 text-justify text-sm leading-relaxed text-white/70">
             Platform terdepan untuk produk dan karya diaspora Indonesia di seluruh
             dunia.
           </p>

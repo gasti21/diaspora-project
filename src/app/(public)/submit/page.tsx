@@ -38,7 +38,7 @@ export default async function SubmitPage() {
           </svg>
           Masuk dengan Google
         </Link>
-        <p className="mt-6 max-w-sm text-xs leading-relaxed text-muted">
+        <p className="mt-6 max-w-sm text-justify text-xs leading-relaxed text-muted">
           Setelah submit, produk Anda akan ditinjau oleh admin. Kami akan
           menghubungi Anda melalui email atau WhatsApp.
         </p>

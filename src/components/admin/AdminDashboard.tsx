@@ -481,7 +481,7 @@ function DetailPanel({
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           Deskripsi Singkat
         </p>
-        <p className="mt-1.5 text-sm leading-relaxed text-navy/85">
+        <p className="mt-1.5 text-justify text-sm leading-relaxed text-navy/85">
           {product.shortDescription}
         </p>
       </div>

@@ -28,7 +28,7 @@ export default function TentangPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
       <h1 className="text-3xl font-extrabold">Tentang Kami</h1>
-      <div className="mt-6 space-y-5 text-sm leading-relaxed text-navy/85">
+      <div className="mt-6 space-y-5 text-justify text-sm leading-relaxed text-navy/85">
         <p>
           <strong>KaryaDiaspora</strong> adalah Platform Konektivitas Bisnis
           Diaspora Indonesia - pusat informasi peluang bisnis, kolaborasi, dan

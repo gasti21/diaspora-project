@@ -39,7 +39,7 @@ export default async function HomePage() {
               <span className="text-brand">Diaspora Indonesia</span> di Seluruh
               Dunia
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted">
+            <p className="mt-5 max-w-xl text-justify text-base leading-relaxed text-muted">
               Jelajahi produk, bisnis, aplikasi, riset, dan karya kreatif buatan
               diaspora Indonesia. Terhubung dengan pemilik produk untuk
               berkolaborasi, membeli, atau mendukung.

@@ -36,7 +36,7 @@ export function ProductTabs({ product }: { product: Product }) {
       <div key={tab} className="animate-fade-in pt-6">
         {tab === "Deskripsi" && (
           <div className="rounded-xl border border-line bg-white p-6">
-            <div className="space-y-4 whitespace-pre-line text-sm leading-relaxed text-navy/90">
+            <div className="space-y-4 whitespace-pre-line text-justify text-sm leading-relaxed text-navy/90">
               {product.longDescription}
             </div>
           </div>
