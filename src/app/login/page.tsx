@@ -17,10 +17,20 @@ export default function LoginPage() {
 
 function LoginContent() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/submit";
+  const [error, setError] = useState<string | null>(() => {
+    // Error dikirim dari /auth/callback lewat query param.
+    switch (params.get("error")) {
+      case "oauth":
+        return "Login Google gagal atau dibatalkan. Silakan coba lagi.";
+      case "not-configured":
+        return "Login Google belum aktif: kredensial Supabase belum diisi di .env.local.";
+      default:
+        return null;
+    }
+  });
 
   async function signInWithGoogle() {
     if (!isSupabaseConfigured) {
