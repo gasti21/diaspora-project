@@ -50,18 +50,18 @@ export default async function HomePage() {
               berkolaborasi, membeli, atau mendukung.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href="/explore"
-                className="rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy-dark"
+              <a
+                href="#produk-terbaru"
+                className="inline-flex items-center justify-center rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy-dark active:scale-[0.98]"
               >
-                Explore Produk
-              </Link>
-              <Link
-                href="/submit"
-                className="rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark"
+                Lihat Produk ↓
+              </a>
+              <a
+                href="#cara-kerja"
+                className="inline-flex items-center justify-center rounded-lg border border-line bg-white px-6 py-3 text-sm font-semibold text-navy transition hover:bg-surface active:scale-[0.98]"
               >
-                Submit Produk
-              </Link>
+                Cara Kerja
+              </a>
             </div>
             <div className="mt-8 max-w-lg">
               <SearchBar />
@@ -99,21 +99,28 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/explore?kategori=${c.slug}`}
-              className="flex flex-col items-center gap-2.5 rounded-xl border border-line bg-white p-5 text-center transition hover:-translate-y-0.5 hover:border-navy/30 hover:shadow-md"
-            >
-              <c.icon className={`h-7 w-7 ${c.color}`} aria-hidden="true" />
-              <span className="text-sm font-semibold leading-snug">{c.name}</span>
-            </Link>
-          ))}
+          {CATEGORIES.map((c) => {
+            // Mapping warna background pastel untuk icon
+            const bgSoft = c.color.replace('text-', 'bg-').replace('500', '50');
+            
+            return (
+              <Link
+                key={c.slug}
+                href={`/explore?kategori=${c.slug}`}
+                className="group flex flex-col items-center gap-3 rounded-xl border border-line bg-white p-5 text-center transition hover:-translate-y-1 hover:border-navy/30 hover:shadow-md"
+              >
+                <div className={`flex h-14 w-14 items-center justify-center rounded-full ${bgSoft} transition group-hover:scale-110`}>
+                  <c.icon className={`h-7 w-7 ${c.color}`} aria-hidden="true" />
+                </div>
+                <span className="text-sm font-semibold leading-snug">{c.name}</span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
       {/* ===== Produk Terbaru ===== */}
-      <section className="bg-surface/60 py-14">
+      <section id="produk-terbaru" className="bg-surface/60 py-14 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-6 flex items-end justify-between">
             <h2 className="text-2xl font-extrabold">Produk Terbaru</h2>
@@ -121,7 +128,7 @@ export default async function HomePage() {
               Lihat semua produk
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {latest.map((p) => (
               <div key={p.id} className="flex">
                 <ProductCard product={p} />
@@ -132,7 +139,7 @@ export default async function HomePage() {
       </section>
 
       {/* ===== Cara Kerja ===== */}
-      <section className="bg-navy-deep py-16 text-white">
+      <section id="cara-kerja" className="bg-navy-deep py-16 text-white scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <h2 className="text-center text-2xl font-extrabold">Cara Kerja</h2>
           <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -145,22 +152,6 @@ export default async function HomePage() {
                 <p className="mt-1.5 text-sm text-white/70">{s.desc}</p>
               </div>
             ))}
-          </div>
-
-          {/* CTA banner */}
-          <div className="mt-14 flex flex-col items-center justify-between gap-5 rounded-2xl bg-white/5 p-8 sm:flex-row">
-            <div className="text-center sm:text-left">
-              <h3 className="text-xl font-bold">Punya produk atau karya untuk ditampilkan?</h3>
-              <p className="mt-1 text-sm text-white/70">
-                Jangan lewatkan kesempatan menemukan peluang baru!
-              </p>
-            </div>
-            <Link
-              href="/submit"
-              className="shrink-0 rounded-lg bg-brand px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
-            >
-              Submit Produk Sekarang
-            </Link>
           </div>
         </div>
       </section>

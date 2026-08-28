@@ -14,6 +14,10 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-white text-navy antialiased;
 }
