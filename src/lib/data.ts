@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type { SessionUser } from "@/lib/auth";
+import { PROTECTED_ADMIN_EMAIL, type SessionUser } from "@/lib/auth";
 import { SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { CATEGORIES, COUNTRIES, PER_PAGE, slugify } from "@/lib/constants";
 import type {
+  AdminOverview,
   AdminStats,
+  AdminUser,
   Paginated,
   Product,
   ProductFilters,
@@ -318,13 +320,13 @@ export async function adminListProducts(filters: {
 
 export async function adminGetStats(): Promise<AdminStats> {
   if (!isSupabaseConfigured) {
-    const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0 };
+    const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0, users: 1 };
     for (const p of SAMPLE_PRODUCTS) stats[p.status]++;
     return stats;
   }
 
   const supabase = await createClient();
-  const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0 };
+  const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0, users: 0 };
   await Promise.all(
     (["pending", "published", "revision", "rejected"] as const).map(async (s) => {
       const { count } = await supabase
@@ -334,7 +336,101 @@ export async function adminGetStats(): Promise<AdminStats> {
       stats[s] = count ?? 0;
     })
   );
+  stats.users = await countProfiles();
   return stats;
+}
+
+/** Jumlah total profile terdaftar (butuh service role - RLS profiles). */
+async function countProfiles(): Promise<number> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return 0;
+  try {
+    const { count } = await createAdminClient()
+      .from("profiles")
+      .select("id", { count: "exact", head: true });
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Ringkasan halaman Overview admin: statistik, pengajuan terbaru lintas
+ * status, dan produk pending yang paling lama menunggu (aging).
+ */
+export async function adminGetOverview(): Promise<AdminOverview> {
+  const stats = await adminGetStats();
+
+  if (!isSupabaseConfigured) {
+    return {
+      stats,
+      recent: SAMPLE_PRODUCTS.slice(0, 6),
+      oldestPending: SAMPLE_PRODUCTS.find((p) => p.status === "pending") ?? null,
+    };
+  }
+
+  const supabase = await createClient();
+  const [recentRes, oldestRes] = await Promise.all([
+    supabase
+      .from("products")
+      .select("*, categories(id, slug, name)")
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("products")
+      .select("*, categories(id, slug, name)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(1),
+  ]);
+
+  if (recentRes.error) throw new Error(recentRes.error.message);
+  if (oldestRes.error) throw new Error(oldestRes.error.message);
+
+  return {
+    stats,
+    recent: (recentRes.data as DbRow[]).map(toProduct),
+    oldestPending: oldestRes.data?.length
+      ? toProduct(oldestRes.data[0] as DbRow)
+      : null,
+  };
+}
+
+/**
+ * Semua profile (user + admin) beserta jumlah pengajuannya -
+ * untuk halaman admin "Pengguna & Admin". Service role client karena
+ * RLS profiles tidak mengizinkan admin membaca baris user lain.
+ */
+export async function adminListUsers(): Promise<AdminUser[]> {
+  if (!isSupabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return [];
+
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("profiles")
+    .select("id, email, full_name, avatar_url, role, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  // Hitung pengajuan per user sekali jalan (agregasi sisi aplikasi, skala MVP).
+  const { data: subs, error: subsError } = await client
+    .from("products")
+    .select("submitted_by");
+  if (subsError) throw new Error(subsError.message);
+  const counts = new Map<string, number>();
+  for (const row of subs ?? []) {
+    const key = row.submitted_by as string;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    email: row.email,
+    name: row.full_name ?? row.email.split("@")[0],
+    avatarUrl: row.avatar_url,
+    role: row.role === "admin" ? "admin" : "user",
+    createdAt: row.created_at,
+    isOwner: row.email?.toLowerCase() === PROTECTED_ADMIN_EMAIL.toLowerCase(),
+    submissions: counts.get(row.id) ?? 0,
+  }));
 }
 
 export async function adminUpdateProduct(

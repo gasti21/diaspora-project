@@ -15,6 +15,27 @@ export function formatDate(iso: string) {
   return `${d.getDate()} ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+/** Selisih hari penuh dari timestamp ke sekarang (>= 0). */
+export function daysSince(iso: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
+}
+
+/** Waktu relatif bahasa Indonesia: "baru saja", "3 jam lalu", "2 hari lalu". */
+export function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 1) return "baru saja";
+  if (minutes < 60) return `${minutes} menit lalu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  const days = daysSince(iso);
+  if (days === 1) return "1 hari lalu";
+  if (days < 7) return `${days} hari lalu`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} minggu lalu`;
+  return formatDate(iso);
+}
+
 export function formatLocation(product: { city?: string | null; country: string }) {
   return product.city ? `${product.city}, ${product.country}` : product.country;
 }

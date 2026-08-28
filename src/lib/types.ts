@@ -70,6 +70,30 @@ export interface AdminStats {
   published: number;
   revision: number;
   rejected: number;
+  users: number;
+}
+
+/** Baris profile untuk halaman admin "Pengguna & Admin". */
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  avatarUrl?: string | null;
+  role: "admin" | "user";
+  createdAt: string;
+  /** Owner platform - tidak bisa diturunkan/dihapus. */
+  isOwner: boolean;
+  /** Jumlah produk yang pernah diajukan user ini. */
+  submissions: number;
+}
+
+/** Data ringkasan untuk halaman Overview admin. */
+export interface AdminOverview {
+  stats: AdminStats;
+  /** Pengajuan terbaru dari semua status (max 6). */
+  recent: Product[];
+  /** Produk pending yang paling lama menunggu review. */
+  oldestPending: Product | null;
 }
 
 export interface SubmissionPayload {
