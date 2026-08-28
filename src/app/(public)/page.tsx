@@ -52,17 +52,21 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="#produk-terbaru"
-                className="group inline-flex items-center gap-2 rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-dark active:scale-[0.98]"
+                className="group inline-flex items-center gap-2 rounded-xl bg-navy px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-navy/10 transition duration-200 hover:bg-navy-dark hover:shadow-lg active:scale-[0.98]"
               >
                 <span>Jelajahi Produk</span>
-                <span className="transition-transform duration-200 group-hover:translate-y-0.5">↓</span>
+                <svg className="h-4 w-4 text-white/80 transition-transform duration-200 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+                </svg>
               </a>
               <a
                 href="#cara-kerja"
-                className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-5 py-3 text-sm font-semibold text-navy/90 shadow-sm transition hover:border-navy/30 hover:bg-surface active:scale-[0.98]"
+                className="group inline-flex items-center gap-2 rounded-xl border border-line bg-white px-6 py-3.5 text-sm font-bold text-navy shadow-sm transition duration-200 hover:border-navy/40 hover:bg-surface hover:shadow-md active:scale-[0.98]"
               >
-                <span>Alur Pengajuan</span>
-                <span className="text-muted transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+                <span>Cara Kerja</span>
+                <svg className="h-4 w-4 text-muted transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5-7.5M21 12H3" />
+                </svg>
               </a>
             </div>
             <div className="mt-8 max-w-lg">
