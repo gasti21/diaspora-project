@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminUser, PROTECTED_ADMIN_EMAIL } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
@@ -13,7 +13,9 @@ export async function GET() {
   if (!isSupabaseConfigured)
     return NextResponse.json({ error: "Database belum terhubung." }, { status: 500 });
 
-  const client = await createClient();
+  // Service-role client dipakai konsisten di route ini (akses sudah diguard
+  // getAdminUser); perlu untuk read/update profile user lain tanpa tertahan RLS.
+  const client = createAdminClient();
 
   const { data, error } = await client
     .from("profiles")
@@ -57,7 +59,8 @@ export async function POST(request: Request) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return NextResponse.json({ error: "Email tidak valid." }, { status: 400 });
 
-  const client = await createClient();
+  // Service-role client: diperlukan untuk mengubah role baris profile user lain.
+  const client = createAdminClient();
 
   // 1. User harus sudah pernah login (row profiles ada).
   const { data: profile, error: findError } = await client
@@ -81,14 +84,23 @@ export async function POST(request: Request) {
   if (profile.role === "admin")
     return NextResponse.json({ error: "User tersebut sudah menjadi admin." }, { status: 400 });
 
-  // 2. Angkat jadi admin.
-  const { error: updateError } = await client
+  // 2. Angkat jadi admin - verifikasi baris benar-benar ter-update
+  //    (tanpa .select(), update 0 baris tidak memicu error = sukses palsu).
+  const { data: promoted, error: updateError } = await client
     .from("profiles")
     .update({ role: "admin" })
-    .eq("id", profile.id);
+    .eq("id", profile.id)
+    .select("id")
+    .maybeSingle();
 
   if (updateError)
     return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+  if (!promoted)
+    return NextResponse.json(
+      { error: "Gagal mengangkat admin - baris tidak ditemukan." },
+      { status: 404 }
+    );
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
@@ -121,7 +133,8 @@ export async function DELETE(request: Request) {
       { status: 403 }
     );
 
-  const client = await createClient();
+  // Service-role client: diperlukan untuk mengubah role baris profile user lain.
+  const client = createAdminClient();
 
   // Guard 2: minimal harus tersisa satu admin.
   const { count, error: countError } = await client
@@ -138,14 +151,24 @@ export async function DELETE(request: Request) {
       { status: 400 }
     );
 
-  const { error: updateError } = await client
+  // Turunkan role - verifikasi baris benar-benar ter-update
+  // (tanpa .select(), update 0 baris tidak memicu error = sukses palsu).
+  const { data: demoted, error: updateError } = await client
     .from("profiles")
     .update({ role: "user" })
     .eq("email", email)
-    .eq("role", "admin");
+    .eq("role", "admin")
+    .select("id")
+    .maybeSingle();
 
   if (updateError)
     return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+  if (!demoted)
+    return NextResponse.json(
+      { error: "Email tersebut bukan admin." },
+      { status: 404 }
+    );
 
   return NextResponse.json({ ok: true });
 }
