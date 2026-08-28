@@ -47,18 +47,23 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
               <a
                 href="#produk-terbaru"
-                className="inline-flex items-center gap-2.5 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition duration-300 hover:bg-navy-dark hover:shadow-md"
+                className="group relative inline-flex items-center overflow-hidden rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-navy-dark hover:shadow-lg active:translate-y-0 active:shadow-sm"
               >
-                <span>Jelajahi Produk</span>
+                {/* kilau menyapu saat hover */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+                />
+                <span className="relative">Jelajahi Produk</span>
               </a>
               <a
                 href="#cara-kerja"
-                className="relative inline-flex items-center gap-2 py-3 text-sm font-semibold text-navy transition-colors duration-300 hover:text-navy-dark"
+                className="group relative inline-flex items-center rounded-lg px-4 py-3 text-sm font-semibold text-navy transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-surface hover:text-navy-dark active:translate-y-0"
               >
-                <span>Cara Kerja</span>
+                <span className="relative">Cara Kerja</span>
                 <span
                   aria-hidden="true"
-                  className="absolute inset-x-0 bottom-1 h-px origin-left scale-x-0 bg-navy transition-transform duration-300 ease-out group-hover:scale-x-100"
+                  className="absolute inset-x-4 bottom-1.5 h-px origin-left scale-x-0 bg-navy/60 transition-transform duration-300 ease-out group-hover:scale-x-100"
                 />
               </a>
             </div>
