@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowDown, ArrowRight } from "lucide-react";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CATEGORIES } from "@/lib/constants";
@@ -48,23 +47,15 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
               <a
                 href="#produk-terbaru"
-                className="group inline-flex items-center gap-2.5 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition duration-300 hover:bg-navy-dark hover:shadow-md"
+                className="inline-flex items-center gap-2.5 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition duration-300 hover:bg-navy-dark hover:shadow-md"
               >
                 <span>Jelajahi Produk</span>
-                <ArrowDown
-                  className="h-4 w-4 text-white/80 transition-transform duration-300 ease-out group-hover:translate-y-0.5"
-                  aria-hidden="true"
-                />
               </a>
               <a
                 href="#cara-kerja"
-                className="group relative inline-flex items-center gap-2 py-3 text-sm font-semibold text-navy transition-colors duration-300 hover:text-navy-dark"
+                className="relative inline-flex items-center gap-2 py-3 text-sm font-semibold text-navy transition-colors duration-300 hover:text-navy-dark"
               >
                 <span>Cara Kerja</span>
-                <ArrowRight
-                  className="h-4 w-4 text-muted transition-transform duration-300 ease-out group-hover:translate-x-0.5"
-                  aria-hidden="true"
-                />
                 <span
                   aria-hidden="true"
                   className="absolute inset-x-0 bottom-1 h-px origin-left scale-x-0 bg-navy transition-transform duration-300 ease-out group-hover:scale-x-100"
