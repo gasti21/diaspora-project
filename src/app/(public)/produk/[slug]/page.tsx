@@ -11,12 +11,12 @@ import {
   User,
   type LucideIcon,
 } from "lucide-react";
-import { ImageCarousel } from "@/components/ImageCarousel";
-import { CategoryBadge, StageBadge, NeedTag } from "@/components/Badges";
-import { ContactOwnerButton } from "@/components/ContactOwnerButton";
-import { ProductTabs } from "@/components/ProductTabs";
-import { ProductCard } from "@/components/ProductCard";
-import { ShareButtons } from "@/components/ShareButtons";
+import { ImageCarousel } from "@/components/product/ImageCarousel";
+import { CategoryBadge, StageBadge, NeedTag } from "@/components/product/Badges";
+import { ContactOwnerButton } from "@/components/product/ContactOwnerButton";
+import { ProductTabs } from "@/components/product/ProductTabs";
+import { ProductCard } from "@/components/product/ProductCard";
+import { ShareButtons } from "@/components/product/ShareButtons";
 import { getProductBySlug, getRelatedProducts } from "@/lib/data";
 import { SITE_URL } from "@/lib/supabase/config";
 import { countryFlag, formatLocation, waLink } from "@/lib/utils";

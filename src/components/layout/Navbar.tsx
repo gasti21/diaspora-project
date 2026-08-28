@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CircleUserRound } from "lucide-react";
-import { Logo } from "./Logo";
+import { Logo } from "@/components/branding/Logo";
 import { UserMenu } from "./UserMenu";
 import { getSessionUser, isAdminEmail, getAdminUser } from "@/lib/auth";
 

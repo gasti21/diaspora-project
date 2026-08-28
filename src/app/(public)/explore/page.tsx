@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Search } from "lucide-react";
-import { SearchBar } from "@/components/SearchBar";
-import { FilterBar } from "@/components/FilterBar";
-import { ProductCard } from "@/components/ProductCard";
-import { Pagination } from "@/components/Pagination";
+import { SearchBar } from "@/components/catalog/SearchBar";
+import { FilterBar } from "@/components/catalog/FilterBar";
+import { ProductCard } from "@/components/product/ProductCard";
+import { Pagination } from "@/components/catalog/Pagination";
 import { listPublicProducts, listCountries } from "@/lib/data";
 
 export const dynamic = "force-dynamic";

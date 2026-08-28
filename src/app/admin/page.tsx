@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSessionUser, isAdminEmail } from "@/lib/auth";
 import { adminAllowlistActive } from "@/lib/supabase/config";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { LogoMark } from "@/components/Logo";
+import { LogoMark } from "@/components/branding/Logo";
 
 export const dynamic = "force-dynamic";
 

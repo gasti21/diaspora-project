@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getSessionUser } from "@/lib/auth";
 import { listCategories } from "@/lib/data";
-import { SubmitForm } from "@/components/SubmitForm";
-import { LogoMark } from "@/components/Logo";
+import { SubmitForm } from "@/components/forms/SubmitForm";
+import { LogoMark } from "@/components/branding/Logo";
 
 export const dynamic = "force-dynamic";
 

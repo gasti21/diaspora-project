@@ -23,11 +23,17 @@ Indonesia di seluruh dunia. Dikembangkan oleh Tim Bidang IT dan Data PPID DPBD.
 ## Struktur
 
 ```
-docs/design/          5 mockup acuan UI (compro, explore, detail, submit, dashboard)
+docs/design/          5 mockup acuan UI (company-profile, explore, detail, submit, dashboard)
 supabase/migrations/  skema database + RLS + storage bucket
 supabase/seed.sql     6 kategori + produk contoh
 src/app/              halaman (landing, explore, detail, submit, login, admin) + API
-src/components/       komponen UI
+src/components/
+  branding/           Logo, ikon brand
+  layout/             Navbar, Footer, UserMenu
+  product/            ProductCard, ProductImage, tabs, carousel, kontak, share, badges
+  catalog/            SearchBar, FilterBar, Pagination
+  forms/              SubmitForm
+  admin/              AdminDashboard
 src/lib/              data layer, klien Supabase, konstanta, helper
 ```
 

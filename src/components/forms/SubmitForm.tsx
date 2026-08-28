@@ -5,7 +5,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CircleCheck, Info, LoaderCircle, Plus, ShieldCheck, X } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
+import { LogoMark } from "@/components/branding/Logo";
 import { CATEGORIES, STAGES, COUNTRIES, NEEDS, BACKGROUND_TYPES, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SubmissionPayload, Stage } from "@/lib/types";

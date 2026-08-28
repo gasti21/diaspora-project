@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { BRAND, BrandIcon } from "./BrandIcon";
-import { LogoMark } from "./Logo";
+import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
+import { LogoMark } from "@/components/branding/Logo";
 
 export function Footer() {
   return (

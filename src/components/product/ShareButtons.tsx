@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Link2 } from "lucide-react";
-import { BRAND, BrandIcon } from "./BrandIcon";
+import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
 import { shareUrls } from "@/lib/utils";
 
 const ITEMS = [

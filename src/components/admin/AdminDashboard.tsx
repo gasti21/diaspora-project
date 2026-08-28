@@ -21,9 +21,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
-import { CategoryBadge, StageBadge, StatusBadge } from "@/components/Badges";
-import { ProductImage } from "@/components/ProductImage";
+import { LogoMark } from "@/components/branding/Logo";
+import { CategoryBadge, StageBadge, StatusBadge } from "@/components/product/Badges";
+import { ProductImage } from "@/components/product/ProductImage";
 import { PER_PAGE } from "@/lib/constants";
 import { cn, formatDate } from "@/lib/utils";
 import type { AdminStats, Paginated, Product, ProductStatus } from "@/lib/types";

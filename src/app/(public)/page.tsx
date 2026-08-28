@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ClipboardCheck, FileUp, Handshake, Mail } from "lucide-react";
-import { SearchBar } from "@/components/SearchBar";
-import { ProductCard } from "@/components/ProductCard";
+import { SearchBar } from "@/components/catalog/SearchBar";
+import { ProductCard } from "@/components/product/ProductCard";
 import { CATEGORIES } from "@/lib/constants";
 import { getLatestProducts } from "@/lib/data";
 

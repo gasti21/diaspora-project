@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { LogoMark } from "@/components/Logo";
+import { LogoMark } from "@/components/branding/Logo";
 
 export default function LoginPage() {
   return (
