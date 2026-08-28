@@ -27,7 +27,7 @@ export default async function SubmitPage() {
           akun Google Anda - tanpa perlu membuat password baru.
         </p>
         <Link
-          href="/login?next=%2Fsubmit"
+          href="/login"
           className="mt-6 flex items-center justify-center gap-3 rounded-xl border border-line bg-white px-6 py-3.5 text-sm font-semibold text-navy shadow-sm transition hover:bg-surface"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -50,7 +50,7 @@ export default async function SubmitPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-extrabold">Submit Produk</h1>
+      <h1 className="text-3xl font-extrabold">Halo, {user.name} 👋</h1>
       <p className="mt-2 text-muted">
         Lengkapi informasi produk Anda. Tim kami akan meninjau sebelum
         ditampilkan.

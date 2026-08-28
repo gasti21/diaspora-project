@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { LogoMark } from "@/components/branding/Logo";
@@ -16,9 +16,8 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const params = useSearchParams();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(() => {
     // Error dikirim dari /auth/callback lewat query param.
     switch (params.get("error")) {
