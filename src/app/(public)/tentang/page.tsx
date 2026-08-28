@@ -36,7 +36,8 @@ export default function TentangPage() {
         </p>
         <p>
           Platform ini dikembangkan oleh <strong>Tim Bidang IT dan Data PPID
-          DPBD</strong> di bawah pengurus PPID DPBD. Kami percaya bahwa produk,
+          DPBD</strong> di bawah naungan Direktorat Pengembangan Bisnis dan
+          Dana Abadi Mengabdi PPI Dunia. Kami percaya bahwa produk,
           aplikasi, riset, dan karya kreatif diaspora Indonesia layak dikenal
           luas - dan bahwa koneksi yang tepat dapat membuka peluang bisnis dan
           kolaborasi lintas negara.
