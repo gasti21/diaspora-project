@@ -176,6 +176,24 @@ export async function getRelatedProducts(
   return (data as DbRow[]).map(toProduct);
 }
 
+/**
+ * Daftar produk yang diajukan user tertentu (semua status) - untuk
+ * halaman "Pengajuan Saya". Keamanan via RLS products_owner_read_own:
+ * user hanya bisa membaca baris miliknya sendiri.
+ */
+export async function listMySubmissions(userId: string): Promise<Product[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, categories(id, slug, name)")
+    .eq("submitted_by", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw new Error(error.message);
+  return (data as DbRow[]).map(toProduct);
+}
+
 /** Daftar negara unik dari produk published - untuk filter Lokasi. */
 export async function listCountries(): Promise<string[]> {
   if (!isSupabaseConfigured) {

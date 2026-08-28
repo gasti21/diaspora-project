@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleUserRound, LayoutDashboard, LogOut, PackagePlus } from "lucide-react";
+import { CircleUserRound, ClipboardList, LayoutDashboard, LogOut, PackagePlus } from "lucide-react";
 import type { SessionUser } from "@/lib/auth";
 
 export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolean }) {
@@ -47,6 +47,14 @@ export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolea
             <p className="truncate text-sm font-semibold">{user.name}</p>
             <p className="truncate text-xs text-muted">{user.email}</p>
           </div>
+          <Link
+            href="/pengajuan"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-surface"
+          >
+            <ClipboardList className="h-4 w-4 text-muted" />
+            Pengajuan Saya
+          </Link>
           <Link
             href="/submit"
             onClick={() => setOpen(false)}
