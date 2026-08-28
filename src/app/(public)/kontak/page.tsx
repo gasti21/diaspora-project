@@ -3,7 +3,7 @@ import { Landmark, Mail, MessageCircle, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  description: "Hubungi tim KaryaDiaspora - PPID DPBD.",
+  description: "Hubungi tim KaryaDiaspora - Perhimpunan Pelajar Indonesia (PPI) Dunia.",
 };
 
 export default function KontakPage() {
@@ -31,9 +31,9 @@ export default function KontakPage() {
         />
         <Card
           icon={Landmark}
-          title="Sekretariat PPID DPBD"
-          desc="Tim Bidang IT dan Data PPID DPBD."
-          value="Kunjungi situs DPBD"
+          title="PPI Dunia"
+          desc="Perhimpunan Pelajar Indonesia (PPI) Dunia."
+          value="Kunjungi situs PPI Dunia"
           href="https://dpbd.org"
         />
       </div>
