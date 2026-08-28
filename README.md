@@ -62,12 +62,18 @@ npm run dev        # http://localhost:3000
    *APIs & Services → OAuth consent screen* (External, isi nama app).
 2. *Credentials → Create Credentials → OAuth client ID* → tipe **Web application**.
    - **Authorized redirect URI:**
-     `https://<ref-supabase>.supabase.co/auth/v1/callback`
-     (lihat di Supabase *Authentication → Providers → Google*).
-3. Salin *Client ID* & *Client Secret* ke Supabase
-   (*Authentication → Providers → Google* → enable) → Save.
-4. Untuk lokal, tambahkan juga `http://localhost:3000/auth/callback` bila
-   diperlukan; redirect utama tetap milik Supabase.
+     `https://<project-ref>.supabase.co/auth/v1/callback`
+     Ganti `<project-ref>` dengan ref project Supabase Anda (terlihat di URL project,
+     contoh: `https://scpboipfxqtyujhzgybk.supabase.co`).
+   - Ini satu-satunya redirect URI yang dibutuhkan - **tidak perlu** menambah
+     `http://localhost:3000/...` di Google.
+3. Buka Supabase → *Authentication → Providers → Google* → enable, lalu salin
+   *Client ID* & *Client Secret* dari Google → **Save**.
+4. Masih di Supabase → *Authentication → URL Configuration*:
+   - **Site URL:** `http://localhost:3000` (dev) atau domain produksi.
+   - **Redirect URLs:** tambahkan `http://localhost:3000/auth/callback`
+     (dan `https://<domain-produksi>/auth/callback` saat sudah deploy).
+   Tanpa ini, callback OAuth akan ditolak Supabase.
 
 ### 3. Isi `.env.local`
 
@@ -77,13 +83,12 @@ cp .env.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
-ADMIN_EMAILS=admin1@gmail.com,admin2@dpbd.org
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-`ADMIN_EMAILS` = daftar email pengurus yang boleh membuka `/admin`
-(dipisah koma). Saat development, jika kosong, `/admin` terbuka sebagai
-peringatan mode dev - **di produksi wajib diisi**.
+> Tidak ada variabel `ADMIN_EMAILS`. Status admin disimpan di database
+> (tabel `profiles`, kolom `role = 'admin'`) dan dikelola lewat halaman
+> `/admin` > "Kelola Admin". Admin pemilik (owner) diatur langsung di DB.
 
 ### 4. Deploy ke Vercel
 
