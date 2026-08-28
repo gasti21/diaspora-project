@@ -4,7 +4,7 @@ import { Logo } from "@/components/branding/Logo";
 import { UserMenu } from "./UserMenu";
 import { getSessionUser, isAdminEmail, getAdminUser } from "@/lib/auth";
 
-// Desktop: tanpa link "Submit Produk" — tombol merah di kanan sudah mewakilinya
+// Desktop: tanpa link "Submit Produk" - tombol merah di kanan sudah mewakilinya
 // agar tidak ada dua CTA identik dalam satu pandangan.
 const LINKS = [
   { href: "/explore", label: "Explore Produk" },

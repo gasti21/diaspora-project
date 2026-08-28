@@ -150,7 +150,7 @@ export default async function HomePage() {
               Alur Platform &amp; Cara Kerja
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
-              Dari pengajuan hingga terhubung dengan publik — 4 langkah sederhana
+              Dari pengajuan hingga terhubung dengan publik - 4 langkah sederhana
               publikasi karya diaspora.
             </p>
           </div>
