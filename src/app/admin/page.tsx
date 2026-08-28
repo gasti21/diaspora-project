@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSessionUser, getAdminUser } from "@/lib/auth";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { WelcomeBanner } from "@/components/layout/WelcomeBanner";
+import { WelcomeToast } from "@/components/layout/WelcomeToast";
 import { LogoMark } from "@/components/branding/Logo";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +41,7 @@ export default async function AdminPage() {
 
   return (
     <>
-      <WelcomeBanner />
+      <WelcomeToast />
       <AdminDashboard adminName={admin.name} />
     </>
   );
