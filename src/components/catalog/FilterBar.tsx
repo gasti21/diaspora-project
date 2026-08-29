@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { RotateCcw } from "lucide-react";
+import { ArrowUpDown, RotateCcw } from "lucide-react";
 import { CATEGORIES, STAGES, NEEDS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +12,17 @@ const FILTERS = [
   { key: "kebutuhan", label: "Kebutuhan", options: NEEDS.filter((n) => n !== "Lainnya").map((n) => ({ value: n, label: n })) },
 ];
 
-/** Baris 4 filter dropdown + Reset - memperbarui query string halaman Explore. */
+const SORTS = [
+  { value: "", label: "Terbaru" },
+  { value: "terlama", label: "Terlama" },
+  { value: "nama", label: "Nama (A-Z)" },
+];
+
+/**
+ * Baris 4 filter dropdown + urutan + Reset - memperbarui query string
+ * halaman Explore. Sorting dipisah dari filter supaya "Reset Filter"
+ * hanya membersihkan filter kategori/lokasi/status/kebutuhan.
+ */
 export function FilterBar({ countries }: { countries: string[] }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -26,6 +36,12 @@ export function FilterBar({ countries }: { countries: string[] }) {
     router.push(next.size ? `/explore?${next}` : "/explore");
   }
 
+  const selectCls = (filled: boolean) =>
+    cn(
+      "h-11 cursor-pointer rounded-xl border bg-white px-4 pr-9 text-sm font-medium outline-none transition",
+      filled ? "border-navy text-navy" : "border-line text-navy/80 hover:border-navy/40"
+    );
+
   return (
     <div className="flex flex-wrap items-center gap-3">
       {FILTERS.map((f) => (
@@ -34,12 +50,7 @@ export function FilterBar({ countries }: { countries: string[] }) {
           value={params.get(f.key) ?? ""}
           onChange={(e) => setParam(f.key, e.target.value)}
           aria-label={`Filter ${f.label}`}
-          className={cn(
-            "h-11 cursor-pointer rounded-xl border bg-white px-4 pr-9 text-sm font-medium outline-none transition",
-            params.get(f.key)
-              ? "border-navy text-navy"
-              : "border-line text-navy/80 hover:border-navy/40"
-          )}
+          className={selectCls(Boolean(params.get(f.key)))}
         >
           <option value="">{f.label}</option>
           {(f.key === "lokasi"
@@ -53,11 +64,34 @@ export function FilterBar({ countries }: { countries: string[] }) {
         </select>
       ))}
 
+      {/* Urutan hasil */}
+      <div className="relative">
+        <ArrowUpDown
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          aria-hidden="true"
+        />
+        <select
+          value={params.get("urutkan") ?? ""}
+          onChange={(e) => setParam("urutkan", e.target.value)}
+          aria-label="Urutkan produk"
+          className={cn(selectCls(Boolean(params.get("urutkan"))), "pl-10")}
+        >
+          {SORTS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {active && (
         <button
           onClick={() => {
-            const q = params.get("q");
-            router.push(q ? `/explore?q=${encodeURIComponent(q)}` : "/explore");
+            const next = new URLSearchParams(params.toString());
+            FILTERS.forEach((f) => next.delete(f.key));
+            next.delete("halaman");
+            const qs = next.toString();
+            router.push(qs ? `/explore?${qs}` : "/explore");
           }}
           className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-navy/70 transition hover:bg-surface hover:text-brand"
         >

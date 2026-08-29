@@ -53,6 +53,8 @@ export interface ProductFilters {
   country?: string;
   stage?: string;
   need?: string;
+  /** Urutan hasil: terbaru (default), terlama, atau nama (A-Z). */
+  sort?: "terbaru" | "terlama" | "nama";
   page?: number;
   perPage?: number;
 }

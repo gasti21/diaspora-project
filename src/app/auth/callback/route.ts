@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       }
 
       // Default cerdas berdasarkan role & riwayat pengajuan:
-      // admin -> /admin, user yang sudah pernah submit -> /pengajuan,
-      // user baru -> /submit.
+      // admin -> /admin, user yang sudah pernah submit -> /dashboard
+      // (pusat ringkasan member), user baru -> /submit.
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
             .from("products")
             .select("id", { count: "exact", head: true })
             .eq("submitted_by", user.id);
-          if ((count ?? 0) > 0) target = "/pengajuan";
+          if ((count ?? 0) > 0) target = "/dashboard";
         }
       }
 

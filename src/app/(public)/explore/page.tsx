@@ -20,6 +20,7 @@ interface SearchParams {
   lokasi?: string;
   status?: string;
   kebutuhan?: string;
+  urutkan?: string;
   halaman?: string;
 }
 
@@ -38,6 +39,7 @@ export default async function ExplorePage({
       country: sp.lokasi,
       stage: sp.status,
       need: sp.kebutuhan,
+      sort: sp.urutkan === "terlama" || sp.urutkan === "nama" ? sp.urutkan : undefined,
       page,
     }),
     listCountries(),
@@ -98,6 +100,7 @@ export default async function ExplorePage({
             lokasi: sp.lokasi,
             status: sp.status,
             kebutuhan: sp.kebutuhan,
+            urutkan: sp.urutkan,
           }}
         />
       </div>

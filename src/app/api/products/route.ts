@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
       country: sp.get("lokasi") ?? undefined,
       stage: sp.get("status") ?? undefined,
       need: sp.get("kebutuhan") ?? undefined,
+      sort: (sp.get("urutkan") as "terbaru" | "terlama" | "nama") ?? undefined,
       page: Math.max(1, parseInt(sp.get("halaman") ?? "1", 10) || 1),
       perPage: Math.min(48, parseInt(sp.get("perHalaman") ?? String(PER_PAGE), 10) || PER_PAGE),
     });

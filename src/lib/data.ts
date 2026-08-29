@@ -106,9 +106,12 @@ export async function listPublicProducts(
   if (filters.stage) query = query.eq("stage", filters.stage);
   if (filters.need) query = query.contains("needs", [filters.need]);
 
-  query = query
-    .order("created_at", { ascending: false })
-    .range((page - 1) * perPage, page * perPage - 1);
+  // urutan hasil (default: terbaru dulu)
+  if (filters.sort === "nama") query = query.order("name", { ascending: true });
+  else if (filters.sort === "terlama") query = query.order("created_at", { ascending: true });
+  else query = query.order("created_at", { ascending: false });
+
+  query = query.range((page - 1) * perPage, page * perPage - 1);
 
   const { data, count, error } = await query;
   if (error) throw new Error(error.message);
@@ -396,6 +399,27 @@ export async function adminGetOverview(): Promise<AdminOverview> {
 }
 
 /**
+ * Aktivitas kurasi terbaru: seluruh produk diurutkan berdasarkan waktu
+ * terakhir diubah (updated_at) - dipakai halaman Aktivitas admin.
+ * Catatan: MVP tidak menyimpan log terpisah; updated_at + review_note
+ * menjadi sumber ringkasan aktivitas yang tersedia.
+ */
+export async function adminListActivity(limit = 20): Promise<Product[]> {
+  if (!isSupabaseConfigured) {
+    return SAMPLE_PRODUCTS.slice(0, limit);
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, categories(id, slug, name)")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data as DbRow[]).map(toProduct);
+}
+
+/**
  * Semua profile (user + admin) beserta jumlah pengajuannya -
  * untuk halaman admin "Pengguna & Admin". Service role client karena
  * RLS profiles tidak mengizinkan admin membaca baris user lain.
@@ -480,7 +504,7 @@ export async function uploadProductImage(
 /* ======================= FALLBACK SAMPLE DATA ======================= */
 
 function filterSample(
-  filters: { q?: string; category?: string; country?: string; stage?: string; need?: string; page?: number; perPage?: number },
+  filters: { q?: string; category?: string; country?: string; stage?: string; need?: string; sort?: "terbaru" | "terlama" | "nama"; page?: number; perPage?: number },
   rows: Product[]
 ): Paginated<Product> {
   let result = rows;
@@ -503,6 +527,15 @@ function filterSample(
   const page = filters.page ?? 1;
   const perPage = filters.perPage ?? PER_PAGE;
   const total = result.length;
+
+  // urutan hasil (default: terbaru dulu) - konsisten dengan mode database
+  if (filters.sort === "nama") {
+    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+  } else if (filters.sort === "terlama") {
+    result = [...result].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  } else {
+    result = [...result].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
 
   return {
     data: result.slice((page - 1) * perPage, page * perPage),

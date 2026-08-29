@@ -26,16 +26,33 @@ Indonesia di seluruh dunia. Dikembangkan oleh Tim Bidang IT dan Data PPID DPBD.
 docs/design/          5 mockup acuan UI (company-profile, explore, detail, submit, dashboard)
 supabase/migrations/  skema database + RLS + storage bucket
 supabase/seed.sql     6 kategori + produk contoh
-src/app/              halaman (landing, explore, detail, submit, login, admin) + API
+src/app/              halaman + API
+src/app/(public)/     landing, explore, detail produk, tentang, kontak
+src/app/(member)/     area member (login): dashboard, pengajuan, submit, favorit, profil
+src/app/admin/        panel admin: overview, produk, aktivitas kurasi, pengguna
 src/components/
   branding/           Logo, ikon brand
-  layout/             Navbar, Footer, UserMenu
-  product/            ProductCard, ProductImage, tabs, carousel, kontak, share, badges
-  catalog/            SearchBar, FilterBar, Pagination
-  forms/              SubmitForm
-  admin/              AdminDashboard
-src/lib/              data layer, klien Supabase, konstanta, helper
+  layout/             Navbar + MobileMenu (drawer), Footer, UserMenu
+  member/             MemberShell (sidebar member ala panel admin)
+  product/            ProductCard (+ tombol favorit), tabs, carousel, kontak, share
+  catalog/            SearchBar, FilterBar (+ urutan), Pagination
+  forms/              SubmitForm + LocationPicker (deteksi GPS ala Shopee)
+  admin/              AdminShell, SidebarNav, NotificationBell, tabel & drawer review
+  toast/              ToastProvider (semua notifikasi tampil kanan-atas)
+src/lib/              data layer, favorit (localStorage), klien Supabase, konstanta
 ```
+
+## Fitur Utama
+
+- **Notifikasi terpusat kanan-atas** untuk admin & member (toast + progress bar).
+- **Panel admin**: sidebar bergrup, lonceng notifikasi badge pending, overview
+  dengan grafik distribusi status & quick-approve, halaman Aktivitas Kurasi.
+- **Area member** dengan sidebar ala panel admin: Dashboard, Pengajuan Saya,
+  Submit Produk, Favorit, Profil.
+- **Deteksi lokasi otomatis** di form submit (GPS realtime + reverse geocoding
+  gratis via BigDataCloud, fallback pilih manual).
+- **Favorit produk** (ikon hati, tersimpan di perangkat tanpa login).
+- **Explore**: pencarian, filter, urutan (terbaru/terlama/nama), pagination.
 
 > **Mode demo:** tanpa `.env.local`, aplikasi tetap jalan memakai data contoh
 > (`src/lib/sample-data.ts`) - cocok untuk review UI. Semua penulisan (submit,

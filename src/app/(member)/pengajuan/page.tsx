@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 import { listMySubmissions } from "@/lib/data";
-import { LogoMark } from "@/components/branding/Logo";
 import { StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
 import { cn, formatDate } from "@/lib/utils";
@@ -37,27 +36,7 @@ export default async function PengajuanPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const user = await getSessionUser();
-
-  // Sama seperti submit: pengunjung tanpa login dihadapkan pada ajakan masuk.
-  if (!user) {
-    return (
-      <div className="mx-auto flex max-w-lg flex-col items-center px-4 py-20 text-center">
-        <LogoMark className="h-12 w-12" />
-        <h1 className="mt-5 text-2xl font-extrabold">Pengajuan Saya</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
-          Masuk dengan akun Google Anda untuk melihat status pengajuan produk
-          yang sudah Anda kirim.
-        </p>
-        <Link
-          href="/login?next=%2Fpengajuan"
-          className="mt-6 flex items-center justify-center gap-3 rounded-xl border border-line bg-white px-6 py-3.5 text-sm font-semibold text-navy shadow-sm transition hover:bg-surface"
-        >
-          <ClipboardList className="h-5 w-5" aria-hidden="true" />
-          Masuk untuk melihat pengajuan
-        </Link>
-      </div>
-    );
-  }
+  if (!user) return null; // guard sesi ada di layout (member)
 
   const [all, sp] = await Promise.all([listMySubmissions(user.id), searchParams]);
   const active = FILTERS.some((f) => f.key === sp.status) ? (sp.status as "all" | ProductStatus) : "all";

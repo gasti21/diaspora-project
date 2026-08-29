@@ -17,6 +17,7 @@ import { ContactOwnerButton } from "@/components/product/ContactOwnerButton";
 import { ProductTabs } from "@/components/product/ProductTabs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
+import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { getProductBySlug, getRelatedProducts } from "@/lib/data";
 import { SITE_URL } from "@/lib/supabase/config";
 import { countryFlag, formatLocation, waLink } from "@/lib/utils";
@@ -112,9 +113,10 @@ export default async function ProductDetailPage({
             ))}
           </dl>
 
-          {/* PRD MVP: hanya "Hubungi Pemilik" - pop-up berisi Nama, Email, Lokasi, Website */}
+          {/* PRD MVP: "Hubungi Pemilik" + simpan ke favorit */}
           <div className="mt-5 flex gap-3">
             <ContactOwnerButton product={product} />
+            <FavoriteButton product={product} variant="detail" />
           </div>
           <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />

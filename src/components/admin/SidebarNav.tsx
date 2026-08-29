@@ -4,18 +4,23 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ExternalLink, LogOut } from "lucide-react";
-import { NAV, STATS_EVENT } from "./admin-nav";
+import { NAV_GROUPS, STATS_EVENT } from "./admin-nav";
 import { LogoMark } from "@/components/branding/Logo";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/toast/ToastProvider";
 import type { AdminStats } from "@/lib/types";
 
+interface SidebarNavProps {
+  /** Info admin untuk kartu profil di kaki sidebar. */
+  admin: { name: string; email: string; avatarUrl?: string };
+}
+
 /**
- * Isi sidebar admin: dipakai di mode desktop dan drawer mobile.
- * Badge jumlah pending & pengguna menyegarkan otomatis lewat event
+ * Isi sidebar admin (desktop & drawer mobile): menu dikelompokkan per
+ * bagian, badge pending & pengguna menyegarkan otomatis lewat event
  * STATS_EVENT setiap kali halaman admin melakukan aksi.
  */
-export function SidebarNav() {
+export function SidebarNav({ admin }: SidebarNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const toast = useToast();
@@ -57,33 +62,59 @@ export function SidebarNav() {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 text-sm">
-        {NAV.map((item) => {
-          const active = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center justify-between gap-3 rounded-lg px-3.5 py-2.5 font-medium transition",
-                active
-                  ? "bg-white/10 text-white"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <span className="flex items-center gap-3">
-                <item.icon className="h-4.5 w-4.5" aria-hidden="true" />
-                {item.label}
-              </span>
-              <SidebarBadge href={item.href} stats={stats} />
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 text-sm">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.title} className="mb-5">
+            <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-white/35">
+              {group.title}
+            </p>
+            <ul className="space-y-1">
+              {group.items.map((item) => {
+                const active = item.exact
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "group flex items-center justify-between gap-3 rounded-lg px-3.5 py-2.5 font-medium transition",
+                        active
+                          ? "bg-brand text-white shadow-sm shadow-brand/30"
+                          : "text-white/70 hover:bg-white/5 hover:text-white"
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <item.icon className="h-4.5 w-4.5" aria-hidden="true" />
+                        {item.label}
+                      </span>
+                      <SidebarBadge stat={item.stat} stats={stats} />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
+      {/* Kaki sidebar: profil admin + tautan keluar */}
       <div className="space-y-2 border-t border-white/10 p-4">
+        <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3.5 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 text-white">
+            {admin.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={admin.avatarUrl} alt={admin.name} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-xs font-bold uppercase">{admin.name.slice(0, 1)}</span>
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-white">{admin.name}</p>
+            <p className="truncate text-[11px] text-white/45">{admin.email}</p>
+          </div>
+        </div>
+
         <Link
           href="/"
           className="flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
@@ -103,25 +134,31 @@ export function SidebarNav() {
   );
 }
 
-/** Badge angka di item sidebar (aktif-state styling ditangani AdminShell). */
-function SidebarBadge({ href, stats }: { href: string; stats: AdminStats | null }) {
-  if (!stats) return null;
-  if (href === "/admin/produk")
+/** Badge angka di item sidebar (merah bila ada pending yang menunggu). */
+function SidebarBadge({
+  stat,
+  stats,
+}: {
+  stat?: "pending" | "users";
+  stats: AdminStats | null;
+}) {
+  if (!stats || !stat) return null;
+  const value = stats[stat];
+  if (stat === "pending") {
     return (
       <span
         className={cn(
           "rounded-full px-2 py-0.5 text-xs font-bold",
-          stats.pending > 0 ? "bg-brand text-white" : "bg-white/15 text-white/80"
+          value > 0 ? "bg-white text-brand" : "bg-white/15 text-white/70"
         )}
       >
-        {stats.pending}
+        {value}
       </span>
     );
-  if (href === "/admin/pengguna")
-    return (
-      <span className="rounded-full bg-white/15 px-2 py-0.5 text-xs font-bold text-white/80">
-        {stats.users}
-      </span>
-    );
-  return null;
+  }
+  return (
+    <span className="rounded-full bg-white/15 px-2 py-0.5 text-xs font-bold text-white/80">
+      {value}
+    </span>
+  );
 }

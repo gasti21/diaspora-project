@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { CircleUserRound, ExternalLink, LogOut, X } from "lucide-react";
-import { NAV, TITLES } from "./admin-nav";
-import { LogoMark } from "@/components/branding/Logo";
+import { usePathname } from "next/navigation";
+import { CircleUserRound, Menu, X } from "lucide-react";
+import { TITLES } from "./admin-nav";
+import { NotificationBell } from "./NotificationBell";
 import { SidebarNav } from "./SidebarNav";
 
 interface ShellProps {
@@ -14,9 +13,9 @@ interface ShellProps {
 }
 
 /**
- * Kerangka aplikasi admin: sidebar navigasi (navy) + topbar judul halaman.
- * Sidebar jadi drawer di layar kecil; badge statistik menyegarkan otomatis
- * setiap kali halaman admin melakukan aksi (lewat event kd:admin-stats).
+ * Kerangka aplikasi admin: sidebar navigasi (navy) + topbar profesional.
+ * Topbar memuat hamburger (mobile), judul halaman, lonceng notifikasi
+ * real-time, dan avatar admin. Sidebar jadi drawer di layar kecil.
  */
 export function AdminShell({ admin, children }: ShellProps) {
   const pathname = usePathname();
@@ -36,7 +35,7 @@ export function AdminShell({ admin, children }: ShellProps) {
     };
   }, [open]);
 
-  const nav = <SidebarNav />;
+  const nav = <SidebarNav admin={admin} />;
 
   return (
     <div className="flex min-h-screen bg-surface">
@@ -53,7 +52,7 @@ export function AdminShell({ admin, children }: ShellProps) {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <aside className="animate-drawer-in absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-navy-deep">
+          <aside className="animate-drawer-left-in absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-navy-deep">
             {nav}
           </aside>
           <button
@@ -73,32 +72,22 @@ export function AdminShell({ admin, children }: ShellProps) {
             <button
               onClick={() => setOpen(true)}
               aria-label="Buka menu"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-navy lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-white text-navy transition hover:bg-surface lg:hidden"
             >
-              <svg
-                viewBox="0 0 24 24"
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-              </svg>
+              <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-navy">{title}</p>
               <p className="hidden text-xs text-muted sm:block">Panel Admin KaryaDiaspora</p>
             </div>
-            <div className="ml-auto flex items-center gap-2">
-              <Link
-                href="/"
-                className="hidden items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-xs font-semibold text-navy transition hover:bg-surface sm:inline-flex"
+            <div className="ml-auto flex items-center gap-2.5">
+              {/* Notifikasi real-time: badge merah = ada pending */}
+              <NotificationBell />
+              <span className="hidden h-6 w-px bg-line sm:block" aria-hidden="true" />
+              <span
+                title={admin.email}
+                className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy"
               >
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                Lihat Situs
-              </Link>
-              <span className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy">
                 {admin.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={admin.avatarUrl} alt={admin.name} className="h-full w-full object-cover" />

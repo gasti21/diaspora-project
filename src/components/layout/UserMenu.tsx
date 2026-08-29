@@ -3,8 +3,47 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleUserRound, ClipboardList, LayoutDashboard, LogOut, PackagePlus } from "lucide-react";
+import {
+  CircleUserRound,
+  ClipboardList,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  UserRound,
+} from "lucide-react";
 import type { SessionUser } from "@/lib/auth";
+
+/** Item menu dropdown akun. */
+function MenuItem({
+  href,
+  icon: Icon,
+  label,
+  onClick,
+  accent,
+}: {
+  href: string;
+  icon: typeof UserRound;
+  label: string;
+  onClick?: () => void;
+  accent?: "blue" | "brand";
+}) {
+  const cls =
+    accent === "blue"
+      ? "font-semibold text-blue-700 hover:bg-blue-50"
+      : accent === "brand"
+        ? "font-medium text-brand hover:bg-brand-soft"
+        : "font-medium text-navy hover:bg-surface";
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${cls}`}
+    >
+      <Icon className="h-4 w-4 text-muted" aria-hidden="true" />
+      {label}
+    </Link>
+  );
+}
 
 export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolean }) {
   const [open, setOpen] = useState(false);
@@ -32,7 +71,7 @@ export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolea
         onClick={() => setOpen((v) => !v)}
         aria-label="Menu akun"
         aria-expanded={open}
-        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy transition hover:border-navy/40"
+        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-line bg-white text-navy transition hover:border-navy/40"
       >
         {user.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -59,50 +98,34 @@ export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolea
             </div>
           </div>
 
-          <div className="p-2">
-            <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted/70">
-              Akun Saya
-            </p>
-            <Link
-              href="/pengajuan"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-navy transition hover:bg-surface"
-            >
-              <ClipboardList className="h-4 w-4 text-muted" />
-              Pengajuan Saya
-            </Link>
-            <Link
-              href="/submit"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-navy transition hover:bg-surface"
-            >
-              <PackagePlus className="h-4 w-4 text-muted" />
-              Submit Produk
-            </Link>
-          </div>
-
+          {/* Admin: menu admin diprioritaskan paling atas */}
           {isAdmin && (
-            <div className="border-t border-line p-2">
+            <div className="p-2">
               <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted/70">
                 Admin
               </p>
-              <Link
-                href="/admin"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard Admin
-              </Link>
+              <MenuItem href="/admin" icon={LayoutDashboard} label="Panel Admin" onClick={() => setOpen(false)} accent="blue" />
             </div>
           )}
+
+          {/* Menu member: tanpa duplikasi CTA Submit Produk (sudah ada tombol
+              merah di navbar, drawer mobile, & sidebar area member) */}
+          <div className={isAdmin ? "border-t border-line p-2" : "p-2"}>
+            <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted/70">
+              Akun Saya
+            </p>
+            <MenuItem href="/dashboard" icon={LayoutDashboard} label="Dashboard Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/pengajuan" icon={ClipboardList} label="Pengajuan Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/favorit" icon={Heart} label="Favorit Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/profil" icon={UserRound} label="Profil Saya" onClick={() => setOpen(false)} />
+          </div>
 
           <div className="border-t border-line p-2">
             <button
               onClick={signOut}
               className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-brand transition hover:bg-brand-soft"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4" aria-hidden="true" />
               Keluar
             </button>
           </div>

@@ -7,7 +7,8 @@ import Link from "next/link";
 import { CircleCheck, Info, LoaderCircle, Plus, ShieldCheck, X } from "lucide-react";
 import { LogoMark } from "@/components/branding/Logo";
 import { useToast } from "@/components/toast/ToastProvider";
-import { CATEGORIES, STAGES, COUNTRIES, NEEDS, BACKGROUND_TYPES, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
+import { LocationPicker } from "./LocationPicker";
+import { CATEGORIES, STAGES, NEEDS, BACKGROUND_TYPES, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SubmissionPayload, Stage } from "@/lib/types";
 
@@ -219,22 +220,17 @@ export function SubmitForm({ categories, user }: Props) {
               ))}
             </select>
           </Field>
-          <Field label="Negara / Lokasi" required error={errors.country}>
-            <select className={inputCls(errors.country)} value={form.country} onChange={(e) => set("country", e.target.value)}>
-              <option value="">Pilih negara</option>
-              {COUNTRIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+          {/* Lokasi: deteksi GPS otomatis ala Shopee + fallback manual */}
+          <LocationPicker
+            country={form.country}
+            city={form.city}
+            onCountry={(v) => set("country", v)}
+            onCity={(v) => set("city", v)}
+            error={errors.country}
+          />
+          <Field label="Tahun Berdiri (opsional)">
+            <input className={inputCls()} placeholder="Contoh: 2021" inputMode="numeric" value={form.yearFounded} onChange={(e) => set("yearFounded", e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Kota (opsional)">
-              <input className={inputCls()} placeholder="Contoh: Kuala Lumpur" value={form.city} onChange={(e) => set("city", e.target.value)} />
-            </Field>
-            <Field label="Tahun Berdiri (opsional)">
-              <input className={inputCls()} placeholder="Contoh: 2021" inputMode="numeric" value={form.yearFounded} onChange={(e) => set("yearFounded", e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} />
-            </Field>
-          </div>
           <Field label="Kisah/Latar Belakang" hint="Apa yang Anda lakukan? (Pilih semua yang sesuai)">
             <div className="flex flex-wrap gap-2.5">
               {BACKGROUND_TYPES.map((b) => (

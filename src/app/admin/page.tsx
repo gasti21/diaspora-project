@@ -10,9 +10,8 @@ import {
 } from "lucide-react";
 import { getAdminUser } from "@/lib/auth";
 import { adminGetOverview } from "@/lib/data";
-import { StatusBadge } from "@/components/product/Badges";
-import { ProductImage } from "@/components/product/ProductImage";
-import { cn, daysSince, timeAgo } from "@/lib/utils";
+import { RecentActivity } from "@/components/admin/RecentActivity";
+import { cn, daysSince } from "@/lib/utils";
 import type { AdminStats } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +32,17 @@ const CARDS: {
   { key: "users", label: "Pengguna Terdaftar", href: "/admin/pengguna", icon: Users, chip: "bg-navy/10 text-navy", value: "text-navy" },
 ];
 
+/** Segmen grafik distribusi status (bar horizontal bertumpuk, pure CSS). */
+const DISTRIBUTION: { key: "pending" | "published" | "revision" | "rejected"; label: string; color: string; dot: string }[] = [
+  { key: "published", label: "Tayang", color: "bg-green-500", dot: "bg-green-500" },
+  { key: "pending", label: "Pending", color: "bg-amber-400", dot: "bg-amber-400" },
+  { key: "revision", label: "Revisi", color: "bg-orange-500", dot: "bg-orange-500" },
+  { key: "rejected", label: "Ditolak", color: "bg-red-500", dot: "bg-red-500" },
+];
+
+const DAYS_ID = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const MONTHS_ID = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
 export default async function AdminOverviewPage() {
   const [admin, overview] = await Promise.all([
     getAdminUser(),
@@ -40,13 +50,28 @@ export default async function AdminOverviewPage() {
   ]);
   const { stats, recent, oldestPending } = overview;
 
+  const now = new Date();
+  const today = `${DAYS_ID[now.getDay()]}, ${now.getDate()} ${MONTHS_ID[now.getMonth()]} ${now.getFullYear()}`;
+  const totalProducts = stats.pending + stats.published + stats.revision + stats.rejected;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-navy">Halo, {admin?.name} 👋</h1>
-        <p className="mt-1 text-sm text-muted">Ringkasan aktivitas KaryaDiaspora hari ini.</p>
+      {/* Sapaan + tanggal */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-navy">Halo, {admin?.name} 👋</h1>
+          <p className="mt-1 text-sm text-muted">{today} - ringkasan aktivitas KaryaDiaspora.</p>
+        </div>
+        <Link
+          href="/admin/produk?status=pending"
+          className="inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-navy-dark"
+        >
+          {stats.pending > 0 ? `Review ${stats.pending} pengajuan` : "Cek antrean review"}
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
       </div>
 
+      {/* Kartu statistik */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         {CARDS.map((c) => (
           <Link
@@ -54,9 +79,15 @@ export default async function AdminOverviewPage() {
             href={c.href}
             className="group rounded-2xl border border-line bg-white p-4 transition hover:border-navy/30 hover:shadow-md"
           >
-            <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl", c.chip)}>
-              <c.icon className="h-5 w-5" aria-hidden="true" />
-            </span>
+            <div className="flex items-start justify-between">
+              <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl", c.chip)}>
+                <c.icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <ArrowRight
+                className="h-4 w-4 -translate-x-1 text-muted/40 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100"
+                aria-hidden="true"
+              />
+            </div>
             <p className={cn("mt-3 text-2xl font-extrabold", c.value)}>{stats[c.key]}</p>
             <p className="mt-0.5 text-xs font-medium text-muted">{c.label}</p>
           </Link>
@@ -64,56 +95,46 @@ export default async function AdminOverviewPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
+        {/* Pengajuan terbaru + aksi cepat inline */}
         <section className="rounded-2xl border border-line bg-white xl:col-span-2">
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <h2 className="font-bold text-navy">Pengajuan Terbaru</h2>
-            <Link
-              href="/admin/produk"
-              className="flex items-center gap-1 text-xs font-semibold text-muted transition hover:text-navy"
-            >
-              Lihat semua <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+            <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-muted">{recent.filter((p) => p.status === "pending").length} pending</span>
           </div>
-          <ul className="divide-y divide-line/70">
-            {recent.length === 0 && (
-              <li className="px-5 py-10 text-center text-sm text-muted">
-                Belum ada pengajuan produk masuk.
-              </li>
-            )}
-            {recent.map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={`/admin/produk?q=${encodeURIComponent(p.name)}`}
-                  className="flex items-center gap-4 px-5 py-3.5 transition hover:bg-surface/60"
-                >
-                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg">
-                    <ProductImage
-                      src={p.images?.[0] ?? null}
-                      alt={p.name}
-                      categorySlug={p.categorySlug}
-                      className="h-full w-full"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-navy">{p.name}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted">
-                      {p.ownerName} · {p.country}
-                      {p.categoryName ? ` · ${p.categoryName}` : ""}
-                    </p>
-                  </div>
-                  <div className="hidden shrink-0 sm:block">
-                    <StatusBadge status={p.status} />
-                  </div>
-                  <p className="w-20 shrink-0 text-right text-xs text-muted">
-                    {timeAgo(p.createdAt)}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <RecentActivity recent={recent} />
         </section>
 
         <div className="space-y-6">
+          {/* Distribusi status seluruh produk */}
+          <section className="rounded-2xl border border-line bg-white p-5">
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-bold text-navy">Distribusi Status</h2>
+              <p className="text-xs text-muted">{totalProducts} produk</p>
+            </div>
+            <div className="mt-4 flex h-3 w-full overflow-hidden rounded-full bg-surface">
+              {DISTRIBUTION.map((d) =>
+                stats[d.key] > 0 ? (
+                  <span
+                    key={d.key}
+                    className={d.color}
+                    style={{ width: `${(stats[d.key] / Math.max(totalProducts, 1)) * 100}%` }}
+                    title={`${d.label}: ${stats[d.key]}`}
+                  />
+                ) : null
+              )}
+            </div>
+            <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
+              {DISTRIBUTION.map((d) => (
+                <li key={d.key} className="flex items-center gap-2 text-xs font-medium text-muted">
+                  <span className={cn("h-2 w-2 rounded-full", d.dot)} aria-hidden="true" />
+                  {d.label}
+                  <span className="ml-auto font-bold text-navy">{stats[d.key]}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Produk pending paling lama */}
           <section
             className={cn(
               "rounded-2xl border bg-white p-5",
@@ -149,6 +170,7 @@ export default async function AdminOverviewPage() {
             )}
           </section>
 
+          {/* Aksi cepat */}
           <section className="rounded-2xl border border-line bg-white p-5">
             <h2 className="font-bold text-navy">Aksi Cepat</h2>
             <div className="mt-3 space-y-2 text-sm">
@@ -169,6 +191,13 @@ export default async function AdminOverviewPage() {
                 <span className="rounded-full bg-navy/10 px-2 py-0.5 text-xs font-bold text-navy">
                   {stats.users}
                 </span>
+              </Link>
+              <Link
+                href="/admin/aktivitas"
+                className="flex items-center justify-between rounded-lg border border-line px-4 py-3 font-medium text-navy transition hover:bg-surface"
+              >
+                Riwayat aktivitas kurasi
+                <ArrowRight className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
               </Link>
             </div>
           </section>
