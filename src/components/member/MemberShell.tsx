@@ -83,16 +83,19 @@ export function MemberShell({ user, children }: ShellProps) {
         )}
       </nav>
 
-      {/* CTA utama area member - satu-satunya pintu Submit Produk */}
-      <div className="px-4 pb-3">
-        <Link
-          href="/submit"
-          className="flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-dark"
-        >
-          <PackagePlus className="h-4.5 w-4.5" aria-hidden="true" />
-          Submit Produk
-        </Link>
-      </div>
+      {/* CTA utama area member - satu-satunya pintu Submit Produk;
+          disembunyikan untuk admin (kurator tidak mengajukan produk) */}
+      {!user.isAdmin && (
+        <div className="px-4 pb-3">
+          <Link
+            href="/submit"
+            className="flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-dark"
+          >
+            <PackagePlus className="h-4.5 w-4.5" aria-hidden="true" />
+            Submit Produk
+          </Link>
+        </div>
+      )}
 
       <div className="space-y-2 border-t border-line p-4">
         <div className="flex items-center gap-3 rounded-xl bg-surface px-3.5 py-3">

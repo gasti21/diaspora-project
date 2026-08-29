@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { CheckCircle2, ClipboardList, Info, ShieldCheck } from "lucide-react";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getAdminUser } from "@/lib/auth";
 import { listCategories } from "@/lib/data";
 import { SubmitForm } from "@/components/forms/SubmitForm";
 
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 export default async function SubmitPage() {
   const user = await getSessionUser();
   if (!user) return null; // guard sesi ada di layout (member)
+
+  // Admin adalah kurator pengajuan, bukan pengaju - arahkan ke panel admin
+  if (await getAdminUser()) redirect("/admin");
 
   const categories = await listCategories();
 
