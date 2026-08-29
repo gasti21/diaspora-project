@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Activity, ArrowRight, Info } from "lucide-react";
 import { adminListActivity } from "@/lib/data";
+import { getAdminUser } from "@/lib/auth";
 import { StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
+import AdminAccessDenied from "@/components/admin/AdminAccessDenied";
 import { formatDate, timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,9 @@ export const dynamic = "force-dynamic";
  * siapa pemiliknya) - membantu admin menelusuri keputusan yang sudah dibuat.
  */
 export default async function AdminActivityPage() {
+  // Guard page (bukan cuma layout) supaya riwayat kurasi tidak bocor.
+  if (!(await getAdminUser())) return <AdminAccessDenied />;
+
   const items = await adminListActivity(20);
 
   return (

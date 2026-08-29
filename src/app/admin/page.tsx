@@ -11,6 +11,7 @@ import {
 import { getAdminUser } from "@/lib/auth";
 import { adminGetOverview } from "@/lib/data";
 import { RecentActivity } from "@/components/admin/RecentActivity";
+import AdminAccessDenied from "@/components/admin/AdminAccessDenied";
 import { cn, daysSince } from "@/lib/utils";
 import type { AdminStats } from "@/lib/types";
 
@@ -44,10 +45,12 @@ const DAYS_ID = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
 const MONTHS_ID = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 export default async function AdminOverviewPage() {
-  const [admin, overview] = await Promise.all([
-    getAdminUser(),
-    adminGetOverview(),
-  ]);
+  // Guard di level page (layout & page render paralel di Next.js):
+  // cek admin SEBELUM fetch agar data overview tidak ter-stream ke tamu.
+  const admin = await getAdminUser();
+  if (!admin) return <AdminAccessDenied />;
+
+  const overview = await adminGetOverview();
   const { stats, recent, oldestPending } = overview;
 
   const now = new Date();
@@ -59,7 +62,7 @@ export default async function AdminOverviewPage() {
       {/* Sapaan + tanggal */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-navy">Halo, {admin?.name} 👋</h1>
+          <h1 className="text-2xl font-extrabold text-navy">Halo, {admin.name} 👋</h1>
           <p className="mt-1 text-sm text-muted">{today} - ringkasan aktivitas KaryaDiaspora.</p>
         </div>
         <Link
