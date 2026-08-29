@@ -33,12 +33,16 @@ export async function Navbar() {
         <NavLinks links={LINKS} className="hidden items-center gap-7 lg:flex" />
 
         <div className="flex items-center gap-2.5">
-          <Link
-            href="/submit"
-            className="hidden rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:inline-block"
-          >
-            Submit Produk
-          </Link>
+          {/* CTA submit hanya untuk member & tamu (tamu → login dulu);
+              admin adalah kurator jadi tidak perlu mengajukan produk */}
+          {!admin && (
+            <Link
+              href={user ? "/submit" : "/login?next=%2Fsubmit"}
+              className="hidden rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:inline-block"
+            >
+              Submit Produk
+            </Link>
+          )}
 
           {user ? (
             <UserMenu user={user} isAdmin={Boolean(admin)} />
