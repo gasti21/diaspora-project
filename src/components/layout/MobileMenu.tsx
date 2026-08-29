@@ -137,11 +137,12 @@ export function MobileMenu({ user }: { user: MobileMenuUser | null }) {
                 ))}
               </nav>
 
-              {/* Menu member - hanya saat login; admin diprioritaskan atas */}
+              {/* Menu member - hanya saat login; admin hanya melihat
+                  Panel Admin (menu member & CTA submit bukan ranahnya) */}
               {user && (
                 <>
                   <p className="px-1 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-widest text-muted/70">
-                    Akun Saya
+                    {user.isAdmin ? "Admin" : "Akun Saya"}
                   </p>
                   <nav className="space-y-1">
                     {user.isAdmin && (
@@ -153,24 +154,27 @@ export function MobileMenu({ user }: { user: MobileMenuUser | null }) {
                         Panel Admin
                       </Link>
                     )}
-                    {MEMBER_LINKS.map((l) => (
-                      <Link key={l.href} href={l.href} className={itemCls(isActive(l.href))}>
-                        <l.icon className="h-4.5 w-4.5" aria-hidden="true" />
-                        {l.label}
-                      </Link>
-                    ))}
+                    {!user.isAdmin &&
+                      MEMBER_LINKS.map((l) => (
+                        <Link key={l.href} href={l.href} className={itemCls(isActive(l.href))}>
+                          <l.icon className="h-4.5 w-4.5" aria-hidden="true" />
+                          {l.label}
+                        </Link>
+                      ))}
                   </nav>
                 </>
               )}
 
-              {/* CTA Submit Produk - tamu diarahkan login dulu */}
-              <Link
-                href={user ? "/submit" : "/login?next=%2Fsubmit"}
-                className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-dark"
-              >
-                <PackagePlus className="h-4.5 w-4.5" aria-hidden="true" />
-                Submit Produk
-              </Link>
+              {/* CTA Submit Produk - tamu diarahkan login dulu; admin tersembunyi */}
+              {(!user || !user.isAdmin) && (
+                <Link
+                  href={user ? "/submit" : "/login?next=%2Fsubmit"}
+                  className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-dark"
+                >
+                  <PackagePlus className="h-4.5 w-4.5" aria-hidden="true" />
+                  Submit Produk
+                </Link>
+              )}
 
               {/* Ajakan masuk untuk tamu */}
               {!user && (
