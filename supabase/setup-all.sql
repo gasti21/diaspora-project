@@ -449,3 +449,202 @@ grant select (
   needs, needs_other, owner_name, status, review_note,
   submitted_by, created_at, updated_at
 ) on public.products to anon, authenticated;
+
+
+-- ============================================================
+-- Sinkron dari migration 0006_protect_role_columns (audit round-2)
+-- ============================================================
+-- ============================================================
+-- 0006: Tutup eskalasi privilege role (CRITICAL).
+--
+-- Kerentanan terkonfirmasi (audit round-2, verifikasi live):
+--   - authenticated punya grant UPDATE di kolom profiles.role
+--   - policy profiles_update_own = using (auth.uid() = id)
+--     tanpa pembatasan kolom
+-- => User login mana pun bisa self-promote jadi admin via
+--    PATCH REST langsung ke Supabase.
+--
+-- Fix (2 lapis):
+--   1. revoke UPDATE, lalu grant per-kolom HANYA full_name,
+--      avatar_url, bio (kolom profil yang memang diedit user).
+--      role/email/id hanya diubah lewat service-role oleh aplikasi.
+--   2. Trigger guard: tolak perubahan role/email/id oleh
+--      non-service-role (defense-in-depth di level DB).
+-- ============================================================
+
+-- ---------- Lapis 1: pembatasan kolom ----------
+revoke update on public.profiles from anon, authenticated;
+
+grant update (full_name, avatar_url, bio)
+  on public.profiles to authenticated;
+
+-- ---------- Lapis 2: trigger guard ----------
+create or replace function public.block_profile_escalation()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- service_role (aplikasi), postgres, dan supabase_admin dibolehkan.
+  if coalesce(current_setting('role', true), current_user)
+     in ('service_role', 'postgres', 'supabase_admin') then
+    return new;
+  end if;
+
+  if tg_op = 'UPDATE' then
+    if new.role is distinct from old.role then
+      raise exception 'Role tidak dapat diubah langsung oleh user.';
+    end if;
+    if new.email is distinct from old.email then
+      raise exception 'Email profil tidak dapat diubah langsung oleh user.';
+    end if;
+    if new.id is distinct from old.id then
+      raise exception 'ID profil tidak dapat diubah.';
+    end if;
+  end if;
+
+  if tg_op = 'INSERT' and new.role = 'admin' then
+    raise exception 'Role admin hanya dapat diberikan oleh platform.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_block_escalation on public.profiles;
+create trigger profiles_block_escalation
+  before insert or update on public.profiles
+  for each row execute function public.block_profile_escalation();
+
+-- ============================================================
+-- Sinkron dari migration 0007_storage_policies (audit round-2)
+-- ============================================================
+-- ============================================================
+-- 0007: Perketat policy Storage bucket product-images (HIGH).
+--
+-- Kerentanan: policy lama product_images_auth_upload hanya cek
+-- bucket_id - user login mana pun bisa upload file APA SAJA
+-- (ekstensi/isi bebas) SEBANYAK APA PUN langsung via Storage REST,
+-- bypass kuota 25 file & magic-byte check di API aplikasi.
+-- Bucket public => file arbitrer bisa diakses siapa saja
+-- (potensi hosting malware/phishing di domain Supabase).
+--
+-- Fix:
+--   1. Upload hanya ke folder milik sendiri (prefix = uid user).
+--   2. Hanya file .jpg/.jpeg/.png.
+--   3. Tambah UPDATE/DELETE ke folder sendiri - sebelumnya user
+--      tidak bisa menghapus foto tak terpakai (kuota macet).
+-- ============================================================
+
+drop policy if exists "product_images_auth_upload" on storage.objects;
+drop policy if exists "product_images_owner_update" on storage.objects;
+drop policy if exists "product_images_owner_delete" on storage.objects;
+
+-- Upload: hanya ke folder sendiri, hanya gambar.
+create policy "product_images_auth_upload" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'product-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+    and name ~* '\.(jpg|jpeg|png)$'
+  );
+
+-- Ganti nama / timpa foto milik sendiri (untuk manajemen foto tak terpakai).
+create policy "product_images_owner_update" on storage.objects
+  for update to authenticated
+  using (
+    bucket_id = 'product-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'product-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+    and name ~* '\.(jpg|jpeg|png)$'
+  );
+
+-- Hapus foto milik sendiri (bersih-bersih foto tak terpakai).
+create policy "product_images_owner_delete" on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'product-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- ============================================================
+-- Sinkron dari migration 0008_favorites_and_views (audit round-2)
+-- ============================================================
+-- ============================================================
+-- 0008: Rekonstruksi objek yang sebelumnya dibuat di luar file
+-- migration (dibuat manual di dashboard), didump dari database
+-- live pada audit round-2. Semua statement idempotent.
+--
+-- Objek: tabel favorites, tabel product_views, kolom profiles.bio,
+-- RPC record_product_view (penghitung view untuk pengunjung anonim)
+-- dan RPC get_view_counts (agregasi view untuk halaman admin).
+-- ============================================================
+
+-- ---------- Kolom bio di profiles (dipakai halaman Profil) ----------
+alter table public.profiles add column if not exists bio text;
+
+-- ---------- Tabel favorites ----------
+create table if not exists public.favorites (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  product_id uuid not null references public.products(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint favorites_pkey primary key (user_id, product_id)
+);
+
+alter table public.favorites enable row level security;
+
+drop policy if exists "favorites_select_own" on public.favorites;
+drop policy if exists "favorites_insert_own" on public.favorites;
+drop policy if exists "favorites_delete_own" on public.favorites;
+
+create policy "favorites_select_own" on public.favorites
+  for select to authenticated
+  using (user_id = auth.uid());
+create policy "favorites_insert_own" on public.favorites
+  for insert to authenticated
+  with check (user_id = auth.uid());
+create policy "favorites_delete_own" on public.favorites
+  for delete to authenticated
+  using (user_id = auth.uid());
+
+-- ---------- Tabel product_views ----------
+-- Tidak ada policy: view hanya direkam via RPC security definer
+-- di bawah (pengunjung anonim pun bisa), akses langsung ditutup.
+create table if not exists public.product_views (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  viewed_at timestamptz not null default now()
+);
+
+create index if not exists idx_product_views_product
+  on public.product_views (product_id);
+
+alter table public.product_views enable row level security;
+
+-- ---------- RPC: rekam view (dipanggil ViewTracker, tanpa login) ----------
+create or replace function public.record_product_view(p_product_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into product_views(product_id) values (p_product_id);
+end;
+$$;
+
+-- ---------- RPC: agregasi jumlah view (dipakai halaman admin) ----------
+create or replace function public.get_view_counts(p_ids uuid[])
+returns table (product_id uuid, view_count bigint)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select product_id, count(*)::bigint
+  from product_views
+  where product_id = any(p_ids)
+  group by product_id
+$$;

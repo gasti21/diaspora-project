@@ -17,7 +17,7 @@ export async function GET(
   try {
     return NextResponse.json({ favorited: await isProductFavorited(user.id, productId) });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
   }
 }
 
@@ -49,6 +49,6 @@ export async function POST(
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
     return NextResponse.json({ favorited: result.favorited });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
   }
 }

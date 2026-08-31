@@ -10,11 +10,11 @@
 
 ## 1. Migration 0006 — Tutup eskalasi role (CRITICAL) 🔴
 File: `supabase/migrations/0006_protect_role_columns.sql`
-- [ ] `revoke update` di `profiles` dari `anon` + `authenticated`
-- [ ] `grant update` per-kolom HANYA: `full_name`, `avatar_url`, `bio` (+ kolom profil lain yang boleh diedit user)
-- [ ] Trigger guard: tolak UPDATE yang mengubah `role`/`email`/`id` kecuali oleh service-role (`current_setting('role') = 'service_role'`) — defense-in-depth
-- [ ] Blok INSERT dengan `role = 'admin'` oleh non-service-role
-- [ ] Jalankan live via Management API + verifikasi: PATCH role via REST harus DITOLAK
+- [x] `revoke update` di `profiles` dari `anon` + `authenticated`
+- [x] `grant update` per-kolom HANYA: `full_name`, `avatar_url`, `bio` (+ kolom profil lain yang boleh diedit user)
+- [x] Trigger guard: tolak UPDATE yang mengubah `role`/`email`/`id` kecuali oleh service-role (`current_setting('role') = 'service_role'`) — defense-in-depth
+- [x] Blok INSERT dengan `role = 'admin'` oleh non-service-role
+- [x] Jalankan live via Management API + verifikasi: PATCH role via REST harus DITOLAK
 
 Bukti kerentanan (terkonfirmasi live):
 - `authenticated` punya grant `UPDATE` di kolom `profiles.role`
@@ -23,32 +23,32 @@ Bukti kerentanan (terkonfirmasi live):
 
 ## 2. Migration 0007 — Perketat storage (HIGH) 🟠
 File: `supabase/migrations/0007_storage_policies.sql`
-- [ ] Drop policy `product_images_auth_upload` lama (hanya cek bucket_id)
-- [ ] Policy baru: `with check (bucket_id='product-images' AND (storage.foldername(name))[1] = auth.uid()::text)` — upload hanya ke folder sendiri
-- [ ] Batasi ekstensi di policy: hanya `.jpg/.jpeg/.png`
-- [ ] Tambah policy UPDATE/DELETE ke folder sendiri (bug: user tidak bisa hapus foto tak terpakai, kuota 25 file macet)
-- [ ] Jalankan live + verifikasi
+- [x] Drop policy `product_images_auth_upload` lama (hanya cek bucket_id)
+- [x] Policy baru: `with check (bucket_id='product-images' AND (storage.foldername(name))[1] = auth.uid()::text)` — upload hanya ke folder sendiri
+- [x] Batasi ekstensi di policy: hanya `.jpg/.jpeg/.png`
+- [x] Tambah policy UPDATE/DELETE ke folder sendiri (bug: user tidak bisa hapus foto tak terpakai, kuota 25 file macet)
+- [x] Jalankan live + verifikasi
 
 Masalah: upload via Storage REST bypass kuota & magic-byte check aplikasi;
 bucket public → bisa jadi hosting file arbitrer (malware/phishing).
 
 ## 3. Rekonstruksi migration hilang (MEDIUM) 🟠
 File: `supabase/migrations/0008_favorites_and_views.sql`
-- [ ] Dump struktur live `favorites` & `product_views` dari DB (query `information_schema` / `pg_dump`)
-- [ ] Tulis sebagai migration `create table if not exists` + RLS persis kondisi live
+- [x] Dump struktur live `favorites` & `product_views` dari DB (query `information_schema` / `pg_dump`)
+- [x] Tulis sebagai migration `create table if not exists` + RLS persis kondisi live
   (RLS favorites live: insert/select/delete `user_id = auth.uid()` — sudah benar, tinggal dicatat)
 - Alasan: 2 tabel ini dibuat di luar file migration → environment baru tak bisa direproduksi
 
 ## 4. Bersihkan error leak (LOW) 🟢
-- [ ] Route yang balikin `error.message` Supabase mentah → pesan generik:
+- [x] Route yang balikin `error.message` Supabase mentah → pesan generik:
   `src/app/api/favorites/[productId]/route.ts`, `src/app/api/profile/route.ts`,
   `src/app/api/admin/categories/*`, dan audit route lain dengan pola `(e as Error).message`
 
 ## 5. Validasi akhir
-- [ ] `npx tsc --noEmit` ✅
-- [ ] `npm test` (24 test) ✅
-- [ ] `npm run build` ✅
-- [ ] Commit (identitas Hakimiqbal) + push ke `origin build`
+- [x] `npx tsc --noEmit` ✅
+- [x] `npm test` (24 test) ✅
+- [x] `npm run build` ✅
+- [x] Commit (identitas Hakimiqbal) + push ke `origin build`
 
 ## ❌ Tidak disentuh kali ini
 - Deploy Vercel (belum siap — owner minta ditunda)
