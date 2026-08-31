@@ -120,3 +120,11 @@ export interface SubmissionPayload {
   needs: string[];
   needsOther?: string;
 }
+
+/** Kontak pemilik produk - hanya dikirim via endpoint rate-limited. */
+export interface OwnerContact {
+  ownerName: string;
+  ownerEmail: string;
+  ownerWhatsapp: string;
+  website: string | null;
+}

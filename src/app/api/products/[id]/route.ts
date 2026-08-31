@@ -53,9 +53,10 @@ export async function PATCH(
 
   try {
     // Cek kepemilikan: milik sendiri → alur revisi member.
+    // Email pemilik dipaksa dari sesi login (anti-spoofing).
     const owned = await getMySubmission(user.id, id);
     if (owned) {
-      const result = await updateMySubmission(user.id, id, body);
+      const result = await updateMySubmission(user.id, id, body, user.email);
       if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
       return NextResponse.json({ ok: true });
     }

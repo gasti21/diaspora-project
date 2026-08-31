@@ -155,12 +155,6 @@ export default async function ProductDetailPage({
                 value={product.ownerName}
                 href={product.submittedBy ? `/u/${product.submittedBy}` : undefined}
               />
-              <Row
-                icon={Mail}
-                label="Email"
-                value={product.ownerEmail}
-                href={`mailto:${product.ownerEmail}`}
-              />
               <Row icon={MapPin} label="Lokasi" value={formatLocation(product)} />
               {product.website && (
                 <Row
@@ -170,12 +164,8 @@ export default async function ProductDetailPage({
                   href={product.website.startsWith("http") ? product.website : `https://${product.website}`}
                 />
               )}
-              <Row
-                icon={MessageCircle}
-                label="WhatsApp"
-                value={product.ownerWhatsapp}
-                href={waLink(product.ownerWhatsapp)}
-              />
+              {/* Email & WhatsApp pemilik tidak dirender di sini: kontak diambil
+                  on-demand via tombol "Hubungi Pemilik" (anti-scraping, migration 0005). */}
             </dl>
 
             <div className="mt-5 border-t border-line pt-4">

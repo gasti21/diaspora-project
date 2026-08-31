@@ -9,6 +9,7 @@ import type {
   AdminStats,
   AdminUser,
   Paginated,
+  OwnerContact,
   Product,
   ProductFilters,
   ProductStatus,
@@ -70,8 +71,10 @@ function toProduct(row: DbRow): Product {
     needs: row.needs ?? [],
     needsOther: row.needs_other,
     ownerName: row.owner_name,
-    ownerEmail: row.owner_email,
-    ownerWhatsapp: row.owner_whatsapp,
+    // Kolom kontak kini tidak di-grant ke anon/authenticated (migration 0005) -
+    // nilainya diisi lewat endpoint kontak rate-limited, bukan listing publik.
+    ownerEmail: row.owner_email ?? "",
+    ownerWhatsapp: row.owner_whatsapp ?? "",
     status: row.status as ProductStatus,
     reviewNote: row.review_note,
     createdAt: row.created_at,
@@ -158,6 +161,58 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return data ? toProduct(data as DbRow) : null;
 }
 
+/**
+ * Ambil kontak pemilik SATU produk published - dipakai endpoint
+ * /api/products/[id]/contact yang rate-limited. Service-role diperlukan
+ * karena kolom kontak tidak di-grant ke anon/authenticated (migration 0005)
+ * - inilah yang mencegah scraping massal via REST Supabase langsung.
+ */
+export async function getPublishedProductContact(
+  id: string
+): Promise<OwnerContact | null> {
+  if (!isSupabaseConfigured) return null;
+  const client = createAdminClient();
+  const { data } = await client
+    .from("products")
+    .select("owner_name, owner_email, owner_whatsapp, website")
+    .eq("id", id)
+    .eq("status", "published")
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    ownerName: data.owner_name,
+    ownerEmail: data.owner_email,
+    ownerWhatsapp: data.owner_whatsapp,
+    website: data.website,
+  };
+}
+
+/**
+ * Lengkapi kontak pemilik untuk pengajuan milik user sendiri (halaman edit).
+ * Ownership sudah diverifikasi via query ber-RLS sebelum fungsi ini dipanggil,
+ * sehingga pemakaian service-role di sini aman dan terbatas pada baris milik
+ * user tersebut.
+ */
+export async function fillOwnedContact(
+  userId: string,
+  product: Product
+): Promise<Product> {
+  if (!isSupabaseConfigured || product.ownerEmail) return product;
+  const client = createAdminClient();
+  const { data } = await client
+    .from("products")
+    .select("owner_email, owner_whatsapp")
+    .eq("id", product.id)
+    .eq("submitted_by", userId)
+    .maybeSingle();
+  if (!data) return product;
+  return {
+    ...product,
+    ownerEmail: data.owner_email ?? "",
+    ownerWhatsapp: data.owner_whatsapp ?? "",
+  };
+}
+
 export async function getRelatedProducts(
   product: Product,
   limit = 5
@@ -215,7 +270,7 @@ export async function getMySubmission(
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return data ? toProduct(data as DbRow) : null;
+  return data ? fillOwnedContact(userId, toProduct(data as DbRow)) : null;
 }
 
 /**
@@ -226,7 +281,8 @@ export async function getMySubmission(
 export async function updateMySubmission(
   userId: string,
   id: string,
-  payload: SubmissionPayload
+  payload: SubmissionPayload,
+  ownerEmail: string
 ): Promise<{ error?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const supabase = await createClient();
@@ -248,7 +304,8 @@ export async function updateMySubmission(
       video_url: payload.videoUrl || null,
       website: payload.website || null,
       owner_name: payload.ownerName,
-      owner_email: payload.ownerEmail,
+      // Anti-spoofing: email pemilik SELALU dari sesi login, bukan payload.
+      owner_email: ownerEmail,
       owner_whatsapp: payload.ownerWhatsapp,
       needs: payload.needs,
       needs_other: payload.needsOther || null,
@@ -315,7 +372,8 @@ export async function createSubmission(
       video_url: payload.videoUrl || null,
       website: payload.website || null,
       owner_name: payload.ownerName,
-      owner_email: payload.ownerEmail,
+      // Anti-spoofing: email pemilik SELALU dari sesi login, bukan payload.
+      owner_email: user.email,
       owner_whatsapp: payload.ownerWhatsapp,
       needs: payload.needs,
       needs_other: payload.needsOther || null,

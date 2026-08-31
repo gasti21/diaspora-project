@@ -2,19 +2,24 @@
 
 import { useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
-import type { Product } from "@/lib/types";
+import type { OwnerContact, Product } from "@/lib/types";
 import { waLink, formatLocation } from "@/lib/utils";
 
 /**
  * Modal pop-up kontak pemilik produk (PRD: menggantikan tombol "Saya Tertarik").
- * Menampilkan rangkuman Nama, Email, Lokasi, dan Website.
+ * Kontak diambil on-demand oleh ContactOwnerButton dari endpoint rate-limited -
+ * komponen ini hanya menampilkan hasilnya (loading / error / data).
  */
 export function ContactModal({
   product,
+  contact,
+  contactError,
   open,
   onClose,
 }: {
   product: Product;
+  contact: OwnerContact | null;
+  contactError: string | null;
   open: boolean;
   onClose: () => void;
 }) {
@@ -33,13 +38,65 @@ export function ContactModal({
 
   if (!open) return null;
 
+  if (contactError) {
+    return (
+      <div
+        className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/60 p-4"
+        onClick={onClose}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Kontak pemilik ${product.name}`}
+      >
+        <div
+          className="animate-modal-in w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className="text-lg font-bold">Hubungi Pemilik</h3>
+          <p className="mt-2 text-sm text-muted">{contactError}</p>
+          <button
+            onClick={onClose}
+            className="mt-4 w-full rounded-lg bg-surface py-2.5 text-sm font-semibold text-navy hover:bg-line"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Kontak belum termuat (fetch sedang berjalan).
+  if (!contact) {
+    return (
+      <div
+        className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/60 p-4"
+        onClick={onClose}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Kontak pemilik ${product.name}`}
+      >
+        <div
+          className="animate-modal-in w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className="text-lg font-bold">Hubungi Pemilik</h3>
+          <div className="mt-5 space-y-3.5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-4 animate-pulse rounded bg-surface" />
+            ))}
+          </div>
+          <div className="mt-6 h-11 animate-pulse rounded-lg bg-surface" />
+        </div>
+      </div>
+    );
+  }
+
   const rows: { label: string; value: string; href?: string }[] = [
-    { label: "Nama Pemilik", value: product.ownerName },
-    { label: "Email", value: product.ownerEmail, href: `mailto:${product.ownerEmail}` },
+    { label: "Nama Pemilik", value: contact.ownerName },
+    { label: "Email", value: contact.ownerEmail, href: `mailto:${contact.ownerEmail}` },
     { label: "Lokasi", value: formatLocation(product) },
   ];
-  if (product.website)
-    rows.push({ label: "Website", value: product.website, href: normalizeUrl(product.website) });
+  if (contact.website)
+    rows.push({ label: "Website", value: contact.website, href: normalizeUrl(contact.website) });
 
   return (
     <div
@@ -85,7 +142,7 @@ export function ContactModal({
         </dl>
 
         <a
-          href={waLink(product.ownerWhatsapp)}
+          href={waLink(contact.ownerWhatsapp)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md active:translate-y-0 active:shadow-sm"

@@ -40,11 +40,17 @@ export async function GET() {
 
 /**
  * POST /api/admin/manage - angkat user menjadi admin.
- * Syarat: user sudah pernah login (row profiles sudah ada).
+ * Hanya admin PEMILIK (owner, PROTECTED_ADMIN_EMAIL) yang boleh - prinsip
+ * least-privilege: admin biasa tidak bisa menambah admin baru.
  */
 export async function POST(request: Request) {
   const admin = await getAdminUser();
   if (!admin) return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
+  if (admin.email.toLowerCase() !== PROTECTED_ADMIN_EMAIL)
+    return NextResponse.json(
+      { error: "Hanya admin pemilik platform yang dapat menambah admin." },
+      { status: 403 }
+    );
   if (!isSupabaseConfigured)
     return NextResponse.json({ error: "Database belum terhubung." }, { status: 500 });
 
@@ -107,11 +113,18 @@ export async function POST(request: Request) {
 
 /**
  * DELETE /api/admin/manage - turunkan admin menjadi user biasa.
- * Guard: admin pemilik (owner) tidak bisa dihapus, dan admin terakhir tidak boleh dihapus.
+ * Guard 1: hanya admin pemilik (owner) yang boleh menurunkan admin.
+ * Guard 2: admin pemilik (owner) tidak bisa dihapus.
+ * Guard 3: admin terakhir tidak boleh dihapus.
  */
 export async function DELETE(request: Request) {
   const admin = await getAdminUser();
   if (!admin) return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
+  if (admin.email.toLowerCase() !== PROTECTED_ADMIN_EMAIL)
+    return NextResponse.json(
+      { error: "Hanya admin pemilik platform yang dapat menurunkan admin." },
+      { status: 403 }
+    );
   if (!isSupabaseConfigured)
     return NextResponse.json({ error: "Database belum terhubung." }, { status: 500 });
 
