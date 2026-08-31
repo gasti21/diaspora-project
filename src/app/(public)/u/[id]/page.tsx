@@ -30,7 +30,8 @@ export default async function MemberProfilePage({
 }) {
   const { id } = await params;
   const member = await getPublicMember(id);
-  if (!member) notFound();
+  // Profil tanpa satu pun produk tayang tidak diindeks/diakses publik.
+  if (!member || member.productCount === 0) notFound();
 
   const products = await listMemberPublishedProducts(id);
   const viewCounts = await getProductViewCounts(products.map((p) => p.id));

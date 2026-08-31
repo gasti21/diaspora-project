@@ -648,3 +648,11 @@ as $$
   where product_id = any(p_ids)
   group by product_id
 $$;
+
+-- ============================================================
+-- Sinkron dari migration 0009_drop_public_view_rpc (audit round-3)
+-- ============================================================
+-- product_views (RLS tabel tetap menutup akses langsung).
+-- ============================================================
+
+drop function if exists public.record_product_view(uuid);

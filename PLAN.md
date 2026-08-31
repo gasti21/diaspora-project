@@ -1,67 +1,33 @@
-# 📋 PLAN — Fix Keamanan Round-2 (KaryaDiaspora)
+# 📋 PLAN — Fix Round-4 (KaryaDiaspora)
 
-> Disimpan: 31 Agu 2026. Status: **BELUM DIEKSEKUSI — menunggu konfirmasi "gas"**.
-> Konteks: hasil audit round-2 pasca-fix sebelumnya (commit `051ea81`, migration 0005 live).
-> Project ref Supabase: `scpboipfxqtyujhzgybk` (jalankan SQL via Management API dengan
-> `SUPABASE_ACCESS_TOKEN` dari `.env.local` — terbukti berfungsi).
-> Git: commit & push pakai identitas **Hakimiqbal / moeh.iqbal.hakim@gmail.com** ke branch `build`.
+> Status: **✅ SELESAI DIEKSEKUSI — 31 Agu 2026** (CSP avatar, anti-spam view + 0009 live, guard profil, admin queries)
+> Git: identitas **Hakimiqbal / moeh.iqbal.hakim@gmail.com** → push ke `origin build`.
 
----
+## 1. Fix regresi CSP — avatar Google rusak 🟠 (prioritas 1)
+- [x] Tambah `https://lh3.googleusercontent.com` + `https://*.googleusercontent.com` ke `img-src` di `next.config.ts`
+- Latar: CSP round-1 memblokir avatar user login Google → semua foto profil broken
 
-## 1. Migration 0006 — Tutup eskalasi role (CRITICAL) 🔴
-File: `supabase/migrations/0006_protect_role_columns.sql`
-- [x] `revoke update` di `profiles` dari `anon` + `authenticated`
-- [x] `grant update` per-kolom HANYA: `full_name`, `avatar_url`, `bio` (+ kolom profil lain yang boleh diedit user)
-- [x] Trigger guard: tolak UPDATE yang mengubah `role`/`email`/`id` kecuali oleh service-role (`current_setting('role') = 'service_role'`) — defense-in-depth
-- [x] Blok INSERT dengan `role = 'admin'` oleh non-service-role
-- [x] Jalankan live via Management API + verifikasi: PATCH role via REST harus DITOLAK
+## 2. Anti-spam view counter 🟡 (prioritas 2)
+- [x] `ViewTracker` → panggil API route `/api/products/[id]/view` yang rate-limited (5/menit/IP), bukan RPC langsung dari browser
+- [x] `data.ts`: fungsi `recordProductView` via service-role insert (bypass RLS, tanpa RPC publik)
+- [x] Migration 0009: `drop function public.record_product_view` (tutup pintu spam RPC langsung)
+- [x] Jalankan migration ke DB live + verifikasi
+- Latar: RPC security-definer bisa dipanggil anon tanpa limit → view bisa digelembungkan bot
 
-Bukti kerentanan (terkonfirmasi live):
-- `authenticated` punya grant `UPDATE` di kolom `profiles.role`
-- policy `profiles_update_own` = `using (auth.uid() = id)` tanpa pembatasan kolom
-→ user login bisa self-promote jadi admin via PATCH REST langsung ke Supabase.
+## 3. Guard profil member kosong 🟢 (prioritas 3)
+- [x] `/u/[id]`: `notFound()` jika `productCount === 0`
 
-## 2. Migration 0007 — Perketat storage (HIGH) 🟠
-File: `supabase/migrations/0007_storage_policies.sql`
-- [x] Drop policy `product_images_auth_upload` lama (hanya cek bucket_id)
-- [x] Policy baru: `with check (bucket_id='product-images' AND (storage.foldername(name))[1] = auth.uid()::text)` — upload hanya ke folder sendiri
-- [x] Batasi ekstensi di policy: hanya `.jpg/.jpeg/.png`
-- [x] Tambah policy UPDATE/DELETE ke folder sendiri (bug: user tidak bisa hapus foto tak terpakai, kuota 25 file macet)
-- [x] Jalankan live + verifikasi
+## 4. Konsistensi admin queries — defense-in-depth 🟢 (prioritas 4)
+- [x] `adminGetOverview` & `adminListActivity`: user client + RLS → `createAdminClient()`
 
-Masalah: upload via Storage REST bypass kuota & magic-byte check aplikasi;
-bucket public → bisa jadi hosting file arbitrer (malware/phishing).
+## 5. Validasi & rilis
+- [x] `tsc --noEmit` · `npm test` · `npm run build`
+- [x] Commit + push ke `origin build` · update status plan
 
-## 3. Rekonstruksi migration hilang (MEDIUM) 🟠
-File: `supabase/migrations/0008_favorites_and_views.sql`
-- [x] Dump struktur live `favorites` & `product_views` dari DB (query `information_schema` / `pg_dump`)
-- [x] Tulis sebagai migration `create table if not exists` + RLS persis kondisi live
-  (RLS favorites live: insert/select/delete `user_id = auth.uid()` — sudah benar, tinggal dicatat)
-- Alasan: 2 tabel ini dibuat di luar file migration → environment baru tak bisa direproduksi
-
-## 4. Bersihkan error leak (LOW) 🟢
-- [x] Route yang balikin `error.message` Supabase mentah → pesan generik:
-  `src/app/api/favorites/[productId]/route.ts`, `src/app/api/profile/route.ts`,
-  `src/app/api/admin/categories/*`, dan audit route lain dengan pola `(e as Error).message`
-
-## 5. Validasi akhir
-- [x] `npx tsc --noEmit` ✅
-- [x] `npm test` (24 test) ✅
-- [x] `npm run build` ✅
-- [x] Commit (identitas Hakimiqbal) + push ke `origin build`
-
-## ❌ Tidak disentuh kali ini
-- Deploy Vercel (belum siap — owner minta ditunda)
-- Fitur Fase 2: notifikasi email, favorit server-side, dokumen produk, multi-bahasa, dst.
-- Rate limit Upstash Redis (butuh akun/instance)
+## ❌ Tidak disentuh
+- Deploy Vercel (belum siap) · Fitur Fase 2 · Upstash Redis
 
 ---
-
-## 📜 Riwayat yang sudah selesai (jangan diulang)
-- ✅ Commit 61 file tertunda (`ca4fcd2`) + fix keamanan (`051ea81`) — pushed ke `build`
-- ✅ Migration 0005: kolom `owner_email`/`owner_whatsapp` products di-revoke dari anon/authenticated (live & terverifikasi — REST leak ditolak `permission denied`)
-- ✅ Endpoint `/api/products/[id]/contact` rate-limited (30/10m/IP, published only)
-- ✅ Anti-spoofing: `owner_email` dipaksa dari sesi login
-- ✅ `/api/admin/manage` POST/DELETE owner-only (`karyadiaspora@gmail.com`)
-- ✅ CSP header di `next.config.ts`
-- ✅ `.DS_Store` dibersihkan + `.gitignore`
+## 📜 Riwayat selesai (jangan diulang)
+- Round-1 (`051ea81`): anti-scraping kontak (0005), anti-spoofing email, owner-only admin, CSP
+- Round-2 (`f68edb6`): 0006 eskalasi role · 0007 storage · 0008 favorites/views/RPC · error leak

@@ -504,6 +504,21 @@ export async function isProductFavorited(
 }
 
 /**
+ * Rekam satu view produk via service-role (RLS product_views menutup akses
+ * langsung). Dipanggil API route /api/products/[id]/view yang rate-limited -
+ * PENTING: RPC publik record_product_view sudah dihapus (migration 0009)
+ * agar bot tidak bisa menggembungkan jumlah view langsung via REST.
+ */
+export async function recordProductView(productId: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  const client = createAdminClient();
+  const { error } = await client
+    .from("product_views")
+    .insert({ product_id: productId });
+  if (error) throw new Error(error.message);
+}
+
+/**
  * Jumlah view per produk - satu panggilan RPC GROUP BY di Postgres
  * (jangan fetch semua rows ke aplikasi).
  */
@@ -919,7 +934,7 @@ export async function adminGetOverview(): Promise<AdminOverview> {
     };
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const [recentRes, oldestRes] = await Promise.all([
     supabase
       .from("products")
@@ -957,7 +972,7 @@ export async function adminListActivity(limit = 20): Promise<Product[]> {
     return SAMPLE_PRODUCTS.slice(0, limit);
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("products")
     .select("*, categories(id, slug, name)")
