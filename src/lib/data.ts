@@ -22,6 +22,7 @@ interface DbRow {
   id: string;
   slug: string;
   name: string;
+  submitted_by: string | null;
   stage: string;
   country: string;
   city: string | null;
@@ -51,6 +52,7 @@ function toProduct(row: DbRow): Product {
     id: row.id,
     slug: row.slug,
     name: row.name,
+    submittedBy: row.submitted_by,
     categoryId: row.category_id ?? "",
     categorySlug: row.categories?.slug,
     categoryName: row.categories?.name,
@@ -199,6 +201,70 @@ export async function listMySubmissions(userId: string): Promise<Product[]> {
   return (data as DbRow[]).map(toProduct);
 }
 
+/** Ambil satu pengajuan milik user (untuk halaman edit revisi). */
+export async function getMySubmission(
+  userId: string,
+  id: string
+): Promise<Product | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, categories(id, slug, name)")
+    .eq("submitted_by", userId)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? toProduct(data as DbRow) : null;
+}
+
+/**
+ * Perbaiki pengajuan milik user (alur "Need Revision").
+ * Guard kepemilikan ada di WHERE clause - user lain tidak bisa menyentuh.
+ * Status kembali ke pending untuk direview ulang.
+ */
+export async function updateMySubmission(
+  userId: string,
+  id: string,
+  payload: SubmissionPayload
+): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("products")
+    .update({
+      name: payload.name.trim(),
+      category_id: payload.categoryId,
+      stage: payload.stage,
+      country: payload.country,
+      city: payload.city || null,
+      year_founded: payload.yearFounded || null,
+      background_types: payload.backgroundTypes,
+      additional_notes: payload.additionalNotes || null,
+      short_description: payload.shortDescription,
+      long_description: payload.longDescription,
+      images: payload.images,
+      video_url: payload.videoUrl || null,
+      website: payload.website || null,
+      owner_name: payload.ownerName,
+      owner_email: payload.ownerEmail,
+      owner_whatsapp: payload.ownerWhatsapp,
+      needs: payload.needs,
+      needs_other: payload.needsOther || null,
+      status: "pending",
+      review_note: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("submitted_by", userId)
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  return {};
+}
+
 /** Daftar negara unik dari produk published - untuk filter Lokasi. */
 export async function listCountries(): Promise<string[]> {
   if (!isSupabaseConfigured) {
@@ -275,6 +341,430 @@ export async function listCategories(): Promise<{ id: string; slug: string; name
     .order("id");
   return data ?? [];
 }
+
+/** Profil publik member (untuk halaman portofolio). */
+export interface PublicMember {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  joinedAt: string;
+  productCount: number;
+}
+
+/** Data profil publik member + jumlah produk tayangnya. */
+export async function getPublicMember(id: string): Promise<PublicMember | null> {
+  if (!isSupabaseConfigured) return null;
+  const client = createAdminClient();
+
+  const { data: profile, error } = await client
+    .from("profiles")
+    .select("id, full_name, avatar_url, created_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!profile) return null;
+
+  const { count, error: countError } = await client
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("submitted_by", id)
+    .eq("status", "published");
+  if (countError) throw new Error(countError.message);
+
+  return {
+    id: profile.id,
+    name: profile.full_name ?? "Member KaryaDiaspora",
+    avatarUrl: profile.avatar_url,
+    joinedAt: profile.created_at,
+    productCount: count ?? 0,
+  };
+}
+
+/** Produk yang di-favoritkan user (untuk halaman Favorit, login-only). */
+export async function listMyFavoriteProducts(userId: string): Promise<Product[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("favorites")
+    .select("product_id, products(*, categories(id, slug, name))")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map((row) => {
+      const p = row.products as unknown as DbRow | null;
+      return p ? toProduct(p) : null;
+    })
+    .filter((p): p is Product => p !== null);
+}
+
+/** Toggle favorit: tambah bila belum ada, hapus bila sudah. */
+export async function toggleFavoriteProduct(
+  userId: string,
+  productId: string
+): Promise<{ favorited?: boolean; error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+
+  const { data: existing, error: findError } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .eq("user_id", userId)
+    .eq("product_id", productId)
+    .maybeSingle();
+  if (findError) return { error: findError.message };
+
+  if (existing) {
+    const { error } = await supabase
+      .from("favorites")
+      .delete()
+      .eq("user_id", userId)
+      .eq("product_id", productId);
+    return error ? { error: error.message } : { favorited: false };
+  }
+
+  const { error } = await supabase
+    .from("favorites")
+    .insert({ user_id: userId, product_id: productId });
+  return error ? { error: error.message } : { favorited: true };
+}
+
+/** Status favorit satu produk (untuk tombol hati). */
+export async function isProductFavorited(
+  userId: string,
+  productId: string
+): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .eq("user_id", userId)
+    .eq("product_id", productId)
+    .maybeSingle();
+  return Boolean(data);
+}
+
+/**
+ * Jumlah view per produk - satu panggilan RPC GROUP BY di Postgres
+ * (jangan fetch semua rows ke aplikasi).
+ */
+export async function getProductViewCounts(
+  productIds: string[]
+): Promise<Record<string, number>> {
+  if (!isSupabaseConfigured || productIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_view_counts", {
+    p_ids: productIds,
+  });
+  if (error) throw new Error(error.message);
+  const counts: Record<string, number> = {};
+  for (const row of (data as { product_id: string; view_count: number }[]) ?? []) {
+    counts[row.product_id] = Number(row.view_count);
+  }
+  return counts;
+}
+
+/** Profil user yang sedang login (untuk menu & edit profil). */
+export interface MyProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  role: "admin" | "user";
+  createdAt: string;
+}
+
+/** Ambil profil user yang sedang login. */
+export async function getMyProfile(userId: string): Promise<MyProfile | null> {
+  if (!isSupabaseConfigured) return null;
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("profiles")
+    .select("id, email, full_name, avatar_url, bio, role, created_at")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return {
+    id: data.id,
+    name: data.full_name ?? data.email.split("@")[0],
+    email: data.email,
+    avatarUrl: data.avatar_url,
+    bio: data.bio,
+    role: data.role === "admin" ? "admin" : "user",
+    createdAt: data.created_at,
+  };
+}
+
+/**
+ * Perbarui profil sendiri. Email TIDAK bisa diubah di sini (identitas
+ * terikat sesi Google auth) - hanya nama, bio, dan avatar.
+ */
+export async function updateMyProfile(
+  userId: string,
+  update: { name?: string; bio?: string | null; avatarUrl?: string | null }
+): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const client = createAdminClient();
+
+  const patch: Record<string, unknown> = {};
+  if (update.name !== undefined) {
+    const name = update.name.trim();
+    if (!name) return { error: "Nama tidak boleh kosong." };
+    if (name.length > 80) return { error: "Nama maksimal 80 karakter." };
+    patch.full_name = name;
+  }
+  if (update.bio !== undefined) {
+    const bio = update.bio?.trim() ?? null;
+    if (bio && bio.length > 280) return { error: "Bio maksimal 280 karakter." };
+    patch.bio = bio || null;
+  }
+  if (update.avatarUrl !== undefined) patch.avatar_url = update.avatarUrl;
+
+  if (Object.keys(patch).length === 0) return {};
+
+  const { error } = await client
+    .from("profiles")
+    .update(patch)
+    .eq("id", userId)
+    .select("id")
+    .single();
+  return error ? { error: error.message } : {};
+}
+
+/** Upload foto avatar ke bucket `avatars` (1 file terakhir per user). */
+export async function uploadAvatar(
+  file: File,
+  userId: string
+): Promise<{ url?: string; error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return { error: "SUPABASE_SERVICE_ROLE_KEY belum diisi di .env.local." };
+
+  // Validasi magic bytes: hanya JPG/PNG.
+  const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  const isJpeg = head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff;
+  const isPng =
+    head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47;
+  if (!isJpeg && !isPng) return { error: "Isi file bukan gambar JPG/PNG yang valid." };
+  if (file.size > 2 * 1024 * 1024) return { error: "Ukuran avatar maksimal 2MB." };
+
+  const admin = createAdminClient();
+  const ext = file.type === "image/png" ? "png" : "jpg";
+  const path = `${userId}/avatar.${ext}`;
+
+  // Upsert: satu avatar terakhir per user (nama file tetap).
+  const { error: uploadError } = await admin.storage
+    .from("avatars")
+    .upload(path, await file.arrayBuffer(), {
+      contentType: file.type,
+      upsert: true,
+    });
+  if (uploadError) return { error: uploadError.message };
+
+  // Cache-buster: timestamp agar avatar baru langsung tampil.
+  const { data } = admin.storage.from("avatars").getPublicUrl(path);
+  return { url: `${data.publicUrl}?v=${Date.now()}` };
+}
+
+/** Slug + tanggal update semua produk published (untuk sitemap). */
+export async function listPublishedForSitemap(): Promise<
+  { slug: string; updatedAt: string; submittedBy: string | null }[]
+> {
+  if (!isSupabaseConfigured) {
+    return SAMPLE_PRODUCTS.filter((p) => p.status === "published").map((p) => ({
+      slug: p.slug,
+      updatedAt: p.updatedAt,
+      submittedBy: p.submittedBy ?? null,
+    }));
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("slug, updated_at, submitted_by")
+    .eq("status", "published");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({
+    slug: r.slug,
+    updatedAt: r.updated_at,
+    submittedBy: r.submitted_by,
+  }));
+}
+
+/** Semua produk published milik satu member (untuk portofolio). */
+export async function listMemberPublishedProducts(userId: string): Promise<Product[]> {
+  if (!isSupabaseConfigured) {
+    return SAMPLE_PRODUCTS.filter((p) => p.status === "published");
+  }
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("products")
+    .select("*, categories(id, slug, name)")
+    .eq("submitted_by", userId)
+    .eq("status", "published")
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data as DbRow[]).map(toProduct);
+}
+
+/* ======================= ADMIN: KATEGORI ======================= */
+
+/** Daftar kategori + jumlah produk terkait (untuk halaman admin kategori). */
+export async function adminListCategories(): Promise<
+  { id: string; slug: string; name: string; productCount: number }[]
+> {
+  if (!isSupabaseConfigured) {
+    return CATEGORIES.map((c) => ({
+      id: c.slug,
+      slug: c.slug,
+      name: c.name,
+      productCount: SAMPLE_PRODUCTS.filter((p) => p.categorySlug === c.slug).length,
+    }));
+  }
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("categories")
+    .select("id, slug, name, products(count)");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    productCount: row.products?.[0]?.count ?? 0,
+  }));
+}
+
+/** Tambah kategori baru (slug otomatis dari nama). */
+export async function adminCreateCategory(name: string): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const client = createAdminClient();
+
+  const slug = slugify(name);
+  if (!slug) return { error: "Nama kategori tidak valid." };
+
+  // Cegah duplikat slug.
+  const { data: existing } = await client
+    .from("categories")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (existing) return { error: `Kategori dengan slug "${slug}" sudah ada.` };
+
+  const { error } = await client.from("categories").insert({ name: name.trim(), slug });
+  return error ? { error: error.message } : {};
+}
+
+/** Ubah seluruh data produk oleh admin (tanpa guard kepemilikan). */
+export async function adminUpdateProductFields(
+  id: string,
+  payload: SubmissionPayload
+): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const client = createAdminClient();
+
+  const { error } = await client
+    .from("products")
+    .update({
+      name: payload.name.trim(),
+      category_id: payload.categoryId,
+      stage: payload.stage,
+      country: payload.country,
+      city: payload.city || null,
+      year_founded: payload.yearFounded || null,
+      background_types: payload.backgroundTypes,
+      additional_notes: payload.additionalNotes || null,
+      short_description: payload.shortDescription,
+      long_description: payload.longDescription,
+      images: payload.images,
+      video_url: payload.videoUrl || null,
+      website: payload.website || null,
+      owner_name: payload.ownerName,
+      owner_email: payload.ownerEmail,
+      owner_whatsapp: payload.ownerWhatsapp,
+      needs: payload.needs,
+      needs_other: payload.needsOther || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Hapus produk permanen (khusus admin). */
+export async function adminDeleteProduct(id: string): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const client = createAdminClient();
+  const { error } = await client.from("products").delete().eq("id", id).select("id").single();
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Ambil satu produk apa pun statusnya (untuk halaman edit admin). */
+export async function adminGetProduct(id: string): Promise<Product | null> {
+  if (!isSupabaseConfigured) {
+    return SAMPLE_PRODUCTS.find((p) => p.id === id) ?? null;
+  }
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("products")
+    .select("*, categories(id, slug, name)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? toProduct(data as DbRow) : null;
+}
+
+/** Ubah nama kategori (slug diikutkan agar tetap konsisten). */
+export async function adminUpdateCategory(
+  id: string,
+  name: string
+): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const client = createAdminClient();
+
+  const slug = slugify(name);
+  if (!slug) return { error: "Nama kategori tidak valid." };
+
+  const { data: existing } = await client
+    .from("categories")
+    .select("id")
+    .eq("slug", slug)
+    .neq("id", id)
+    .maybeSingle();
+  if (existing) return { error: `Kategori dengan slug "${slug}" sudah ada.` };
+
+  const { error } = await client
+    .from("categories")
+    .update({ name: name.trim(), slug })
+    .eq("id", id);
+  return error ? { error: error.message } : {};
+}
+
+/** Hapus kategori. Ditolak bila masih ada produk yang memakainya. */
+export async function adminDeleteCategory(id: string): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const client = createAdminClient();
+
+  const { count, error: countError } = await client
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("category_id", id);
+  if (countError) return { error: countError.message };
+  if ((count ?? 0) > 0)
+    return {
+      error: `Masih ada ${count} produk memakai kategori ini. Pindahkan dulu produknya sebelum menghapus.`,
+    };
+
+  const { error } = await client.from("categories").delete().eq("id", id);
+  return error ? { error: error.message } : {};
+}
+
+/* ============================ ADMIN ============================ */
 
 /* ============================ ADMIN ============================ */
 
@@ -479,13 +969,28 @@ export async function adminUpdateProduct(
 /** Upload foto ke Storage bucket `product-images` (butuh service role key). */
 export async function uploadProductImage(
   file: File,
-  userId: string
+  userId: string,
+  maxFilesPerUser?: number
 ): Promise<{ url?: string; error?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
     return { error: "SUPABASE_SERVICE_ROLE_KEY belum diisi di .env.local." };
 
   const admin = createAdminClient();
+
+  // Kuota: hitung file yang sudah ada di prefix user sebelum upload.
+  if (maxFilesPerUser !== undefined) {
+    const { data: existing, error: listError } = await admin.storage
+      .from("product-images")
+      .list(userId, { limit: 1000 });
+    if (listError) return { error: listError.message };
+    if ((existing?.length ?? 0) >= maxFilesPerUser) {
+      return {
+        error: `Kuota foto penuh (maks ${maxFilesPerUser} foto). Hapus foto yang tidak terpakai di pengajuan Anda terlebih dahulu.`,
+      };
+    }
+  }
+
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 

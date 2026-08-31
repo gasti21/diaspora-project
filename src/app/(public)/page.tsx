@@ -82,7 +82,6 @@ export default async function HomePage() {
               "placeholders/riset-inovasi.svg",
               "placeholders/pendidikan-edukasi.svg",
             ].map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={src}
                 src={src}

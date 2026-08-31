@@ -3,6 +3,7 @@ import {
   Activity,
   LayoutDashboard,
   Package,
+  Tags,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +28,7 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Kurasi",
     items: [
       { href: "/admin/produk", label: "Manajemen Produk", icon: Package, exact: false, stat: "pending" },
+      { href: "/admin/kategori", label: "Kategori", icon: Tags, exact: false },
       { href: "/admin/aktivitas", label: "Aktivitas", icon: Activity, exact: false },
     ],
   },
@@ -44,6 +46,7 @@ export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 export const TITLES: Record<string, string> = {
   "/admin": "Overview",
   "/admin/produk": "Manajemen Produk",
+  "/admin/kategori": "Kategori Produk",
   "/admin/aktivitas": "Aktivitas Kurasi",
   "/admin/pengguna": "Pengguna & Admin",
 };

@@ -5,11 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CircleUserRound, ExternalLink, Menu, PackagePlus, X } from "lucide-react";
 import { MEMBER_NAV, MEMBER_TITLES } from "./member-nav";
+import { NotificationBell, type NotifItem } from "./NotificationBell";
+import { ProfileMenu } from "@/components/auth/ProfileMenu";
 import { LogoMark } from "@/components/branding/Logo";
 import { cn } from "@/lib/utils";
 
 interface ShellProps {
   user: { name: string; email: string; avatarUrl?: string; isAdmin: boolean };
+  /** Item notifikasi status pengajuan (dipetakan di layout server). */
+  notifications?: NotifItem[];
   children: ReactNode;
 }
 
@@ -18,7 +22,7 @@ interface ShellProps {
  * terang dengan aksen navy - pola sama dengan Panel Admin supaya UX
  * konsisten. Sidebar jadi drawer di layar kecil.
  */
-export function MemberShell({ user, children }: ShellProps) {
+export function MemberShell({ user, notifications = [], children }: ShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const title = MEMBER_TITLES[pathname] ?? "Area Member";
@@ -101,7 +105,6 @@ export function MemberShell({ user, children }: ShellProps) {
         <div className="flex items-center gap-3 rounded-xl bg-surface px-3.5 py-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-navy">
             {user.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
             ) : (
               <CircleUserRound className="h-5 w-5" aria-hidden="true" />
@@ -167,6 +170,13 @@ export function MemberShell({ user, children }: ShellProps) {
               <p className="hidden text-xs text-muted sm:block">Area Member KaryaDiaspora</p>
             </div>
             <div className="ml-auto flex items-center gap-2.5">
+              {!user.isAdmin && (
+                <NotificationBell items={notifications} userKey={user.email} />
+              )}
+              <ProfileMenu
+                mode="member"
+                fallback={{ name: user.name, email: user.email, avatarUrl: user.avatarUrl }}
+              />
               <Link
                 href="/"
                 className="hidden items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-xs font-semibold text-navy transition hover:bg-surface sm:inline-flex"
@@ -174,14 +184,6 @@ export function MemberShell({ user, children }: ShellProps) {
                 <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 Jelajahi Katalog
               </Link>
-              <span className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy">
-                {user.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
-                ) : (
-                  <CircleUserRound className="h-5 w-5" aria-hidden="true" />
-                )}
-              </span>
             </div>
           </div>
         </header>

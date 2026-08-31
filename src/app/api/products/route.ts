@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { listPublicProducts, createSubmission } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
-import { PER_PAGE, MAX_IMAGES } from "@/lib/constants";
-import type { Stage, SubmissionPayload } from "@/lib/types";
+import { PER_PAGE } from "@/lib/constants";
+import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
+import type { SubmissionPayload } from "@/lib/types";
+import { validateSubmissionPayload } from "@/lib/validation";
 
 /** GET /api/products - katalog publik (hanya published). */
 export async function GET(request: NextRequest) {
@@ -28,8 +30,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-const STAGE_VALUES: Stage[] = ["Sudah Dijual", "Prototype", "Riset"];
-
 /** POST /api/products - ajukan produk (butuh login Google) → status pending. */
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
@@ -37,6 +37,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Silakan masuk dengan Google untuk mengirim produk." },
       { status: 401 }
+    );
+  }
+
+  // Rate limit: maks 5 pengajuan baru per jam per user.
+  const rl = rateLimit(rateLimitKey(request, user.id, "submit"), 5, 60 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      {
+        error: `Batas pengajuan tercapai. Coba lagi dalam ${Math.ceil(rl.retryAfterSeconds / 60)} menit.`,
+      },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } }
     );
   }
 
@@ -48,20 +59,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Validasi sisi server (form juga memvalidasi di klien).
-  const errors: string[] = [];
-  if (!body.name?.trim()) errors.push("Nama produk wajib diisi.");
-  if (!body.categoryId) errors.push("Kategori wajib dipilih.");
-  if (!body.stage || !STAGE_VALUES.includes(body.stage)) errors.push("Tahap produk tidak valid.");
-  if (!body.country?.trim()) errors.push("Negara/lokasi wajib diisi.");
-  if (!body.shortDescription?.trim()) errors.push("Deskripsi singkat wajib diisi.");
-  if (!body.longDescription?.trim()) errors.push("Deskripsi lengkap wajib diisi.");
-  if (!Array.isArray(body.images) || body.images.length === 0)
-    errors.push("Minimal 1 foto produk.");
-  if (Array.isArray(body.images) && body.images.length > MAX_IMAGES)
-    errors.push(`Maksimal ${MAX_IMAGES} foto produk.`);
-  if (!body.ownerName?.trim()) errors.push("Nama pemilik wajib diisi.");
-  if (!body.ownerEmail?.trim()) errors.push("Email wajib diisi.");
-  if (!body.ownerWhatsapp?.trim()) errors.push("Nomor WhatsApp wajib diisi.");
+  const errors = validateSubmissionPayload(body);
   if (errors.length > 0) {
     return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
   }

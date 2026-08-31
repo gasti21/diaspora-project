@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSessionUser, getAdminUser } from "@/lib/auth";
+import { listMySubmissions } from "@/lib/data";
 import { MemberShell } from "@/components/member/MemberShell";
 import { LogoMark } from "@/components/branding/Logo";
 
@@ -40,6 +41,18 @@ export default async function MemberLayout({ children }: { children: React.React
 
   const admin = await getAdminUser();
 
+  // Notifikasi status: dipetakan dari pengajuan user (tanpa query tambahan).
+  const notifications = admin
+    ? []
+    : (await listMySubmissions(user.id)).map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        status: p.status,
+        reviewNote: p.reviewNote,
+        updatedAt: p.updatedAt,
+      }));
+
   return (
     <MemberShell
       user={{
@@ -48,6 +61,7 @@ export default async function MemberLayout({ children }: { children: React.React
         avatarUrl: user.avatarUrl,
         isAdmin: Boolean(admin),
       }}
+      notifications={notifications}
     >
       {children}
     </MemberShell>

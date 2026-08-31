@@ -4,12 +4,13 @@ import {
   ArrowUpRight,
   CheckCircle2,
   ClipboardList,
+  Eye,
   FileText,
   PackagePlus,
   Send,
 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
-import { listMySubmissions } from "@/lib/data";
+import { listMySubmissions, getProductViewCounts } from "@/lib/data";
 import { StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
 import { cn, formatDate } from "@/lib/utils";
@@ -43,6 +44,7 @@ export default async function PengajuanPage({
   const submissions = active === "all" ? all : all.filter((p) => p.status === active);
 
   const count = (s: ProductStatus) => all.filter((p) => p.status === s).length;
+  const viewCounts = await getProductViewCounts(all.map((p) => p.id));
   const summary = [
     { label: "Total Pengajuan", value: all.length, icon: ClipboardList, cls: "bg-navy/10 text-navy" },
     { label: "Menunggu Review", value: count("pending"), icon: FileText, cls: "bg-amber-50 text-amber-600" },
@@ -143,6 +145,9 @@ export default async function PengajuanPage({
                     Diajukan {formatDate(p.createdAt)}
                     {[p.city, p.country].filter(Boolean).length > 0 &&
                       ` · ${[p.city, p.country].filter(Boolean).join(", ")}`}
+                    {p.status === "published" && (
+                      <> · <Eye className="inline h-3 w-3 align-[-1px]" aria-hidden="true" /> {viewCounts[p.id] ?? 0} dilihat</>
+                    )}
                   </p>
 
                   {/* Alur status */}
@@ -166,11 +171,11 @@ export default async function PengajuanPage({
                       </Link>
                     ) : p.status !== "pending" ? (
                       <Link
-                        href="/submit"
+                        href={p.status === "revision" ? `/pengajuan/${p.id}/edit` : "/submit"}
                         className="inline-flex items-center gap-1 text-xs font-semibold text-navy transition hover:text-brand"
                       >
                         <PackagePlus className="h-3.5 w-3.5" aria-hidden="true" />
-                        Perbaiki & ajukan ulang
+                        {p.status === "revision" ? "Perbaiki & ajukan ulang" : "Ajukan produk baru"}
                       </Link>
                     ) : null}
                   </div>

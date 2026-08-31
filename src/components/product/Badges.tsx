@@ -1,4 +1,4 @@
-import { cn, CATEGORY_STYLES, STAGE_STYLES, NEED_STYLES, STATUS_META } from "@/lib/utils";
+import { cn, categoryStyle, STAGE_STYLES, NEED_STYLES, STATUS_META } from "@/lib/utils";
 
 export function CategoryBadge({ name, slug, className }: { name?: string; slug?: string; className?: string }) {
   if (!name) return null;
@@ -6,7 +6,7 @@ export function CategoryBadge({ name, slug, className }: { name?: string; slug?:
     <span
       className={cn(
         "inline-block rounded-full px-3 py-1 text-xs font-semibold",
-        CATEGORY_STYLES[slug ?? ""] ?? "bg-gray-100 text-gray-700",
+        categoryStyle(slug),
         className
       )}
     >

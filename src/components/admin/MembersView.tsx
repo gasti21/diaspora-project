@@ -147,7 +147,6 @@ export function MembersView({ users }: Props) {
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
                         {u.avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={u.avatarUrl}
                             alt={u.name}

@@ -75,7 +75,6 @@ export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolea
         className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-line bg-white text-navy transition hover:border-navy/40"
       >
         {user.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
         ) : (
           <CircleUserRound className="h-5 w-5" />
@@ -87,7 +86,6 @@ export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolea
           <div className="flex items-center gap-3 border-b border-line px-4 py-3.5">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface">
               {user.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
               ) : (
                 <CircleUserRound className="h-5 w-5 text-muted" />

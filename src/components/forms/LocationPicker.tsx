@@ -46,7 +46,6 @@ export function LocationPicker({ country, city, onCountry, onCity, error }: Prop
       stopWatch();
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function stopWatch() {

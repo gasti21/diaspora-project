@@ -123,6 +123,31 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
     [load, toast]
   );
 
+  /** Hapus produk permanen (dari drawer). */
+  const remove = useCallback(
+    async (product: Product) => {
+      setBusyId(product.id);
+      try {
+        const res = await fetch(`/api/products/${product.id}`, { method: "DELETE" });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          toast.error(json.error ?? "Gagal menghapus produk.");
+          return false;
+        }
+        toast.success(`"${product.name}" dihapus permanen.`);
+        setSelected(null);
+        await load();
+        return true;
+      } catch {
+        toast.error("Gagal menghapus produk. Coba lagi.");
+        return false;
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [load, toast]
+  );
+
   /** Unduh daftar produk halaman ini sebagai CSV. */
   function exportCsv() {
     if (!list?.data.length) return;
@@ -350,6 +375,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
         busy={Boolean(selected && busyId === selected.id)}
         onClose={() => setSelected(null)}
         onAct={act}
+        onDelete={remove}
       />
     </div>
   );

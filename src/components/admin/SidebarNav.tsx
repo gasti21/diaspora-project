@@ -103,7 +103,6 @@ export function SidebarNav({ admin }: SidebarNavProps) {
         <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3.5 py-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 text-white">
             {admin.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={admin.avatarUrl} alt={admin.name} className="h-full w-full object-cover" />
             ) : (
               <span className="text-xs font-bold uppercase">{admin.name.slice(0, 1)}</span>

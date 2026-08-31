@@ -22,6 +22,8 @@ export interface Product {
   id: string;
   slug: string;
   name: string;
+  /** ID user pengaju (untuk tautan profil publik). */
+  submittedBy?: string | null;
   categoryId: string;
   categorySlug?: string;
   categoryName?: string;

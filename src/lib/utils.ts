@@ -105,6 +105,26 @@ export const STAGE_STYLES: Record<string, string> = {
   Riset: "bg-teal-100 text-teal-700",
 };
 
+/** Palet untuk kategori di luar daftar (dipilih deterministik dari slug). */
+const CATEGORY_FALLBACK_STYLES = [
+  "bg-rose-50 text-rose-700",
+  "bg-cyan-50 text-cyan-700",
+  "bg-violet-50 text-violet-700",
+  "bg-lime-50 text-lime-700",
+  "bg-fuchsia-50 text-fuchsia-700",
+  "bg-teal-50 text-teal-700",
+];
+
+/** Gaya badge kategori: preset dulu, lalu fallback deterministik per slug. */
+export function categoryStyle(slug?: string | null): string {
+  if (!slug) return "bg-gray-100 text-gray-700";
+  const preset = CATEGORY_STYLES[slug];
+  if (preset) return preset;
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
+  return CATEGORY_FALLBACK_STYLES[hash % CATEGORY_FALLBACK_STYLES.length];
+}
+
 export const NEED_STYLES: Record<string, string> = {
   Investor: "bg-amber-100 text-amber-800",
   Partner: "bg-blue-100 text-blue-800",

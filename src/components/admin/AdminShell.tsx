@@ -2,10 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { CircleUserRound, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { TITLES } from "./admin-nav";
 import { NotificationBell } from "./NotificationBell";
 import { SidebarNav } from "./SidebarNav";
+import { ProfileMenu } from "@/components/auth/ProfileMenu";
 
 interface ShellProps {
   admin: { name: string; email: string; avatarUrl?: string };
@@ -84,17 +85,10 @@ export function AdminShell({ admin, children }: ShellProps) {
               {/* Notifikasi real-time: badge merah = ada pending */}
               <NotificationBell />
               <span className="hidden h-6 w-px bg-line sm:block" aria-hidden="true" />
-              <span
-                title={admin.email}
-                className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy"
-              >
-                {admin.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={admin.avatarUrl} alt={admin.name} className="h-full w-full object-cover" />
-                ) : (
-                  <CircleUserRound className="h-5 w-5" aria-hidden="true" />
-                )}
-              </span>
+              <ProfileMenu
+                mode="admin"
+                fallback={{ name: admin.name, email: admin.email, avatarUrl: admin.avatarUrl }}
+              />
             </div>
           </div>
         </header>

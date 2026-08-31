@@ -7,8 +7,8 @@ import {
   Check,
   Globe,
   LoaderCircle,
-  MapPin,
   SquarePen,
+  Trash2,
   Video,
   X,
 } from "lucide-react";
@@ -22,18 +22,22 @@ interface Props {
   busy: boolean;
   onClose: () => void;
   onAct: (product: Product, status: ProductStatus, reviewNote?: string) => Promise<boolean>;
+  /** Hapus produk permanen (admin). */
+  onDelete?: (product: Product) => Promise<boolean>;
 }
 
 /** Slide-over detail produk dari kanan - pusat aksi review admin. */
-export function ProductDrawer({ product, busy, onClose, onAct }: Props) {
+export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props) {
   const [note, setNote] = useState("");
   const [noteError, setNoteError] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
 
   // reset catatan setiap ganti produk terpilih
   useEffect(() => {
     setNote("");
     setNoteError(false);
+    setConfirmDelete(false);
   }, [product?.id]);
 
   // tutup dengan tombol Escape + kunci scroll body
@@ -186,6 +190,52 @@ export function ProductDrawer({ product, busy, onClose, onAct }: Props) {
               {product.reviewNote}
             </div>
           )}
+
+          {/* Aksi kelola data */}
+          <div className="border-t border-line pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted">Kelola Data</h3>
+            <div className="mt-2 flex gap-2">
+              <Link
+                href={`/admin/produk/${product.id}/edit`}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-line py-2.5 text-xs font-bold text-navy transition hover:bg-surface"
+              >
+                <SquarePen className="h-4 w-4" aria-hidden="true" /> Edit Data
+              </Link>
+              {confirmDelete ? (
+                <>
+                  <span className="flex items-center text-xs font-semibold text-brand">
+                    Hapus permanen?
+                  </span>
+                  <button
+                    disabled={busy || !onDelete}
+                    onClick={async () => {
+                      if (onDelete && (await onDelete(current))) onClose();
+                    }}
+                    className="rounded-lg bg-brand px-3 py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
+                  >
+                    Ya, Hapus
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="rounded-lg border border-line px-3 py-2.5 text-xs font-bold text-navy transition hover:bg-surface"
+                  >
+                    Batal
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2.5 text-xs font-bold text-red-600 transition hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" /> Hapus
+                </button>
+              )}
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+              Edit memperbaiki isi data tanpa mengubah status review. Hapus bersifat
+              permanen dan tidak bisa dibatalkan.
+            </p>
+          </div>
 
           {/* Aksi review */}
           <div className="border-t border-line pt-4">

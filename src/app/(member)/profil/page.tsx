@@ -37,7 +37,6 @@ export default async function ProfilPage() {
         <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
           <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-surface bg-white">
             {user.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
             ) : (
               <CircleUserRound className="h-10 w-10 text-muted" aria-hidden="true" />

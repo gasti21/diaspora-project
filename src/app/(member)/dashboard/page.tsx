@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   ClipboardList,
   FileText,
-  Heart,
   PackagePlus,
   Send,
 } from "lucide-react";
@@ -22,13 +21,22 @@ export const metadata: Metadata = {
   description: "Dashboard member KaryaDiaspora - ringkasan pengajuan produk Anda.",
 };
 
-/** Kartu ringkasan status pengajuan milik user yang sedang login. */
+/** Alur singkat yang ditampilkan di onboarding hero untuk user baru. */
+const ONBOARDING_STEPS = [
+  { step: "1", title: "Lengkapi data", desc: "Isi info produk & unggah foto" },
+  { step: "2", title: "Direview tim", desc: "Kurasi 1-3 hari kerja" },
+  { step: "3", title: "Tayang!", desc: "Produk tampil di katalog" },
+];
+
+/** Kartu dashboard member: ringkasan pengajuan, aktivitas terbaru, dan onboarding user baru. */
 export default async function MemberDashboardPage() {
   const user = await getSessionUser();
   const submissions = user ? await listMySubmissions(user.id) : [];
 
   const count = (s: ProductStatus) => submissions.filter((p) => p.status === s).length;
   const attention = count("revision") + count("rejected");
+  const needsAttention = attention > 0;
+
   const summary = [
     { label: "Total Pengajuan", value: submissions.length, icon: ClipboardList, chip: "bg-navy/10 text-navy", href: "/pengajuan" },
     { label: "Menunggu Review", value: count("pending"), icon: FileText, chip: "bg-amber-50 text-amber-600", href: "/pengajuan?status=pending" },
@@ -37,6 +45,51 @@ export default async function MemberDashboardPage() {
   ];
 
   const recent = submissions.slice(0, 5);
+
+  // User baru (belum pernah submit) - tampilkan onboarding hero, bukan
+  // dashboard lengkap: angka 0-0-0 dan panel status tidak relevan untuk mereka.
+  if (submissions.length === 0) {
+    return (
+      <div className="rounded-2xl border border-line bg-white px-6 py-16 text-center sm:px-10">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-navy/10 text-navy">
+          <ClipboardList className="h-7 w-7" aria-hidden="true" />
+        </span>
+        <h1 className="mt-5 text-2xl font-extrabold text-navy">
+          Selamat datang, {user?.name}! 🎉
+        </h1>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+          Satu langkah menuju produk Anda tayang di katalog diaspora.
+          Isi formulir pengajuan, lalu tim kurasi kami yang urus sisanya.
+        </p>
+
+        {/* Alur singkat sampai tayang */}
+        <ol className="mx-auto mt-8 grid max-w-xl gap-3 text-left sm:grid-cols-3">
+          {ONBOARDING_STEPS.map((s) => (
+            <li
+              key={s.step}
+              className="flex items-start gap-3 rounded-xl border border-line bg-surface/60 p-3.5"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                {s.step}
+              </span>
+              <div>
+                <p className="text-sm font-bold text-navy">{s.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted">{s.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <Link
+          href="/submit"
+          className="mt-8 inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-dark"
+        >
+          <PackagePlus className="h-4.5 w-4.5" aria-hidden="true" />
+          Ajukan Produk Pertama Anda
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -47,12 +100,13 @@ export default async function MemberDashboardPage() {
             Ini ringkasan aktivitas pengajuan produk Anda di KaryaDiaspora.
           </p>
         </div>
+        {/* Pintu submit khusus layar kecil - di desktop cukup CTA sidebar */}
         <Link
           href="/submit"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-brand-dark"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-brand-dark lg:hidden"
         >
           <PackagePlus className="h-4 w-4" aria-hidden="true" />
-          Ajukan Produk Baru
+          Submit Produk
         </Link>
       </div>
 
@@ -75,9 +129,14 @@ export default async function MemberDashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className={cn("grid gap-6", needsAttention && "xl:grid-cols-3")}>
         {/* Pengajuan terbaru */}
-        <section className="rounded-2xl border border-line bg-white xl:col-span-2">
+        <section
+          className={cn(
+            "rounded-2xl border border-line bg-white",
+            needsAttention && "xl:col-span-2"
+          )}
+        >
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <h2 className="font-bold text-navy">Pengajuan Terbaru</h2>
             <Link
@@ -88,73 +147,45 @@ export default async function MemberDashboardPage() {
             </Link>
           </div>
 
-          {recent.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <ClipboardList className="mx-auto h-9 w-9 text-muted" aria-hidden="true" />
-              <h3 className="mt-3 text-sm font-bold text-navy">Belum ada pengajuan</h3>
-              <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted">
-                Karya Anda layak dikenal dunia. Ajukan produk pertama Anda sekarang -
-                tim kurasi kami akan meninjaunya dalam 1-3 hari.
-              </p>
-              <Link
-                href="/submit"
-                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-xs font-bold text-white transition hover:bg-navy-dark"
-              >
-                <PackagePlus className="h-3.5 w-3.5" aria-hidden="true" />
-                Submit Produk
-              </Link>
-            </div>
-          ) : (
-            <ul className="divide-y divide-line/70">
-              {recent.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={p.status === "published" ? `/produk/${p.slug}` : "/pengajuan"}
-                    className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-surface/60"
-                  >
-                    <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-line bg-surface">
-                      <ProductImage
-                        src={p.images[0]}
-                        alt={p.name}
-                        categorySlug={p.categorySlug}
-                        className="h-full w-full object-cover"
-                      />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-navy">{p.name}</p>
-                      <p className="mt-0.5 truncate text-xs text-muted">
-                        Diajukan {timeAgo(p.createdAt)} · {formatDate(p.createdAt)}
-                      </p>
-                    </div>
-                    <StatusBadge status={p.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="divide-y divide-line/70">
+            {recent.map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={p.status === "published" ? `/produk/${p.slug}` : "/pengajuan"}
+                  className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-surface/60"
+                >
+                  <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-line bg-surface">
+                    <ProductImage
+                      src={p.images[0]}
+                      alt={p.name}
+                      categorySlug={p.categorySlug}
+                      className="h-full w-full object-cover"
+                    />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-navy">{p.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted">
+                      Diajukan {timeAgo(p.createdAt)} · {formatDate(p.createdAt)}
+                    </p>
+                  </div>
+                  <StatusBadge status={p.status} />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
-        <div className="space-y-6">
-          {/* Panel perlu perhatian */}
-          <section
-            className={cn(
-              "rounded-2xl border bg-white p-5",
-              attention > 0 ? "border-amber-200" : "border-line"
-            )}
-          >
+        {/* Panel status - hanya muncul saat ada pengajuan yang perlu
+            revisi/ditolak. Saat aman, panel tidak dirender supaya dashboard
+            tidak menampilkan pesan yang tidak relevan. */}
+        {needsAttention && (
+          <section className="rounded-2xl border border-amber-200 bg-white p-5">
             <h2 className="font-bold text-navy">Status Pengajuan</h2>
-            {attention > 0 ? (
-              <p className="mt-3 text-sm leading-relaxed text-muted">
-                Ada <span className="font-bold text-amber-600">{attention} pengajuan</span>{" "}
-                yang perlu revisi atau ditolak. Buka Pengajuan Saya untuk membaca
-                catatan reviewer dan mengajukan ulang.
-              </p>
-            ) : (
-              <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-green-700">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                Semua pengajuan Anda diproses dengan lancar. Terima kasih!
-              </p>
-            )}
+            <p className="mt-3 text-sm leading-relaxed text-muted">
+              Ada <span className="font-bold text-amber-600">{attention} pengajuan</span>{" "}
+              yang perlu revisi atau ditolak. Buka Pengajuan Saya untuk membaca
+              catatan reviewer dan mengajukan ulang.
+            </p>
             <Link
               href="/pengajuan"
               className="mt-4 inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-xs font-bold text-white transition hover:bg-navy-dark"
@@ -162,28 +193,7 @@ export default async function MemberDashboardPage() {
               Buka Pengajuan Saya <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </section>
-
-          {/* Aksi cepat */}
-          <section className="rounded-2xl border border-line bg-white p-5">
-            <h2 className="font-bold text-navy">Aksi Cepat</h2>
-            <div className="mt-3 space-y-2 text-sm">
-              <Link
-                href="/submit"
-                className="flex items-center justify-between rounded-lg border border-line px-4 py-3 font-medium text-navy transition hover:bg-surface"
-              >
-                Submit produk baru
-                <PackagePlus className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-              </Link>
-              <Link
-                href="/favorit"
-                className="flex items-center justify-between rounded-lg border border-line px-4 py-3 font-medium text-navy transition hover:bg-surface"
-              >
-                Lihat produk favorit
-                <Heart className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-              </Link>
-            </div>
-          </section>
-        </div>
+        )}
       </div>
     </div>
   );

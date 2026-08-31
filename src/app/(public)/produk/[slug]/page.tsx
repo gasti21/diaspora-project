@@ -19,6 +19,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { getProductBySlug, getRelatedProducts } from "@/lib/data";
+import { ViewTracker } from "@/components/product/ViewTracker";
 import { SITE_URL } from "@/lib/supabase/config";
 import { countryFlag, formatLocation, waLink } from "@/lib/utils";
 
@@ -32,7 +33,27 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
-  return { description: product.shortDescription };
+
+  const title = product.name;
+  const description = product.shortDescription;
+  const image = product.images?.[0];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: image ? [{ url: image, alt: product.name }] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+  };
 }
 
 export default async function ProductDetailPage({
@@ -56,6 +77,7 @@ export default async function ProductDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <ViewTracker productId={product.id} />
       <Link
         href="/explore"
         className="inline-flex items-center gap-1 text-sm font-medium text-muted transition hover:text-brand"
@@ -127,7 +149,12 @@ export default async function ProductDetailPage({
           <div className="mt-6 rounded-xl border border-line bg-white p-5">
             <h2 className="font-bold">Informasi Kontak</h2>
             <dl className="mt-4 space-y-3.5 text-sm">
-              <Row icon={User} label="Nama Pemilik" value={product.ownerName} />
+              <Row
+                icon={User}
+                label="Nama Pemilik"
+                value={product.ownerName}
+                href={product.submittedBy ? `/u/${product.submittedBy}` : undefined}
+              />
               <Row
                 icon={Mail}
                 label="Email"
@@ -201,9 +228,15 @@ function Row({
         <dt className="text-xs text-muted">{label}</dt>
         <dd className="font-semibold break-all">
           {href ? (
-            <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
-              {value}
-            </a>
+            href.startsWith("/") ? (
+              <Link href={href} className="hover:text-brand">
+                {value}
+              </Link>
+            ) : (
+              <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
+                {value}
+              </a>
+            )
           ) : (
             value
           )}
