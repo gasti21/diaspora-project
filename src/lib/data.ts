@@ -38,8 +38,9 @@ interface DbRow {
   needs: string[] | null;
   needs_other: string | null;
   owner_name: string;
-  owner_email: string;
-  owner_whatsapp: string;
+  /** Tidak di-grant ke anon/authenticated (migration 0005) - bisa absen pada select user client. */
+  owner_email?: string;
+  owner_whatsapp?: string;
   status: string;
   review_note: string | null;
   created_at: string;
@@ -82,6 +83,15 @@ function toProduct(row: DbRow): Product {
   };
 }
 
+/**
+ * Kolom produk yang di-grant SELECT ke anon/authenticated (migration 0005).
+ * WAJIB dipakai pada semua query products via user client - PostgREST
+ * meng-expand '*' ke SEMUA kolom sehingga query ditolak permission denied.
+ * Query via service-role (admin client) bebas memakai "*".
+ */
+const SAFE_PRODUCT_COLUMNS =
+  "id, slug, name, category_id, stage, country, city, short_description, long_description, background_types, additional_notes, images, video_url, website, year_founded, needs, needs_other, owner_name, status, review_note, submitted_by, created_at, updated_at";
+
 /* ============================ PUBLIK ============================ */
 
 export async function listPublicProducts(
@@ -97,7 +107,7 @@ export async function listPublicProducts(
   const supabase = await createClient();
   let query = supabase
     .from("products")
-    .select("*, categories!inner(id, slug, name)", { count: "exact" })
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories!inner(id, slug, name)`, { count: "exact" })
     .eq("status", "published");
 
   if (filters.q) {
@@ -123,7 +133,7 @@ export async function listPublicProducts(
 
   const total = count ?? 0;
   return {
-    data: (data as DbRow[]).map(toProduct),
+    data: (data as unknown as DbRow[]).map(toProduct),
     total,
     page,
     perPage,
@@ -138,12 +148,12 @@ export async function getLatestProducts(limit = 6): Promise<Product[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(id, slug, name)")
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`)
     .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data as DbRow[]).map(toProduct);
+  return (data as unknown as DbRow[]).map(toProduct);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -153,12 +163,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(id, slug, name)")
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`)
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return data ? toProduct(data as DbRow) : null;
+  return data ? toProduct(data as unknown as DbRow) : null;
 }
 
 /**
@@ -228,14 +238,14 @@ export async function getRelatedProducts(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(id, slug, name)")
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`)
     .eq("status", "published")
     .eq("category_id", product.categoryId)
     .neq("id", product.id)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data as DbRow[]).map(toProduct);
+  return (data as unknown as DbRow[]).map(toProduct);
 }
 
 /**
@@ -248,12 +258,12 @@ export async function listMySubmissions(userId: string): Promise<Product[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(id, slug, name)")
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`)
     .eq("submitted_by", userId)
     .order("created_at", { ascending: false })
     .limit(50);
   if (error) throw new Error(error.message);
-  return (data as DbRow[]).map(toProduct);
+  return (data as unknown as DbRow[]).map(toProduct);
 }
 
 /** Ambil satu pengajuan milik user (untuk halaman edit revisi). */
@@ -265,12 +275,12 @@ export async function getMySubmission(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(id, slug, name)")
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`)
     .eq("submitted_by", userId)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return data ? fillOwnedContact(userId, toProduct(data as DbRow)) : null;
+  return data ? fillOwnedContact(userId, toProduct(data as unknown as DbRow)) : null;
 }
 
 /**
@@ -679,7 +689,7 @@ export async function listMemberPublishedProducts(userId: string): Promise<Produ
     .eq("status", "published")
     .order("updated_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data as DbRow[]).map(toProduct);
+  return (data as unknown as DbRow[]).map(toProduct);
 }
 
 /* ======================= ADMIN: KATEGORI ======================= */
@@ -789,7 +799,7 @@ export async function adminGetProduct(id: string): Promise<Product | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return data ? toProduct(data as DbRow) : null;
+  return data ? toProduct(data as unknown as DbRow) : null;
 }
 
 /** Ubah nama kategori (slug diikutkan agar tetap konsisten). */
@@ -859,7 +869,7 @@ export async function adminListProducts(filters: {
   const supabase = await createClient();
   let query = supabase
     .from("products")
-    .select("*, categories(id, slug, name)", { count: "exact" });
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`, { count: "exact" });
 
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.q) {
@@ -876,7 +886,7 @@ export async function adminListProducts(filters: {
 
   const total = count ?? 0;
   return {
-    data: (data as DbRow[]).map(toProduct),
+    data: (data as unknown as DbRow[]).map(toProduct),
     total,
     page,
     perPage,
@@ -954,9 +964,9 @@ export async function adminGetOverview(): Promise<AdminOverview> {
 
   return {
     stats,
-    recent: (recentRes.data as DbRow[]).map(toProduct),
+    recent: (recentRes.data as unknown as DbRow[]).map(toProduct),
     oldestPending: oldestRes.data?.length
-      ? toProduct(oldestRes.data[0] as DbRow)
+      ? toProduct(oldestRes.data[0] as unknown as DbRow)
       : null,
   };
 }
@@ -979,7 +989,7 @@ export async function adminListActivity(limit = 20): Promise<Product[]> {
     .order("updated_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data as DbRow[]).map(toProduct);
+  return (data as unknown as DbRow[]).map(toProduct);
 }
 
 /**
