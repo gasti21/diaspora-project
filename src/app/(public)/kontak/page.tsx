@@ -25,9 +25,9 @@ export default function KontakPage() {
         />
         <Card
           icon={MessageCircle}
-          title="WhatsApp"
-          desc="Jam kerja 09.00–17.00 WIB."
-          value="Hubungi via WhatsApp"
+          title="Support"
+          desc="Respon cepat pada jam kerja 09.00–17.00 WIB."
+          value="Hubungi Support via WhatsApp"
         />
         <Card
           icon={Landmark}

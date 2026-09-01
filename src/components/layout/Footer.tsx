@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
 import { LogoMark } from "@/components/branding/Logo";
+import { getSessionUser } from "@/lib/auth";
 
-export function Footer() {
+export async function Footer() {
+  // Menu publik (Tentang/Contact) hanya untuk tamu; member login tidak perlu
+  // - kontak admin nanti lewat fitur Support Center.
+  const user = await getSessionUser();
   return (
     <footer className="bg-navy-deep text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
@@ -26,8 +30,12 @@ export function Footer() {
           <ul className="space-y-2.5 text-sm text-white/70">
             <li><Link href="/explore" className="transition-colors duration-200 hover:text-white">Explore Produk</Link></li>
             <li><Link href="/submit" className="transition-colors duration-200 hover:text-white">Submit Produk</Link></li>
-            <li><Link href="/tentang" className="transition-colors duration-200 hover:text-white">Tentang Kami</Link></li>
-            <li><Link href="/kontak" className="transition-colors duration-200 hover:text-white">Contact</Link></li>
+            {!user && (
+              <>
+                <li><Link href="/tentang" className="transition-colors duration-200 hover:text-white">Tentang Kami</Link></li>
+                <li><Link href="/kontak" className="transition-colors duration-200 hover:text-white">Contact</Link></li>
+              </>
+            )}
           </ul>
         </div>
 

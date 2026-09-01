@@ -34,7 +34,17 @@ export async function middleware(request: NextRequest) {
   );
 
   // Penting: memicu refresh token bila sudah mendekati kedaluwarsa.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Halaman "guest-only": marketing/onboarding untuk tamu. User yang sudah
+  // login dialihkan langsung ke katalog (Explore) - tidak ada alasan melihat
+  // landing page, tentang, atau kontak publik.
+  const GUEST_ONLY = ["/", "/tentang", "/kontak"];
+  if (user && GUEST_ONLY.includes(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL("/explore", request.url));
+  }
 
   return response;
 }
