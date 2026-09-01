@@ -2,9 +2,48 @@ import Link from "next/link";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CATEGORIES } from "@/lib/constants";
-import { getLatestProducts } from "@/lib/data";
+import { getLatestProducts, listMyFavoriteProducts } from "@/lib/data";
+import { getSessionUser } from "@/lib/auth";
+import type { Product } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+/** Section "Favorit Kamu" - hanya dirender untuk member yang login dan punya favorit. */
+function FavoriteSection({
+  favorites,
+  firstName,
+}: {
+  favorites: Product[];
+  firstName: string;
+}) {
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold">
+            Halo, {firstName} 👋 — Favorit Kamu
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            {favorites.length} produk tersimpan di daftar favoritmu
+          </p>
+        </div>
+        <Link
+          href="/dashboard/favorit"
+          className="text-sm font-medium text-brand hover:underline"
+        >
+          Kelola favorit
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {favorites.slice(0, 4).map((p) => (
+          <div key={p.id} className="flex">
+            <ProductCard product={p} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 const STEPS = [
   {
@@ -27,6 +66,20 @@ const STEPS = [
 
 export default async function HomePage() {
   const latest = await getLatestProducts(6);
+
+  // Personalisasi ringan: hanya untuk member yang login.
+  // Non-login -> homepage persis seperti sebelumnya (nol perubahan).
+  const user = await getSessionUser();
+  let favorites: Product[] = [];
+  if (user) {
+    try {
+      favorites = (await listMyFavoriteProducts(user.id)).slice(0, 4);
+    } catch (error) {
+      console.error("Gagal memuat favorit di homepage:", error);
+    }
+  }
+  const firstName = user?.name?.trim().split(/\s+/)[0] ?? "";
+
 
   return (
     <>
@@ -121,6 +174,11 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      {/* ===== Favorit Kamu (hanya member yang login & punya favorit) ===== */}
+      {user && favorites.length > 0 && (
+        <FavoriteSection favorites={favorites} firstName={firstName} />
+      )}
 
       {/* ===== Produk Terbaru ===== */}
       <section id="produk-terbaru" className="bg-surface/60 py-14 scroll-mt-20">
