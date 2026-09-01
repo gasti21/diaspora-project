@@ -25,9 +25,10 @@ export default function KontakPage() {
         />
         <Card
           icon={MessageCircle}
-          title="Support"
-          desc="Respon cepat pada jam kerja 09.00–17.00 WIB."
-          value="Hubungi Support via WhatsApp"
+          title="Chat Support"
+          desc="Member dapat menghubungi tim langsung dari dalam platform — tanpa keluar aplikasi."
+          value="Tersedia setelah masuk ke akun"
+          href="/login?next=%2Fexplore"
         />
         <Card
           icon={Landmark}
@@ -43,7 +44,7 @@ export default function KontakPage() {
         <p className="mt-2 text-muted">
           Setelah Anda mengirimkan produk melalui halaman Submit, admin akan
           meninjau dalam waktu kurang dari 24 jam dan menghubungi Anda melalui
-          email atau WhatsApp yang terdaftar.
+          email yang terdaftar.
         </p>
       </div>
     </div>
