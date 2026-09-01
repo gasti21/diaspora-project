@@ -8,11 +8,22 @@ import { getSessionUser, getAdminUser } from "@/lib/auth";
 
 // Link menu utama (desktop & drawer mobile) - link aktif di-highlight
 // oleh <NavLinks>, bukan disembunyikan, supaya posisi menu stabil.
-const LINKS = [
+// Menu publik untuk tamu; member login melihat menu aktivitas member
+// (Tentang/Kontak tetap tersedia via footer & dropdown avatar, serta
+// akan digantikan fitur support center di fase berikutnya).
+const PUBLIC_LINKS = [
   { href: "/", label: "Home" },
   { href: "/explore", label: "Explore Produk" },
   { href: "/tentang", label: "Tentang Kami" },
   { href: "/kontak", label: "Kontak" },
+];
+
+const MEMBER_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/explore", label: "Explore Produk" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/favorit", label: "Favorit" },
+  { href: "/pengajuan", label: "Pengajuan Saya" },
 ];
 
 /**
@@ -30,7 +41,7 @@ export async function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
 
-        <NavLinks links={LINKS} className="hidden items-center gap-7 lg:flex" />
+        <NavLinks links={user ? MEMBER_LINKS : PUBLIC_LINKS} className="hidden items-center gap-7 lg:flex" />
 
         <div className="flex items-center gap-2.5">
           {/* CTA submit hanya untuk member & tamu (tamu → login dulu);
