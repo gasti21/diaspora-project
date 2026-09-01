@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { categoryBySlug } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -31,9 +32,16 @@ function toRenderUrl(src: string, width: number): string {
  */
 export function ProductImage({ src, alt, categorySlug, className, width = 640, priority }: Props) {
   const fallback = `/placeholders/${categoryBySlug(categorySlug)?.slug ?? "makanan-minuman"}.svg`;
-  const resolved = src ? toRenderUrl(src, width) : fallback;
+  const [failed, setFailed] = useState(false);
+  // Setelah URL render gagal, tampilkan placeholder SVG - lewat <img> biasa
+  // karena optimizer next/image memblokir SVG (400) tanpa dangerouslyAllowSVG.
+  const usePlainImg = failed || !src;
+  const resolved = usePlainImg ? fallback : toRenderUrl(src, width);
 
-  return (
+  return usePlainImg ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={resolved} alt={alt} loading={priority ? "eager" : "lazy"} className={cn("object-cover", className)} />
+  ) : (
     <Image
       src={resolved}
       alt={alt}
@@ -42,10 +50,7 @@ export function ProductImage({ src, alt, categorySlug, className, width = 640, p
       priority={priority}
       loading={priority ? undefined : "lazy"}
       className={cn("object-cover", className)}
-      onError={(e) => {
-        const img = e.currentTarget;
-        if (!img.src.endsWith(fallback)) img.src = fallback;
-      }}
+      onError={() => setFailed(true)}
     />
   );
 }

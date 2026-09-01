@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpDown, RotateCcw } from "lucide-react";
+import { ArrowUpDown, ChevronDown, RotateCcw } from "lucide-react";
 import { CATEGORIES, STAGES, NEEDS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -38,34 +38,43 @@ export function FilterBar({ countries }: { countries: string[] }) {
 
   const selectCls = (filled: boolean) =>
     cn(
-      "h-11 cursor-pointer rounded-xl border bg-white px-4 pr-9 text-sm font-medium outline-none transition",
+      // appearance-none: buang chevron bawaan browser (dobel & jelek),
+      // diganti ikon ChevronDown yang dirender terpisah di wrapper.
+      "h-11 w-full cursor-pointer appearance-none truncate rounded-xl border bg-white pl-4 pr-9 text-sm font-medium outline-none transition",
       filled ? "border-navy text-navy" : "border-line text-navy/80 hover:border-navy/40"
     );
+
+  /** Wrapper select + chevron custom, lebar stabil per label. */
 
   return (
     <div className="flex flex-wrap items-center gap-3">
       {FILTERS.map((f) => (
-        <select
-          key={f.key}
-          value={params.get(f.key) ?? ""}
-          onChange={(e) => setParam(f.key, e.target.value)}
-          aria-label={`Filter ${f.label}`}
-          className={selectCls(Boolean(params.get(f.key)))}
-        >
-          <option value="">{f.label}</option>
-          {(f.key === "lokasi"
-            ? countries.map((c) => ({ value: c, label: c }))
-            : f.options
-          ).map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <div key={f.key} className="relative min-w-[9.5rem]">
+          <select
+            value={params.get(f.key) ?? ""}
+            onChange={(e) => setParam(f.key, e.target.value)}
+            aria-label={`Filter ${f.label}`}
+            className={selectCls(Boolean(params.get(f.key)))}
+          >
+            <option value="">{f.label}</option>
+            {(f.key === "lokasi"
+              ? countries.map((c) => ({ value: c, label: c }))
+              : f.options
+            ).map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            aria-hidden="true"
+          />
+        </div>
       ))}
 
       {/* Urutan hasil */}
-      <div className="relative">
+      <div className="relative min-w-[10.5rem]">
         <ArrowUpDown
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
           aria-hidden="true"
@@ -82,6 +91,10 @@ export function FilterBar({ countries }: { countries: string[] }) {
             </option>
           ))}
         </select>
+        <ChevronDown
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          aria-hidden="true"
+        />
       </div>
 
       {active && (

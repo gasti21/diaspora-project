@@ -107,19 +107,17 @@ export function UserMenu({ user, isAdmin }: { user: SessionUser; isAdmin: boolea
             </div>
           )}
 
-          {/* Menu member: hanya untuk member biasa (admin cukup Panel Admin
-              karena pengajuan/favorit bukan ranah kurator) */}
-          {!isAdmin && (
-            <div className="border-t border-line p-2">
-              <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted/70">
-                Akun Saya
-              </p>
-              <MenuItem href="/dashboard" icon={LayoutDashboard} label="Dashboard Saya" onClick={() => setOpen(false)} />
-              <MenuItem href="/pengajuan" icon={ClipboardList} label="Pengajuan Saya" onClick={() => setOpen(false)} />
-              <MenuItem href="/favorit" icon={Heart} label="Favorit Saya" onClick={() => setOpen(false)} />
-              <MenuItem href="/profil" icon={UserRound} label="Profil Saya" onClick={() => setOpen(false)} />
-            </div>
-          )}
+          {/* Menu member: tampil untuk semua user (admin pun butuh akses
+              cepat ke dashboard/profil); admin dapat kedua seksi. */}
+          <div className="border-t border-line p-2">
+            <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted/70">
+              Akun Saya
+            </p>
+            <MenuItem href="/dashboard" icon={LayoutDashboard} label="Dashboard Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/pengajuan" icon={ClipboardList} label="Pengajuan Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/favorit" icon={Heart} label="Favorit Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/profil" icon={UserRound} label="Profil Saya" onClick={() => setOpen(false)} />
+          </div>
 
           <div className="border-t border-line p-2">
             <button
