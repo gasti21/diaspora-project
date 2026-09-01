@@ -19,11 +19,7 @@ const PUBLIC_LINKS = [
 ];
 
 const MEMBER_LINKS = [
-  { href: "/", label: "Home" },
   { href: "/explore", label: "Explore Produk" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/favorit", label: "Favorit" },
-  { href: "/pengajuan", label: "Pengajuan Saya" },
 ];
 
 /**
