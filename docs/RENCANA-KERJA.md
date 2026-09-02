@@ -1,7 +1,7 @@
 # 🎯 Rencana Kerja — KaryaDiaspora
 
 > **Tanggal:** 2 September 2026
-> **Status:** Fase 1 ✅ SELESAI (2 Sep 2026) · Fase 2 & 3 belum dieksekusi
+> **Status:** Fase 1 ✅ SELESAI · Fase 2 ✅ SELESAI (2 Sep 2026) · Fase 3 belum dieksekusi
 > **Keputusan:** urutan sesuai rencana (Fase 1 → 2); error 500 = generik di production, detail di dev
 > **Keputusan Fase 2:** hybrid realtime (Supabase Realtime + poll fallback 30 dtk) · halaman `/support` biasa (tanpa floating button) · auto-close 48 jam lazy-eval · judul sesi dari pesan pertama (tanpa field subject)
 > **Prinsip:** 3 fase berurutan, tiap fase independen — bisa berhenti kapan pun dan app tetap sehat.
@@ -78,13 +78,13 @@ src/app/api/upload/route.ts              (POST)
 
 | # | Tugas | Detail |
 |---|---|---|
-| 2.1 | **Migration `0011_support_chat.sql`** | Tabel `support_sessions` (user_id, status open/closed, closed_by, closed_at, last_message_at, unread flags) + `support_messages` (session_id, sender_id, body, read_at). RLS ketat |
-| 2.2 | **Aktifkan Realtime** | Masukkan `support_messages` ke `supabase_realtime` publication |
-| 2.3 | **Data layer + API** | Fungsi `lib/data.ts` (buat sesi, kirim pesan, list sesi, tutup sesi) + route `/api/support/*` dengan enforcement server (tolak kirim di sesi closed / auto-close 48 jam) |
-| 2.4 | **UI user** | Halaman `/support` — daftar sesi (Aktif di atas, Riwayat read-only), chat bubble realtime, tombol "Mulai Sesi Baru", banner "Sesi ditutup" |
-| 2.5 | **UI admin** | Inbox di panel admin — tab Aktif/Riwayat, badge unread, tombol "Selesaikan" |
-| 2.6 | **Notifikasi** | Reuse pola NotificationBell: badge saat pesan baru masuk (dua sisi) |
-| 2.7 | **Pintu masuk** | Tombol "Chat Support" di popup avatar + aktifkan kartu di `/kontak` |
+| 2.1 | **Migration `0011_support_chat.sql`** ✅ | `support_sessions` + `support_messages`, RLS ketat, partial unique index = maks 1 sesi open/user. Sudah di-apply ke DB live |
+| 2.2 | **Aktifkan Realtime** ✅ | `support_messages` masuk publication `supabase_realtime` (terverifikasi) |
+| 2.3 | **Data layer + API** ✅ | 12 fungsi di `lib/data.ts` + `/api/support/sessions*` (user) & `/api/admin/support*` (admin), enforcement closed di server |
+| 2.4 | **UI user** ✅ | `/support` — daftar sesi (Aktif/Riwayat), chat bubble + Enter kirim, mulai sesi baru, tutup dengan konfirmasi, banner closed |
+| 2.5 | **UI admin** ✅ | `/admin/support` — tab Aktif/Riwayat, badge "Baru" per sesi, tombol Selesaikan, balas via panel yang sama (`ChatPanel` shared) |
+| 2.6 | **Notifikasi** ✅ | Badge angka di item "Chat Support" popup avatar (user) + badge sidebar admin via `stats.support`; mark-read otomatis saat chat dibuka |
+| 2.7 | **Pintu masuk** ✅ | Menu "Chat Support" di popup avatar + kartu `/kontak` mengarah ke `/support` (member) / login (tamu) |
 
 **Catatan teknis:** client `subscribe()` ke `support_messages` saat halaman terbuka (RLS otomatis memfilter — user hanya menerima event sesinya sendiri); auto-close 48 jam via lazy-eval saat query (tanpa cron job).
 
