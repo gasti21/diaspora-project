@@ -31,6 +31,7 @@ export default async function ExplorePage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.halaman ?? "1", 10) || 1);
+  const hasQuery = Boolean(sp.q || sp.kategori || sp.lokasi || sp.status || sp.kebutuhan);
 
   const [{ data, total, totalPages }, countries] = await Promise.all([
     listPublicProducts({
@@ -46,64 +47,102 @@ export default async function ExplorePage({
   ]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-extrabold">Explore Produk</h1>
-      <p className="mt-2 text-muted">
-        Temukan berbagai produk dan karya diaspora Indonesia dari seluruh dunia.
-      </p>
+    <>
+      {/* Hero band - konsisten dengan /kontak dan /tentang */}
+      <header className="relative overflow-hidden bg-surface">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-brand/10 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-navy/5 blur-2xl"
+        />
+        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-16 sm:px-6">
+          <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl">
+            Explore{" "}
+            <span className="relative whitespace-nowrap text-brand">
+              Karya
+              <svg
+                className="absolute -bottom-1.5 left-0 h-2 w-full text-brand/30"
+                viewBox="0 0 120 8"
+                fill="none"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path d="M2 6C30 2 60 2 118 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </span>{" "}
+            Diaspora
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
+            Temukan produk, aplikasi, dan karya kreatif diaspora Indonesia dari
+            seluruh dunia - kurasi langsung dari tim kami.
+          </p>
+          <div className="mt-8 max-w-2xl">
+            <SearchBar initial={sp.q ?? ""} />
+          </div>
+        </div>
+      </header>
 
-      <div className="mt-6">
-        <SearchBar initial={sp.q ?? ""} />
-      </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="-mt-6 relative z-10">
+          <Suspense fallback={<div className="h-11" />}>
+            <FilterBar countries={countries} />
+          </Suspense>
+        </div>
 
-      <div className="mt-4">
-        <Suspense fallback={<div className="h-11" />}>
-          <FilterBar countries={countries} />
-        </Suspense>
-      </div>
-
-      <p className="mt-6 text-sm text-muted">
-        Menampilkan <span className="font-semibold text-navy">{data.length}</span>{" "}
-        dari <span className="font-semibold text-navy">{total}</span> produk
-        {sp.q ? (
-          <>
-            {" "}
-            untuk pencarian “<span className="font-semibold text-navy">{sp.q}</span>”
-          </>
-        ) : null}
-      </p>
-
-      {data.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-line bg-surface/60 py-16 text-center">
-          <Search className="mx-auto h-9 w-9 text-muted" aria-hidden="true" />
-          <h2 className="mt-4 text-lg font-bold">Produk tidak ditemukan</h2>
-          <p className="mt-1 text-sm text-muted">
-            Coba ubah kata kunci atau reset filter pencarian Anda.
+        <div className="mt-8 flex flex-wrap items-baseline justify-between gap-2 border-b border-line pb-4">
+          <p className="text-sm text-muted">
+            Menampilkan <span className="font-semibold text-navy">{data.length}</span>{" "}
+            dari <span className="font-semibold text-navy">{total}</span> produk
+            {sp.q ? (
+              <>
+                {" "}
+                untuk pencarian “<span className="font-semibold text-navy">{sp.q}</span>”
+              </>
+            ) : null}
           </p>
         </div>
-      ) : (
-        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {data.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      )}
 
-      <div className="mt-10">
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          basePath="/explore"
-          query={{
-            q: sp.q,
-            kategori: sp.kategori,
-            lokasi: sp.lokasi,
-            status: sp.status,
-            kebutuhan: sp.kebutuhan,
-            urutkan: sp.urutkan,
-          }}
-        />
+        {data.length === 0 ? (
+          <div className="mt-10 rounded-2xl border border-dashed border-line bg-surface/60 py-16 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft">
+              <Search className="h-7 w-7 text-brand" aria-hidden="true" />
+            </div>
+            <h2 className="mt-5 text-lg font-bold text-navy">
+              {hasQuery ? "Produk tidak ditemukan" : "Belum ada produk"}
+            </h2>
+            <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-muted">
+              {hasQuery
+                ? "Coba ubah kata kunci atau reset filter pencarian Anda."
+                : "Produk baru akan segera tampil di sini setelah melewati kurasi."}
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {data.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
+
+        <div className="mt-10 pb-4">
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            basePath="/explore"
+            query={{
+              q: sp.q,
+              kategori: sp.kategori,
+              lokasi: sp.lokasi,
+              status: sp.status,
+              kebutuhan: sp.kebutuhan,
+              urutkan: sp.urutkan,
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

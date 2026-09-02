@@ -33,7 +33,7 @@ export async function Footer() {
             {!user && (
               <>
                 <li><Link href="/tentang" className="transition-colors duration-200 hover:text-white">Tentang Kami</Link></li>
-                <li><Link href="/kontak" className="transition-colors duration-200 hover:text-white">Contact</Link></li>
+                <li><Link href="/kontak" className="transition-colors duration-200 hover:text-white">Kontak</Link></li>
               </>
             )}
           </ul>

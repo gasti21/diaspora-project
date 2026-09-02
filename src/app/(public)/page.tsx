@@ -21,7 +21,7 @@ function FavoriteSection({
       <div className="mb-6 flex items-end justify-between">
         <div>
           <h2 className="text-2xl font-extrabold">
-            Halo, {firstName} 👋 — Favorit Kamu
+            Halo, {firstName} 👋 - Favorit Kamu
           </h2>
           <p className="mt-1 text-sm text-muted">
             {favorites.length} produk tersimpan di daftar favoritmu
@@ -85,14 +85,33 @@ export default async function HomePage() {
     <>
       {/* ===== Hero ===== */}
       <section className="relative overflow-hidden bg-surface">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:py-20">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-brand/10 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-navy/5 blur-2xl"
+        />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:py-20">
           <div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
               Temukan Produk dan Karya{" "}
-              <span className="text-brand">Diaspora Indonesia</span> di Seluruh
-              Dunia
+              <span className="relative whitespace-nowrap text-brand">
+                Diaspora
+                <svg
+                  className="absolute -bottom-1.5 left-0 h-2 w-full text-brand/30"
+                  viewBox="0 0 120 8"
+                  fill="none"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <path d="M2 6C30 2 60 2 118 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              </span>{" "}
+              Indonesia di Seluruh Dunia
             </h1>
-            <p className="mt-5 max-w-xl text-justify text-base leading-relaxed text-muted">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted">
               Jelajahi produk, bisnis, aplikasi, riset, dan karya kreatif buatan
               diaspora Indonesia. Terhubung dengan pemilik produk untuk
               berkolaborasi, membeli, atau mendukung.
@@ -149,7 +168,13 @@ export default async function HomePage() {
       {/* ===== Kategori Populer ===== */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-extrabold">Kategori Populer</h2>
+          <div>
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand">
+              <span aria-hidden="true" className="h-px w-5 bg-brand" />
+              Kategori
+            </p>
+            <h2 className="mt-2 text-2xl font-extrabold text-navy">Jelajahi Berdasarkan Kategori</h2>
+          </div>
           <Link href="/explore" className="text-sm font-medium text-brand hover:underline">
             Lihat semua kategori
           </Link>
@@ -184,7 +209,13 @@ export default async function HomePage() {
       <section id="produk-terbaru" className="bg-surface/60 py-14 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-6 flex items-end justify-between">
-            <h2 className="text-2xl font-extrabold">Produk Terbaru</h2>
+            <div>
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand">
+                <span aria-hidden="true" className="h-px w-5 bg-brand" />
+                Terbaru
+              </p>
+              <h2 className="mt-2 text-2xl font-extrabold text-navy">Produk Terbaru</h2>
+            </div>
             <Link href="/explore" className="text-sm font-medium text-brand hover:underline">
               Lihat semua produk
             </Link>
