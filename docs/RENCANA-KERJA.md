@@ -1,7 +1,8 @@
 # 🎯 Rencana Kerja — KaryaDiaspora
 
 > **Tanggal:** 2 September 2026
-> **Status:** Rencana disetujui untuk disimpan · belum dieksekusi
+> **Status:** Fase 1 ✅ SELESAI (2 Sep 2026) · Fase 2 & 3 belum dieksekusi
+> **Keputusan:** urutan sesuai rencana (Fase 1 → 2); error 500 = generik di production, detail di dev
 > **Prinsip:** 3 fase berurutan, tiap fase independen — bisa berhenti kapan pun dan app tetap sehat.
 
 ---
@@ -35,9 +36,9 @@
 
 | # | Tugas | Detail |
 |---|---|---|
-| 1.1 | **Commit 17 file yang mengambang** | 3 commit logis:<br>• `fix(db): grant select on public tables`<br>• `feat(profile): editor + link sosmed ternormalisasi + popup identitas avatar`<br>• `ui(error): error page minimalis + pesan error mode dev` |
-| 1.2 | **Seragamkan error handling API** | 8 endpoint yang me-return `e.message` mentah → ganti pesan generik ramah + `console.error` server-side (pola `api/profile` & `api/admin/manage`). Menutup kebocoran detail DB ke publik di production |
-| 1.3 | **Hapus dead code + sinkronkan docs** | Hapus `lib/favorites.ts` (localStorage legacy), update README (favorit sekarang login-only di DB) |
+| 1.1 | **Commit 17 file yang mengambang** ✅ | 5 commit: `fix(db)`, `ui(error)`, `feat(profile)`, `ui(public)` redesign halaman publik, `docs` |
+| 1.2 | **Seragamkan error handling API** ✅ | Helper baru `lib/api-error.ts` (`serverError()`): generik di production, detail error di dev, selalu `console.error`. Diterapkan ke 8 endpoint + `api/profile` |
+| 1.3 | **Hapus dead code + sinkronkan docs** ✅ | `lib/favorites.ts` dihapus; `FAVORITES_EVENT` (masih dipakai FavoriteButton & EditProfileModal) pindah ke `lib/constants.ts`; README disinkronkan |
 
 **Endpoint yang bocor `e.message` (target 1.2):**
 
