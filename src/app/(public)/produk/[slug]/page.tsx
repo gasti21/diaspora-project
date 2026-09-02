@@ -37,7 +37,9 @@ export async function generateMetadata({
 
   const title = product.name;
   const description = product.shortDescription;
-  const image = product.images?.[0];
+  // OG image dinamis: selalu pakai /api/og/[slug] (brand overlay di atas
+  // foto produk). URL absolut agar crawler luar mengambil gambar dengan benar.
+  const ogImage = `${SITE_URL}/api/og/${slug}`;
 
   return {
     title,
@@ -46,13 +48,13 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      images: image ? [{ url: image, alt: product.name }] : undefined,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: product.name }],
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
+      images: [ogImage],
     },
   };
 }
