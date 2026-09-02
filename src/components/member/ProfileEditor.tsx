@@ -58,6 +58,7 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
     for (const f of SOCIAL_FIELDS) out[f.key] = socialToInput(profile.socials[f.key]);
     return out;
   });
+  const [notifyEmail, setNotifyEmail] = useState(profile.notifyEmail);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -104,7 +105,7 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, bio, socials }),
+        body: JSON.stringify({ name, bio, socials, notifyEmail }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Gagal menyimpan profil.");
@@ -216,7 +217,27 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
           />
         </label>
 
-        {/* Sosmed */}
+        {/* Preferensi email (opt-out) */}
+      <div className="rounded-2xl border border-line bg-white p-5">
+        <h2 className="text-sm font-bold text-navy">Preferensi Email</h2>
+        <label className="mt-3 flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={notifyEmail}
+            onChange={(e) => {
+              setNotifyEmail(e.target.checked);
+              touch();
+            }}
+            className="mt-0.5 h-4 w-4 accent-[#d32f2f]"
+          />
+          <span className="text-sm leading-relaxed text-muted">
+            <span className="font-semibold text-navy">Terima email notifikasi</span> —
+            kabar produk tayang, balasan chat support, dan info penting akun.
+          </span>
+        </label>
+      </div>
+
+      {/* Sosmed */}
         <div>
           <p className="text-xs font-semibold text-navy">Tautan Media Sosial</p>
           <p className="mt-1 text-xs text-muted">

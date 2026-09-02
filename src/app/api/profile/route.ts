@@ -37,6 +37,7 @@ export async function PATCH(request: NextRequest) {
     bio?: string | null;
     avatarUrl?: string | null;
     socials?: Record<string, string | null>;
+    notifyEmail?: boolean;
   };
   try {
     body = await request.json();

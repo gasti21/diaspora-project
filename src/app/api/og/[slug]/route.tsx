@@ -1,8 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getProductBySlug } from "@/lib/data";
 
-export const contentType = "image/png";
-
 /**
  * OG image dinamis per produk.
  *

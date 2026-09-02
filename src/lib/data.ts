@@ -5,6 +5,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { PROTECTED_ADMIN_EMAIL, type SessionUser } from "@/lib/auth";
 import { SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { CATEGORIES, COUNTRIES, PER_PAGE, slugify } from "@/lib/constants";
+import { sendEmail, notifyAllAdmins } from "@/lib/email/send";
+import { productApprovedEmail, supportReplyEmail, newSubmissionEmail } from "@/lib/email/templates";
 import type {
   AdminOverview,
   AdminStats,
@@ -397,6 +399,13 @@ export async function createSubmission(
     .single();
 
   if (error) return { error: error.message };
+
+  // Fire-and-forget: email ke semua admin (kegagalan tak menggagalkan submit).
+  void notifyAllAdmins(
+    newSubmissionEmail({ ownerName: user.name, productName: payload.name, productId: data.id }).subject,
+    newSubmissionEmail({ ownerName: user.name, productName: payload.name, productId: data.id }).html
+  );
+
   return { id: data.id, slug: data.slug };
 }
 
@@ -617,6 +626,8 @@ export interface MyProfile {
   avatarUrl: string | null;
   bio: string | null;
   socials: ProfileSocials;
+  /** true = terima email transaksional (default). false = opt-out. */
+  notifyEmail: boolean;
   role: "admin" | "user";
   createdAt: string;
 }
@@ -628,7 +639,7 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
   const { data, error } = await client
     .from("profiles")
     .select(
-      "id, email, full_name, avatar_url, bio, role, created_at, instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
+      "id, email, full_name, avatar_url, bio, role, created_at, notify_email, instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -640,6 +651,7 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
     email: data.email,
     avatarUrl: data.avatar_url,
     bio: data.bio,
+    notifyEmail: data.notify_email !== false,
     socials: {
       instagram: data.instagram_url,
       whatsapp: data.whatsapp_url,
@@ -664,12 +676,16 @@ export async function updateMyProfile(
     bio?: string | null;
     avatarUrl?: string | null;
     socials?: Partial<ProfileSocials>;
+    notifyEmail?: boolean;
   }
 ): Promise<{ error?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const client = createAdminClient();
 
   const patch: Record<string, unknown> = {};
+  if (update.notifyEmail !== undefined) {
+    patch.notify_email = update.notifyEmail;
+  }
   if (update.name !== undefined) {
     const name = update.name.trim();
     if (!name) return { error: "Nama tidak boleh kosong." };
@@ -1205,8 +1221,39 @@ export async function adminUpdateProduct(
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
+  if (error) return { error: error.message };
 
-  return error ? { error: error.message } : {};
+  // Email "produk tayang" ke pemilik (fire-and-forget).
+  if (update.status === "published") {
+    void (async () => {
+      try {
+        const client = createAdminClient();
+        const { data: product } = await client
+          .from("products")
+          .select("name, slug, submitted_by")
+          .eq("id", id)
+          .maybeSingle();
+        if (!product) return;
+        const { data: member } = await client
+          .from("profiles")
+          .select("email, full_name, notify_email")
+          .eq("id", product.submitted_by)
+          .maybeSingle();
+        if (!member?.email || member.notify_email === false) return;
+        const content = productApprovedEmail({
+          memberName: member.full_name ?? member.email.split("@")[0],
+          productName: product.name,
+          slug: product.slug,
+        });
+        const result = await sendEmail({ to: member.email, ...content });
+        if (result.error) console.error("[email] productApproved:", result.error);
+      } catch (e) {
+        console.error("[email] productApproved:", e);
+      }
+    })();
+  }
+
+  return {};
 }
 
 /** Upload foto ke Storage bucket `product-images` (butuh service role key). */
@@ -1485,7 +1532,7 @@ export async function sendSupportMessage(
 
   const { data: session, error: e0 } = await client
     .from("support_sessions")
-    .select("id, user_id, status")
+    .select("id, user_id, status, subject, last_message_at, user_last_read_at")
     .eq("id", sessionId)
     .maybeSingle();
   if (e0) throw new Error(e0.message);
@@ -1496,6 +1543,11 @@ export async function sendSupportMessage(
   if (session.status !== "open") {
     return { error: "Sesi ini sudah ditutup. Mulai sesi baru untuk topik baru." };
   }
+  // Throttle email balasan admin: kirim hanya bila user sudah membaca
+  // pesan terakhir (1 email per "giliran" - bukan per pesan).
+  const userAlreadyReadLatest =
+    senderRole === "admin" &&
+    (!session.user_last_read_at || session.user_last_read_at >= session.last_message_at);
 
   const { data: message, error: e1 } = await client
     .from("support_messages")
@@ -1512,6 +1564,29 @@ export async function sendSupportMessage(
       ...(senderRole === "user" ? { user_last_read_at: now } : { admin_last_read_at: now }),
     })
     .eq("id", sessionId);
+
+  if (senderRole === "admin" && userAlreadyReadLatest) {
+    void (async () => {
+      try {
+        const { data: member } = await client
+          .from("profiles")
+          .select("email, full_name, notify_email")
+          .eq("id", session.user_id)
+          .maybeSingle();
+        if (!member?.email || member.notify_email === false) return;
+        const content = supportReplyEmail({
+          memberName: member.full_name ?? member.email.split("@")[0],
+          sessionSubject: session.subject || "Percakapan",
+          sessionId,
+          preview: text.slice(0, 140),
+        });
+        const result = await sendEmail({ to: member.email, ...content });
+        if (result.error) console.error("[email] supportReply:", result.error);
+      } catch (e) {
+        console.error("[email] supportReply:", e);
+      }
+    })();
+  }
 
   return { message: mapMessage(message) };
 }
