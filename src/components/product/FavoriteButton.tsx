@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { cn } from "@/lib/utils";
-import { FAVORITES_EVENT } from "@/lib/favorites";
+import { FAVORITES_EVENT } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 
 /**

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { CircleUserRound, LoaderCircle, Mail, Pencil, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
-import { FAVORITES_EVENT } from "@/lib/favorites";
+import { FAVORITES_EVENT } from "@/lib/constants";
 
 export interface ProfileData {
   id: string;

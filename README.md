@@ -39,7 +39,7 @@ src/components/
   forms/              SubmitForm + LocationPicker (deteksi GPS ala Shopee)
   admin/              AdminShell, SidebarNav, NotificationBell, tabel & drawer review
   toast/              ToastProvider (semua notifikasi tampil kanan-atas)
-src/lib/              data layer, favorit (localStorage), klien Supabase, konstanta
+src/lib/              data layer, klien Supabase, konstanta
 ```
 
 ## Fitur Utama
@@ -47,11 +47,11 @@ src/lib/              data layer, favorit (localStorage), klien Supabase, konsta
 - **Notifikasi terpusat kanan-atas** untuk admin & member (toast + progress bar).
 - **Panel admin**: sidebar bergrup, lonceng notifikasi badge pending, overview
   dengan grafik distribusi status & quick-approve, halaman Aktivitas Kurasi.
-- **Area member** dengan sidebar ala panel admin: Dashboard, Pengajuan Saya,
+- **Area member** (navigasi via navbar atas): Dashboard, Pengajuan Saya,
   Submit Produk, Favorit, Profil.
 - **Deteksi lokasi otomatis** di form submit (GPS realtime + reverse geocoding
   gratis via BigDataCloud, fallback pilih manual).
-- **Favorit produk** (ikon hati, tersimpan di perangkat tanpa login).
+- **Favorit produk** (ikon hati, login-only, tersimpan di database - sinkron antar perangkat).
 - **Explore**: pencarian, filter, urutan (terbaru/terlama/nama), pagination.
 
 > **Mode demo:** tanpa `.env.local`, aplikasi tetap jalan memakai data contoh

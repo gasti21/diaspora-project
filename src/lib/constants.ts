@@ -86,3 +86,6 @@ export function slugify(text: string) {
     .replace(/(^-|-$)+/g, "")
     .slice(0, 80);
 }
+
+/** Event kustom: favorit berubah — sinkronisasi antar komponen di tab yang sama. */
+export const FAVORITES_EVENT = "kd:favorites";
