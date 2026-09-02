@@ -31,7 +31,12 @@ export async function PATCH(request: NextRequest) {
     });
   }
 
-  let body: { name?: string; bio?: string | null; avatarUrl?: string | null };
+  let body: {
+    name?: string;
+    bio?: string | null;
+    avatarUrl?: string | null;
+    socials?: Record<string, string | null>;
+  };
   try {
     body = await request.json();
   } catch {

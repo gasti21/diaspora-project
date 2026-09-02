@@ -549,12 +549,21 @@ export async function getProductViewCounts(
 }
 
 /** Profil user yang sedang login (untuk menu & edit profil). */
+export interface ProfileSocials {
+  instagram: string | null;
+  whatsapp: string | null;
+  linkedin: string | null;
+  twitter: string | null;
+  facebook: string | null;
+}
+
 export interface MyProfile {
   id: string;
   name: string;
   email: string;
   avatarUrl: string | null;
   bio: string | null;
+  socials: ProfileSocials;
   role: "admin" | "user";
   createdAt: string;
 }
@@ -565,7 +574,9 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
   const client = createAdminClient();
   const { data, error } = await client
     .from("profiles")
-    .select("id, email, full_name, avatar_url, bio, role, created_at")
+    .select(
+      "id, email, full_name, avatar_url, bio, role, created_at, instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
+    )
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -576,6 +587,13 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
     email: data.email,
     avatarUrl: data.avatar_url,
     bio: data.bio,
+    socials: {
+      instagram: data.instagram_url,
+      whatsapp: data.whatsapp_url,
+      linkedin: data.linkedin_url,
+      twitter: data.twitter_url,
+      facebook: data.facebook_url,
+    },
     role: data.role === "admin" ? "admin" : "user",
     createdAt: data.created_at,
   };
@@ -583,11 +601,17 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
 
 /**
  * Perbarui profil sendiri. Email TIDAK bisa diubah di sini (identitas
- * terikat sesi Google auth) - hanya nama, bio, dan avatar.
+ * terikat sesi Google auth) - hanya nama, bio, avatar, dan link sosmed.
+ * Link sosmed disimpan sebagai URL utuh yang sudah dinormalisasi.
  */
 export async function updateMyProfile(
   userId: string,
-  update: { name?: string; bio?: string | null; avatarUrl?: string | null }
+  update: {
+    name?: string;
+    bio?: string | null;
+    avatarUrl?: string | null;
+    socials?: Partial<ProfileSocials>;
+  }
 ): Promise<{ error?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const client = createAdminClient();
@@ -606,6 +630,29 @@ export async function updateMyProfile(
   }
   if (update.avatarUrl !== undefined) patch.avatar_url = update.avatarUrl;
 
+  if (update.socials) {
+    const columnMap = {
+      instagram: "instagram_url",
+      whatsapp: "whatsapp_url",
+      linkedin: "linkedin_url",
+      twitter: "twitter_url",
+      facebook: "facebook_url",
+    } as const;
+    for (const [key, column] of Object.entries(columnMap)) {
+      const raw = update.socials[key as keyof ProfileSocials];
+      if (raw === undefined) continue;
+      if (raw === null || raw.trim() === "") {
+        patch[column] = null;
+        continue;
+      }
+      const normalized = normalizeSocialUrl(key as keyof ProfileSocials, raw.trim());
+      if (!normalized) {
+        return { error: `Link ${key} tidak valid. Contoh: instagram.com/namakamu` };
+      }
+      patch[column] = normalized;
+    }
+  }
+
   if (Object.keys(patch).length === 0) return {};
 
   const { error } = await client
@@ -615,6 +662,64 @@ export async function updateMyProfile(
     .select("id")
     .single();
   return error ? { error: error.message } : {};
+}
+
+/**
+ * Ubah input fleksibel (@handle, handle, nomor WA, atau URL penuh) menjadi
+ * URL kanonik per platform. Return null bila tidak bisa dinormalisasi.
+ */
+export function normalizeSocialUrl(
+  platform: keyof ProfileSocials,
+  raw: string
+): string | null {
+  let value = raw.trim().replace(/^@/, "");
+  if (!value) return null;
+
+  // Kalau user tempel URL penuh, pastikan hostnya platform yang benar.
+  if (/^https?:\/\//i.test(value) || /\.(com|me|net|org)/i.test(value)) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+      const host = url.hostname.replace(/^www\./, "").toLowerCase();
+      const path = url.pathname.replace(/\/+$/, "").replace(/^\/+/, "");
+      const valid: Record<string, string[]> = {
+        instagram: ["instagram.com", "instagr.am"],
+        whatsapp: ["wa.me", "api.whatsapp.com", "chat.whatsapp.com"],
+        linkedin: ["linkedin.com", "lnkd.in"],
+        twitter: ["twitter.com", "x.com"],
+        facebook: ["facebook.com", "fb.com", "fb.me"],
+      };
+      if (!valid[platform]?.includes(host)) return null;
+      if (!path) return null;
+      // api.whatsapp.com/send?phone=... -> wa.me/<nomor>
+      if (platform === "whatsapp" && host === "api.whatsapp.com" && url.searchParams.get("phone")) {
+        const phone = url.searchParams.get("phone")!.replace(/\D/g, "");
+        return phone ? `https://wa.me/${phone}` : null;
+      }
+      return `https://${host}/${path}`;
+    } catch {
+      return null;
+    }
+  }
+
+  // Input handle / nomor mentah.
+  if (platform === "whatsapp") {
+    let digits = value.replace(/\D/g, "");
+    if (!digits) return null;
+    if (digits.startsWith("0")) digits = `62${digits.slice(1)}`; // 08xx -> 628xx
+    if (digits.length < 8 || digits.length > 16) return null;
+    return `https://wa.me/${digits}`;
+  }
+  // Handle: huruf, angka, titik, underscore, strip saja.
+  if (!/^[A-Za-z0-9._-]{1,60}$/.test(value)) return null;
+  if (platform === "linkedin" && !/^(in|company|pub)\//i.test(value)) {
+    return `https://www.linkedin.com/in/${value}`;
+  }
+  const hosts: Record<string, string> = {
+    instagram: "https://www.instagram.com/",
+    twitter: "https://x.com/",
+    facebook: "https://www.facebook.com/",
+  };
+  return `${hosts[platform]}${value}`;
 }
 
 /** Upload foto avatar ke bucket `avatars` (1 file terakhir per user). */

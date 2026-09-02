@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSessionUser, getAdminUser } from "@/lib/auth";
 import { listMySubmissions } from "@/lib/data";
 import { MemberShell } from "@/components/member/MemberShell";
+import { Navbar } from "@/components/layout/Navbar";
 import { LogoMark } from "@/components/branding/Logo";
 
 export const dynamic = "force-dynamic";
@@ -54,16 +55,9 @@ export default async function MemberLayout({ children }: { children: React.React
       }));
 
   return (
-    <MemberShell
-      user={{
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        isAdmin: Boolean(admin),
-      }}
-      notifications={notifications}
-    >
-      {children}
-    </MemberShell>
+    <div className="flex min-h-screen flex-col">
+      <Navbar notifications={notifications} />
+      <MemberShell>{children}</MemberShell>
+    </div>
   );
 }

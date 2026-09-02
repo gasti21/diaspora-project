@@ -27,9 +27,11 @@ export function WelcomeNotifier() {
       router.replace(window.location.pathname, { scroll: false });
     } else if (param === "user") {
       fired.current = true;
+      const name = new URLSearchParams(window.location.search).get("name");
+      const firstName = name ? name.split(" ")[0] : null;
       toast.success(
-        "Ajukan karya terbaik Anda, lalu pantau statusnya di menu Pengajuan Saya.",
-        { title: "Selamat datang!" }
+        "Jelajahi karya terbaru dari diaspora Indonesia.",
+        { title: firstName ? `Selamat datang, ${firstName}!` : "Selamat datang!" }
       );
       router.replace(window.location.pathname, { scroll: false });
     }

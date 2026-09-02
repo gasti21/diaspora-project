@@ -26,18 +26,18 @@ export async function GET(request: NextRequest) {
 
       // Default cerdas berdasarkan role & riwayat pengajuan:
       // admin -> /admin, user yang sudah pernah submit -> /dashboard
-      // (pusat ringkasan member), user baru -> /submit.
+      // (pusat ringkasan member), user lain -> /explore (katalog publik).
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      let target = "/submit";
+      let target = "/explore";
       let welcome = "user";
 
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, name")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -51,9 +51,29 @@ export async function GET(request: NextRequest) {
             .eq("submitted_by", user.id);
           if ((count ?? 0) > 0) target = "/dashboard";
         }
+
+        // Nama dipakai toast sambutan personal (WelcomeNotifier).
+        // Prioritas: profil database, fallback ke metadata Google.
+        const params = new URLSearchParams({ welcome });
+        const googleName =
+          user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
+        const displayName = profile?.name || googleName;
+
+        // Isi nama profil dari Google jika masih kosong (sekali saja).
+        if (!profile?.name && googleName) {
+          await supabase
+            .from("profiles")
+            .update({ name: googleName })
+            .eq("id", user.id);
+        }
+        if (displayName) params.set("name", displayName);
+
+        return NextResponse.redirect(
+          `${origin}${target}?${params.toString()}`
+        );
       }
 
-      return NextResponse.redirect(`${origin}${target}?welcome=${welcome}`);
+      return NextResponse.redirect(`${origin}/login?error=oauth`);
     }
   }
 

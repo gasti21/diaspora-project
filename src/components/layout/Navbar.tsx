@@ -5,21 +5,14 @@ import { NavLinks } from "./NavLinks";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { getSessionUser, getAdminUser } from "@/lib/auth";
+import { getMyProfile } from "@/lib/data";
+import type { NotifItem } from "@/components/member/NotificationBell";
 
-// Link menu utama (desktop & drawer mobile) - link aktif di-highlight
-// oleh <NavLinks>, bukan disembunyikan, supaya posisi menu stabil.
-// Menu publik untuk tamu; member login melihat menu aktivitas member
-// (Tentang/Kontak tetap tersedia via footer & dropdown avatar, serta
-// akan digantikan fitur support center di fase berikutnya).
 const PUBLIC_LINKS = [
   { href: "/", label: "Home" },
   { href: "/explore", label: "Explore Produk" },
   { href: "/tentang", label: "Tentang Kami" },
   { href: "/kontak", label: "Kontak" },
-];
-
-const MEMBER_LINKS = [
-  { href: "/explore", label: "Explore Produk" },
 ];
 
 /**
@@ -28,16 +21,21 @@ const MEMBER_LINKS = [
  * (komponen MobileMenu) - tidak lagi ada baris link scroll-horizontal
  * di bawah header yang bikin navbar tampak "dobel".
  */
-export async function Navbar() {
+export async function Navbar({ notifications }: { notifications?: NotifItem[] }) {
   const user = await getSessionUser();
   const admin = user ? await getAdminUser() : null;
+  const profile = user ? await getMyProfile(user.id) : null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
 
-        <NavLinks links={user ? MEMBER_LINKS : PUBLIC_LINKS} className="hidden items-center gap-7 lg:flex" />
+        {/* Member login: tanpa link nav - alur member linier (explore via
+            logo/home), semua akses akun lewat dropdown avatar. */}
+        {!user && (
+          <NavLinks links={PUBLIC_LINKS} className="hidden items-center gap-7 lg:flex" />
+        )}
 
         <div className="flex items-center gap-2.5">
           {/* CTA submit hanya untuk member & tamu (tamu → login dulu);
@@ -52,7 +50,12 @@ export async function Navbar() {
           )}
 
           {user ? (
-            <UserMenu user={user} isAdmin={Boolean(admin)} />
+            <UserMenu
+              user={user}
+              isAdmin={Boolean(admin)}
+              notifications={notifications}
+              socials={profile?.socials}
+            />
           ) : (
             <Link
               href="/login"
