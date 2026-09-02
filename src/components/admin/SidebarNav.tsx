@@ -138,11 +138,20 @@ function SidebarBadge({
   stat,
   stats,
 }: {
-  stat?: "pending" | "users";
+  stat?: "pending" | "users" | "support";
   stats: AdminStats | null;
 }) {
   if (!stats || !stat) return null;
   const value = stats[stat];
+  // Badge chat support: hanya tampil saat ada pesan member belum dibaca.
+  if (stat === "support") {
+    if (value === 0) return null;
+    return (
+      <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-brand">
+        {value}
+      </span>
+    );
+  }
   if (stat === "pending") {
     return (
       <span

@@ -10,6 +10,7 @@ import {
   Heart,
   LayoutDashboard,
   LogOut,
+  MessagesSquare,
   PackagePlus,
   UserRound,
   type LucideIcon,
@@ -45,12 +46,15 @@ function MenuItem({
   label,
   onClick,
   accent,
+  badge,
 }: {
   href: string;
   icon: LucideIcon;
   label: string;
   onClick?: () => void;
   accent?: "blue" | "brand";
+  /** Angka badge merah di sisi kanan (mis. pesan support belum dibaca). */
+  badge?: number;
 }) {
   const cls =
     accent === "blue"
@@ -65,7 +69,12 @@ function MenuItem({
       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${cls}`}
     >
       <Icon className="h-4 w-4 text-muted" aria-hidden="true" />
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }
@@ -75,11 +84,14 @@ export function UserMenu({
   isAdmin,
   notifications = [],
   socials,
+  supportUnread = 0,
 }: {
   user: SessionUser;
   isAdmin: boolean;
   notifications?: NotifItem[];
   socials?: ProfileSocials;
+  /** Jumlah sesi chat support dengan balasan admin yang belum dibaca. */
+  supportUnread?: number;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -185,6 +197,7 @@ export function UserMenu({
             <MenuItem href="/pengajuan" icon={ClipboardList} label="Pengajuan Saya" onClick={() => setOpen(false)} />
             <MenuItem href="/favorit" icon={Heart} label="Favorit" onClick={() => setOpen(false)} />
             <MenuItem href="/profil" icon={UserRound} label="Profil Saya" onClick={() => setOpen(false)} />
+            <MenuItem href="/support" icon={MessagesSquare} label="Chat Support" onClick={() => setOpen(false)} badge={supportUnread} />
             <MenuItem href="/submit" icon={PackagePlus} label="Submit Produk" onClick={() => setOpen(false)} accent="brand" />
             <button
               onClick={signOut}

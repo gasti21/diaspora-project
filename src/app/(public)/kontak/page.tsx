@@ -8,10 +8,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getSessionUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   description: "Hubungi tim KaryaDiaspora - Perhimpunan Pelajar Indonesia (PPI) Dunia.",
 };
+
+export const dynamic = "force-dynamic";
 
 const CONTACT_EMAIL = "karyadiaspora@ppi.id";
 
@@ -21,7 +24,12 @@ const STEPS = [
   { title: "Tayang di katalog", desc: "Produk disetujui dan langsung tampil di halaman Explore." },
 ] as const;
 
-export default function KontakPage() {
+export default async function KontakPage() {
+  // Member login diarahkan langsung ke chat in-platform; tamu ke login.
+  const user = await getSessionUser();
+  const chatHref = user ? "/support" : "/login?next=%2Fsupport";
+  const chatAction = user ? "Buka percakapan" : "Masuk untuk memulai percakapan";
+
   return (
     <div className="pb-20">
       {/* Hero */}
@@ -68,11 +76,11 @@ export default function KontakPage() {
             action={CONTACT_EMAIL}
           />
           <ChannelCard
-            href="/login?next=%2Fexplore"
+            href={chatHref}
             icon={MessageCircle}
             title="Chat Support"
             desc="Hubungi tim langsung dari dalam platform - tanpa keluar aplikasi."
-            action="Masuk untuk memulai percakapan"
+            action={chatAction}
           />
         </div>
 

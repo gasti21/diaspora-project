@@ -5,7 +5,7 @@ import { NavLinks } from "./NavLinks";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { getSessionUser, getAdminUser } from "@/lib/auth";
-import { getMyProfile } from "@/lib/data";
+import { getMyProfile, countUnreadSupportForUser } from "@/lib/data";
 import type { NotifItem } from "@/components/member/NotificationBell";
 
 const PUBLIC_LINKS = [
@@ -25,6 +25,7 @@ export async function Navbar({ notifications }: { notifications?: NotifItem[] })
   const user = await getSessionUser();
   const admin = user ? await getAdminUser() : null;
   const profile = user ? await getMyProfile(user.id) : null;
+  const supportUnread = user ? await countUnreadSupportForUser(user.id) : 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
@@ -55,6 +56,7 @@ export async function Navbar({ notifications }: { notifications?: NotifItem[] })
               isAdmin={Boolean(admin)}
               notifications={notifications}
               socials={profile?.socials}
+              supportUnread={supportUnread}
             />
           ) : (
             <Link

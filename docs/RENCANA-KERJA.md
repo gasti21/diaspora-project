@@ -3,6 +3,7 @@
 > **Tanggal:** 2 September 2026
 > **Status:** Fase 1 ✅ SELESAI (2 Sep 2026) · Fase 2 & 3 belum dieksekusi
 > **Keputusan:** urutan sesuai rencana (Fase 1 → 2); error 500 = generik di production, detail di dev
+> **Keputusan Fase 2:** hybrid realtime (Supabase Realtime + poll fallback 30 dtk) · halaman `/support` biasa (tanpa floating button) · auto-close 48 jam lazy-eval · judul sesi dari pesan pertama (tanpa field subject)
 > **Prinsip:** 3 fase berurutan, tiap fase independen — bisa berhenti kapan pun dan app tetap sehat.
 
 ---

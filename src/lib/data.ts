@@ -1001,13 +1001,13 @@ export async function adminListProducts(filters: {
 
 export async function adminGetStats(): Promise<AdminStats> {
   if (!isSupabaseConfigured) {
-    const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0, users: 1 };
+    const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0, users: 1, support: 0 };
     for (const p of SAMPLE_PRODUCTS) stats[p.status]++;
     return stats;
   }
 
   const supabase = await createClient();
-  const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0, users: 0 };
+  const stats: AdminStats = { pending: 0, published: 0, revision: 0, rejected: 0, users: 0, support: 0 };
   await Promise.all(
     (["pending", "published", "revision", "rejected"] as const).map(async (s) => {
       const { count } = await supabase
@@ -1017,7 +1017,7 @@ export async function adminGetStats(): Promise<AdminStats> {
       stats[s] = count ?? 0;
     })
   );
-  stats.users = await countProfiles();
+  [stats.users, stats.support] = await Promise.all([countProfiles(), adminCountUnreadSupport()]);
   return stats;
 }
 
@@ -1241,3 +1241,347 @@ function filterSample(
 
 /** Seed kategori - dipanggil dari SQL seed, disertakan untuk referensi. */
 export const CATEGORY_SEED = CATEGORIES;
+
+/* ========================= CHAT SUPPORT ========================= */
+
+/** Batas auto-close: sesi open tanpa aktivitas selama ini ditutup otomatis. */
+export const SUPPORT_AUTO_CLOSE_MS = 48 * 60 * 60_000;
+
+export interface SupportSession {
+  id: string;
+  userId: string;
+  status: "open" | "closed";
+  /** Judul sesi: potongan pesan pertama (bukan input pengguna). */
+  subject: string;
+  lastMessageAt: string;
+  userLastReadAt: string;
+  adminLastReadAt: string | null;
+  closedBy: "user" | "admin" | "auto" | null;
+  closedAt: string | null;
+  createdAt: string;
+  /** Terisi saat list admin: identitas pemilik sesi. */
+  userName?: string;
+  userEmail?: string;
+  /** Ada pesan lawan yang belum dibaca pihak ini. */
+  unread?: boolean;
+}
+
+export interface SupportMessage {
+  id: string;
+  sessionId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+}
+
+interface SessionRow {
+  id: string;
+  user_id: string;
+  status: string;
+  subject: string;
+  last_message_at: string;
+  user_last_read_at: string;
+  admin_last_read_at: string | null;
+  closed_by: string | null;
+  closed_at: string | null;
+  created_at: string;
+}
+
+function mapSession(r: SessionRow): SupportSession {
+  return {
+    id: r.id,
+    userId: r.user_id,
+    status: r.status === "closed" ? "closed" : "open",
+    subject: r.subject,
+    lastMessageAt: r.last_message_at,
+    userLastReadAt: r.user_last_read_at,
+    adminLastReadAt: r.admin_last_read_at,
+    closedBy: (r.closed_by as SupportSession["closedBy"]) ?? null,
+    closedAt: r.closed_at,
+    createdAt: r.created_at,
+  };
+}
+
+function mapMessage(r: {
+  id: string;
+  session_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+}): SupportMessage {
+  return { id: r.id, sessionId: r.session_id, senderId: r.sender_id, body: r.body, createdAt: r.created_at };
+}
+
+/**
+ * Lazy-eval auto-close: tandai sesi open yang sudah > 48 jam tanpa
+ * aktivitas sebagai closed (closed_by='auto'). Dipanggil sebelum setiap
+ * baca/tulis sesi sehingga status selalu jujur tanpa cron job.
+ */
+async function autoCloseStaleSessions(client: ReturnType<typeof createAdminClient>) {
+  const cutoff = new Date(Date.now() - SUPPORT_AUTO_CLOSE_MS).toISOString();
+  await client
+    .from("support_sessions")
+    .update({ status: "closed", closed_by: "auto", closed_at: new Date().toISOString() })
+    .eq("status", "open")
+    .lt("last_message_at", cutoff);
+}
+
+/** Daftar sesi milik user: aktif dulu, lalu riwayat (terbaru di atas). */
+export async function listMySupportSessions(userId: string): Promise<SupportSession[]> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data, error } = await client
+    .from("support_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("last_message_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map(mapSession)
+    .sort((a, b) => (a.status === b.status ? 0 : a.status === "open" ? -1 : 1));
+}
+
+/** Satu sesi milik user (null bila bukan miliknya / tidak ada). */
+export async function getMySupportSession(
+  userId: string,
+  sessionId: string
+): Promise<SupportSession | null> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data, error } = await client
+    .from("support_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? mapSession(data) : null;
+}
+
+/**
+ * Buat sesi baru + pesan pertama sekaligus. Judul sesi diambil dari
+ * potongan pesan pertama. Ditolak bila user masih punya sesi open
+ * (dijaga juga oleh partial unique index di DB).
+ */
+export async function createSupportSession(
+  userId: string,
+  firstMessage: string
+): Promise<{ session?: SupportSession; error?: string }> {
+  const body = firstMessage.trim();
+  if (!body) return { error: "Pesan tidak boleh kosong." };
+  if (body.length > 2000) return { error: "Pesan maksimal 2000 karakter." };
+
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+
+  const { data: existing } = await client
+    .from("support_sessions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "open")
+    .maybeSingle();
+  if (existing) return { error: "Masih ada sesi aktif. Lanjutkan percakapan di sana dulu." };
+
+  const subject = body.length > 60 ? body.slice(0, 60).trimEnd() + "…" : body;
+  const { data: session, error: e1 } = await client
+    .from("support_sessions")
+    .insert({ user_id: userId, subject })
+    .select("*")
+    .single();
+  if (e1 || !session) return { error: e1?.message ?? "Gagal membuat sesi." };
+
+  const { error: e2 } = await client
+    .from("support_messages")
+    .insert({ session_id: session.id, sender_id: userId, body });
+  if (e2) return { error: e2.message };
+
+  return { session: mapSession(session) };
+}
+
+/** Daftar pesan satu sesi (kronologis). Akses divalidasi pemanggil. */
+export async function listSupportMessages(sessionId: string): Promise<SupportMessage[]> {
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from("support_messages")
+    .select("*")
+    .eq("session_id", sessionId)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapMessage);
+}
+
+/**
+ * Kirim pesan ke sesi (user maupun admin). Menolak sesi closed -
+ * enforcement di server, bukan sekadar menyembunyikan input di UI.
+ * Sekaligus memajukan last_message_at dan penanda baca pengirim.
+ */
+export async function sendSupportMessage(
+  sessionId: string,
+  senderId: string,
+  body: string,
+  senderRole: "user" | "admin"
+): Promise<{ message?: SupportMessage; error?: string }> {
+  const text = body.trim();
+  if (!text) return { error: "Pesan tidak boleh kosong." };
+  if (text.length > 2000) return { error: "Pesan maksimal 2000 karakter." };
+
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+
+  const { data: session, error: e0 } = await client
+    .from("support_sessions")
+    .select("id, user_id, status")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (e0) throw new Error(e0.message);
+  if (!session) return { error: "Sesi tidak ditemukan." };
+  if (senderRole === "user" && session.user_id !== senderId) {
+    return { error: "Akses ditolak." };
+  }
+  if (session.status !== "open") {
+    return { error: "Sesi ini sudah ditutup. Mulai sesi baru untuk topik baru." };
+  }
+
+  const { data: message, error: e1 } = await client
+    .from("support_messages")
+    .insert({ session_id: sessionId, sender_id: senderId, body: text })
+    .select("*")
+    .single();
+  if (e1 || !message) return { error: e1?.message ?? "Gagal mengirim pesan." };
+
+  const now = new Date().toISOString();
+  await client
+    .from("support_sessions")
+    .update({
+      last_message_at: now,
+      ...(senderRole === "user" ? { user_last_read_at: now } : { admin_last_read_at: now }),
+    })
+    .eq("id", sessionId);
+
+  return { message: mapMessage(message) };
+}
+
+/** Tutup sesi. User hanya boleh menutup sesinya; admin bebas. */
+export async function closeSupportSession(
+  sessionId: string,
+  actorId: string,
+  actorRole: "user" | "admin"
+): Promise<{ error?: string }> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data: session } = await client
+    .from("support_sessions")
+    .select("user_id, status")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (!session) return { error: "Sesi tidak ditemukan." };
+  if (actorRole === "user" && session.user_id !== actorId) return { error: "Akses ditolak." };
+  if (session.status !== "open") return { error: "Sesi sudah ditutup." };
+
+  const { error } = await client
+    .from("support_sessions")
+    .update({ status: "closed", closed_by: actorRole, closed_at: new Date().toISOString() })
+    .eq("id", sessionId);
+  if (error) throw new Error(error.message);
+  return {};
+}
+
+/** Tandai semua pesan sesi sudah dibaca oleh pihak tertentu. */
+export async function markSupportSessionRead(
+  sessionId: string,
+  actorId: string,
+  actorRole: "user" | "admin"
+): Promise<{ error?: string }> {
+  const client = createAdminClient();
+  const { data: session } = await client
+    .from("support_sessions")
+    .select("user_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (!session) return { error: "Sesi tidak ditemukan." };
+  if (actorRole === "user" && session.user_id !== actorId) return { error: "Akses ditolak." };
+
+  const col = actorRole === "user" ? "user_last_read_at" : "admin_last_read_at";
+  const { error } = await client
+    .from("support_sessions")
+    .update({ [col]: new Date().toISOString() })
+    .eq("id", sessionId);
+  if (error) throw new Error(error.message);
+  return {};
+}
+
+/** Jumlah sesi dengan pesan admin yang belum dibaca user (badge lonceng). */
+export async function countUnreadSupportForUser(userId: string): Promise<number> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data, error } = await client
+    .from("support_sessions")
+    .select("id, last_message_at, user_last_read_at")
+    .eq("user_id", userId);
+  if (error) return 0;
+  return (data ?? []).filter((s) => s.last_message_at > s.user_last_read_at).length;
+}
+
+/* ------------------------ sisi ADMIN ------------------------ */
+
+/** Inbox admin: semua sesi + identitas pemilik + flag unread untuk admin. */
+export async function adminListSupportSessions(
+  tab: "active" | "history" = "active"
+): Promise<SupportSession[]> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data, error } = await client
+    .from("support_sessions")
+    .select("*")
+    .eq("status", tab === "active" ? "open" : "closed")
+    .order("last_message_at", { ascending: false })
+    .limit(100);
+  if (error) throw new Error(error.message);
+
+  const sessions = (data ?? []).map(mapSession);
+  // Identitas pemilik sesi (nama/email) untuk kolom inbox.
+  const ids = [...new Set(sessions.map((s) => s.userId))];
+  const names = new Map<string, { name: string; email: string }>();
+  if (ids.length > 0) {
+    const { data: profiles } = await client
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", ids);
+    for (const p of profiles ?? []) {
+      names.set(p.id, { name: p.full_name ?? p.email.split("@")[0], email: p.email });
+    }
+  }
+  return sessions.map((s) => ({
+    ...s,
+    userName: names.get(s.userId)?.name ?? "Pengguna",
+    userEmail: names.get(s.userId)?.email ?? "",
+    unread: s.adminLastReadAt === null || s.lastMessageAt > s.adminLastReadAt,
+  }));
+}
+
+/** Satu sesi untuk admin (tanpa batas kepemilikan). */
+export async function adminGetSupportSession(sessionId: string): Promise<SupportSession | null> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data, error } = await client
+    .from("support_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? mapSession(data) : null;
+}
+
+/** Jumlah sesi dengan pesan user yang belum dibaca admin (badge sidebar). */
+export async function adminCountUnreadSupport(): Promise<number> {
+  const client = createAdminClient();
+  await autoCloseStaleSessions(client);
+  const { data, error } = await client
+    .from("support_sessions")
+    .select("id, last_message_at, admin_last_read_at")
+    .eq("status", "open");
+  if (error) return 0;
+  return (data ?? []).filter(
+    (s) => s.admin_last_read_at === null || s.last_message_at > s.admin_last_read_at
+  ).length;
+}

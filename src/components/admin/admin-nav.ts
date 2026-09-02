@@ -2,6 +2,7 @@
 import {
   Activity,
   LayoutDashboard,
+  MessagesSquare,
   Package,
   Tags,
   Users,
@@ -15,7 +16,7 @@ export interface NavItem {
   /** true = cocokkan pathname persis (untuk /admin). */
   exact: boolean;
   /** kunci statistik untuk badge di sisi item (opsional). */
-  stat?: "pending" | "users";
+  stat?: "pending" | "users" | "support";
 }
 
 /** Menu admin dikelompokkan per bagian supaya mudah dipindai. */
@@ -36,6 +37,7 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Pengguna",
     items: [
       { href: "/admin/pengguna", label: "Pengguna & Admin", icon: Users, exact: false, stat: "users" },
+      { href: "/admin/support", label: "Chat Support", icon: MessagesSquare, exact: false, stat: "support" },
     ],
   },
 ];
@@ -49,6 +51,7 @@ export const TITLES: Record<string, string> = {
   "/admin/kategori": "Kategori Produk",
   "/admin/aktivitas": "Aktivitas Kurasi",
   "/admin/pengguna": "Pengguna & Admin",
+  "/admin/support": "Chat Support",
 };
 
 /** Event custom: halaman admin meminta sidebar menyegarkan badge statistik. */

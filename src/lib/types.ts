@@ -75,6 +75,8 @@ export interface AdminStats {
   revision: number;
   rejected: number;
   users: number;
+  /** Sesi chat support dengan pesan member yang belum dibaca admin. */
+  support: number;
 }
 
 /** Baris profile untuk halaman admin "Pengguna & Admin". */
