@@ -2,9 +2,27 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarDays, Eye, Package, ShieldCheck } from "lucide-react";
 import { CircleUserRound } from "lucide-react";
-import { getPublicMember, listMemberPublishedProducts, getProductViewCounts } from "@/lib/data";
+import { getPublicMember, listMemberPublishedProducts, getProductViewCounts, listMyFavoriteProductIds } from "@/lib/data";
+import { getSessionUser } from "@/lib/auth";
+import type { ProfileSocials } from "@/lib/data";
 import { ProductCard } from "@/components/product/ProductCard";
 import { formatDate } from "@/lib/utils";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  WhatsAppIcon,
+  XIcon,
+} from "@/components/member/SocialIcons";
+
+/** Baris ikon sosmed pemilik (hanya yang terisi) - link sungguhan ke platform. */
+const SOCIAL_META: { key: keyof ProfileSocials; label: string; icon: typeof InstagramIcon }[] = [
+  { key: "instagram", label: "Instagram", icon: InstagramIcon },
+  { key: "whatsapp", label: "WhatsApp", icon: WhatsAppIcon },
+  { key: "linkedin", label: "LinkedIn", icon: LinkedInIcon },
+  { key: "twitter", label: "X / Twitter", icon: XIcon },
+  { key: "facebook", label: "Facebook", icon: FacebookIcon },
+];
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +51,8 @@ export default async function MemberProfilePage({
   // Profil tanpa satu pun produk tayang tidak diindeks/diakses publik.
   if (!member || member.productCount === 0) notFound();
 
+  const user = await getSessionUser();
+  const favoriteIds = user ? await listMyFavoriteProductIds(user.id) : new Set<string>();
   const products = await listMemberPublishedProducts(id);
   const viewCounts = await getProductViewCounts(products.map((p) => p.id));
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
@@ -72,6 +92,29 @@ export default async function MemberProfilePage({
               Member terverifikasi
             </span>
           </p>
+          {member.bio && (
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{member.bio}</p>
+          )}
+          {/* Ikon sosmed pemilik - hanya yang diisi member */}
+          {SOCIAL_META.some((s) => member.socials[s.key]) && (
+            <div className="mt-3 flex items-center justify-center gap-1.5 sm:justify-start">
+              {SOCIAL_META.map(({ key, label, icon: Icon }) =>
+                member.socials[key] ? (
+                  <a
+                    key={key}
+                    href={member.socials[key]!}
+                    target="_blank"
+                    rel="noopener noreferrer me"
+                    aria-label={label}
+                    title={label}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted transition hover:border-brand/40 hover:text-brand"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                ) : null
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -80,7 +123,7 @@ export default async function MemberProfilePage({
       {products.length > 0 ? (
         <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
           ))}
         </div>
       ) : (

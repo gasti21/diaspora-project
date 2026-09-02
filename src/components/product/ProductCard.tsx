@@ -8,11 +8,24 @@ import { countryFlag, formatLocation } from "@/lib/utils";
 /**
  * Kartu produk katalog. Tombol favorit (hati) diposisikan di luar <Link>
  * supaya struktur HTML tetap valid (tidak ada button di dalam anchor).
+ *
+ * favoriteIds (opsional): set id favorit dari server - bila diberikan,
+ * kartu tidak lagi fetch status per kartu (membasmi N+1 di katalog).
  */
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  favoriteIds,
+}: {
+  product: Product;
+  /** Set id produk favorit milik user login (server-provided). */
+  favoriteIds?: Set<string>;
+}) {
   return (
     <div className="group relative flex w-full flex-col">
-      <FavoriteButton product={product} />
+      <FavoriteButton
+        product={product}
+        initialFavorited={favoriteIds ? favoriteIds.has(product.id) : undefined}
+      />
 
       <Link
         href={`/produk/${product.slug}`}

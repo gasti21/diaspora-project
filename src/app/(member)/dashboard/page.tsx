@@ -4,12 +4,13 @@ import {
   ArrowRight,
   CheckCircle2,
   ClipboardList,
+  Eye,
   FileText,
   PackagePlus,
   Send,
 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
-import { listMySubmissions } from "@/lib/data";
+import { listMySubmissions, getProductViewCounts } from "@/lib/data";
 import { StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
 import { cn, formatDate, timeAgo } from "@/lib/utils";
@@ -32,6 +33,10 @@ const ONBOARDING_STEPS = [
 export default async function MemberDashboardPage() {
   const user = await getSessionUser();
   const submissions = user ? await listMySubmissions(user.id) : [];
+  // Total views semua produk member (getProductViewCounts aman dipanggil
+  // dengan list kosong - mengembalikan {}).
+  const viewCounts = await getProductViewCounts(submissions.map((p) => p.id));
+  const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
   const count = (s: ProductStatus) => submissions.filter((p) => p.status === s).length;
   const attention = count("revision") + count("rejected");
@@ -41,7 +46,7 @@ export default async function MemberDashboardPage() {
     { label: "Total Pengajuan", value: submissions.length, icon: ClipboardList, chip: "bg-navy/10 text-navy", href: "/pengajuan" },
     { label: "Menunggu Review", value: count("pending"), icon: FileText, chip: "bg-amber-50 text-amber-600", href: "/pengajuan?status=pending" },
     { label: "Sudah Tayang", value: count("published"), icon: CheckCircle2, chip: "bg-green-50 text-green-600", href: "/pengajuan?status=published" },
-    { label: "Perlu Perhatian", value: attention, icon: Send, chip: "bg-red-50 text-red-600", href: "/pengajuan" },
+    { label: "Total Dilihat", value: totalViews, icon: Eye, chip: "bg-brand-soft text-brand", href: "/pengajuan" },
   ];
 
   const recent = submissions.slice(0, 5);
@@ -166,6 +171,12 @@ export default async function MemberDashboardPage() {
                     <p className="truncate text-sm font-semibold text-navy">{p.name}</p>
                     <p className="mt-0.5 truncate text-xs text-muted">
                       Diajukan {timeAgo(p.createdAt)} · {formatDate(p.createdAt)}
+                      {p.status === "published" && (
+                        <span className="ml-1.5 inline-flex items-center gap-0.5 text-muted/80">
+                          · <Eye className="h-3 w-3" aria-hidden="true" />
+                          {viewCounts[p.id] ?? 0} dilihat
+                        </span>
+                      )}
                     </p>
                   </div>
                   <StatusBadge status={p.status} />

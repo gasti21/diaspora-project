@@ -18,17 +18,26 @@ import type { Product } from "@/lib/types";
 export function FavoriteButton({
   product,
   variant = "card",
+  initialFavorited,
 }: {
   product: Product;
   variant?: "card" | "detail";
+  /**
+   * Status awal dari server (set id favorit halaman). undefined = mode lama,
+   * fetch per kartu (dipakai halaman yang belum mengoper set favorit).
+   */
+  initialFavorited?: boolean;
 }) {
   const toast = useToast();
   const router = useRouter();
-  const [fav, setFav] = useState(false);
-  const [state, setState] = useState<"loading" | "ready" | "anon">("loading");
+  const [fav, setFav] = useState(Boolean(initialFavorited));
+  const [state, setState] = useState<"loading" | "ready" | "anon">(
+    initialFavorited === undefined ? "loading" : "ready"
+  );
 
-  // Muat status awal dari API (sekali per produk).
+  // Muat status awal dari API (hanya bila server tidak menyediakannya).
   useEffect(() => {
+    if (initialFavorited !== undefined) return;
     let alive = true;
     fetch(`/api/favorites/${product.id}`)
       .then(async (res) => {
@@ -45,7 +54,7 @@ export function FavoriteButton({
     return () => {
       alive = false;
     };
-  }, [product.id]);
+  }, [product.id, initialFavorited]);
 
   // Sinkron bila tombol lain untuk produk yang sama berubah.
   useEffect(() => {

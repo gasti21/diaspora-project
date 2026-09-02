@@ -4,6 +4,8 @@ import { Search } from "lucide-react";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { FilterBar } from "@/components/catalog/FilterBar";
 import { ProductCard } from "@/components/product/ProductCard";
+import { getSessionUser } from "@/lib/auth";
+import { listMyFavoriteProductIds } from "@/lib/data";
 import { Pagination } from "@/components/catalog/Pagination";
 import { listPublicProducts, listCountries } from "@/lib/data";
 
@@ -33,6 +35,8 @@ export default async function ExplorePage({
   const page = Math.max(1, parseInt(sp.halaman ?? "1", 10) || 1);
   const hasQuery = Boolean(sp.q || sp.kategori || sp.lokasi || sp.status || sp.kebutuhan);
 
+  const user = await getSessionUser();
+  const favoriteIds = user ? await listMyFavoriteProductIds(user.id) : new Set<string>();
   const [{ data, total, totalPages }, countries] = await Promise.all([
     listPublicProducts({
       q: sp.q,
@@ -122,7 +126,7 @@ export default async function ExplorePage({
         ) : (
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {data.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
             ))}
           </div>
         )}

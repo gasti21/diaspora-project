@@ -18,7 +18,8 @@ import { ProductTabs } from "@/components/product/ProductTabs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
-import { getProductBySlug, getRelatedProducts } from "@/lib/data";
+import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds } from "@/lib/data";
+import { getSessionUser } from "@/lib/auth";
 import { ViewTracker } from "@/components/product/ViewTracker";
 import { SITE_URL } from "@/lib/supabase/config";
 import { countryFlag, formatLocation, waLink } from "@/lib/utils";
@@ -65,6 +66,8 @@ export default async function ProductDetailPage({
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  const viewer = await getSessionUser();
+  const favoriteIds = viewer ? await listMyFavoriteProductIds(viewer.id) : new Set<string>();
   const related = await getRelatedProducts(product);
   const specs: { label: string; value: string }[] = [
     { label: "Jenis Produk", value: product.categoryName ?? "-" },
@@ -189,7 +192,7 @@ export default async function ProductDetailPage({
           <h2 className="text-2xl font-extrabold">Produk Terkait</h2>
           <div className="mt-6 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
             ))}
           </div>
         </section>

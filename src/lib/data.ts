@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -156,7 +157,9 @@ export async function getLatestProducts(limit = 6): Promise<Product[]> {
   return (data as unknown as DbRow[]).map(toProduct);
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
+// cache(): generateMetadata + page memanggil fungsi ini - tanpa cache,
+// setiap kunjungan detail produk memicu 2 query identik.
+export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   if (!isSupabaseConfigured) {
     return SAMPLE_PRODUCTS.find((p) => p.slug === slug) ?? null;
   }
@@ -169,7 +172,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data ? toProduct(data as unknown as DbRow) : null;
-}
+});
 
 /**
  * Ambil kontak pemilik SATU produk published - dipakai endpoint
@@ -415,6 +418,8 @@ export interface PublicMember {
   id: string;
   name: string;
   avatarUrl: string | null;
+  bio: string | null;
+  socials: ProfileSocials;
   joinedAt: string;
   productCount: number;
 }
@@ -426,7 +431,9 @@ export async function getPublicMember(id: string): Promise<PublicMember | null> 
 
   const { data: profile, error } = await client
     .from("profiles")
-    .select("id, full_name, avatar_url, created_at")
+    .select(
+      "id, full_name, avatar_url, bio, created_at, instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
+    )
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -443,6 +450,14 @@ export async function getPublicMember(id: string): Promise<PublicMember | null> 
     id: profile.id,
     name: profile.full_name ?? "Member KaryaDiaspora",
     avatarUrl: profile.avatar_url,
+    bio: profile.bio,
+    socials: {
+      instagram: profile.instagram_url,
+      whatsapp: profile.whatsapp_url,
+      linkedin: profile.linkedin_url,
+      twitter: profile.twitter_url,
+      facebook: profile.facebook_url,
+    },
     joinedAt: profile.created_at,
     productCount: count ?? 0,
   };
@@ -464,6 +479,44 @@ export async function listMyFavoriteProducts(userId: string): Promise<Product[]>
       return p ? toProduct(p) : null;
     })
     .filter((p): p is Product => p !== null);
+}
+
+/**
+ * Himpunan id produk yang difavoritkan user (satu query - dipakai halaman
+ * katalog agar ProductCard tidak N+1 request per kartu).
+ */
+export async function listMyFavoriteProductIds(userId: string): Promise<Set<string>> {
+  if (!isSupabaseConfigured) return new Set();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+  return new Set((data ?? []).map((r) => r.product_id as string));
+}
+
+/** Status favorit untuk batch id (dipakai endpoint /api/favorites?ids=...). */
+export async function getFavoriteMap(
+  userId: string,
+  productIds: string[]
+): Promise<Record<string, boolean>> {
+  const map: Record<string, boolean> = {};
+  if (productIds.length === 0) return map;
+  if (!isSupabaseConfigured) {
+    for (const id of productIds) map[id] = false;
+    return map;
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .eq("user_id", userId)
+    .in("product_id", productIds);
+  if (error) throw new Error(error.message);
+  for (const id of productIds) map[id] = false;
+  for (const row of data ?? []) map[row.product_id as string] = true;
+  return map;
 }
 
 /** Toggle favorit: tambah bila belum ada, hapus bila sudah. */
@@ -787,9 +840,11 @@ export async function listMemberPublishedProducts(userId: string): Promise<Produ
     return SAMPLE_PRODUCTS.filter((p) => p.status === "published");
   }
   const client = createAdminClient();
+  // Pakai SAFE_PRODUCT_COLUMNS meski service-role: halaman /u/[id] publik,
+  // kolom kontak pemilik (email/WA) tidak boleh ikut ke flight data RSC.
   const { data, error } = await client
     .from("products")
-    .select("*, categories(id, slug, name)")
+    .select(`${SAFE_PRODUCT_COLUMNS}, categories(id, slug, name)`)
     .eq("submitted_by", userId)
     .eq("status", "published")
     .order("updated_at", { ascending: false });
