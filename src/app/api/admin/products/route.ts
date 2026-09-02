@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { adminListProducts } from "@/lib/data";
 import { getAdminUser } from "@/lib/auth";
 import { PER_PAGE } from "@/lib/constants";
+import { serverError } from "@/lib/api-error";
 import type { ProductStatus } from "@/lib/types";
 
 /** GET /api/admin/products - daftar semua status (khusus admin). */
@@ -23,9 +24,6 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(result);
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal memuat data." },
-      { status: 500 }
-    );
+    return serverError(e, "GET /api/admin/products", "Gagal memuat data.");
   }
 }

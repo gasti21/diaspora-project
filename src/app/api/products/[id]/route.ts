@@ -10,6 +10,7 @@ import { getAdminUser, getSessionUser } from "@/lib/auth";
 import type { SubmissionPayload } from "@/lib/types";
 import { validateSubmissionPayload } from "@/lib/validation";
 import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
+import { serverError } from "@/lib/api-error";
 
 /**
  * PATCH /api/products/[id] - perbaiki pengajuan.
@@ -69,10 +70,7 @@ export async function PATCH(
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal menyimpan perbaikan." },
-      { status: 500 }
-    );
+    return serverError(e, "PATCH /api/products/[id]", "Gagal menyimpan perbaikan.");
   }
 }
 
@@ -91,9 +89,6 @@ export async function DELETE(
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal menghapus produk." },
-      { status: 500 }
-    );
+    return serverError(e, "DELETE /api/products/[id]", "Gagal menghapus produk.");
   }
 }

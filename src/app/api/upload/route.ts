@@ -4,6 +4,7 @@ import { uploadProductImage } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { IMAGE_MAX_MB, IMAGE_TYPES } from "@/lib/constants";
 import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
+import { serverError } from "@/lib/api-error";
 
 /** Batas file foto per user di bucket (mencegah penyalahgunaan storage). */
 const MAX_FILES_PER_USER = 25;
@@ -59,9 +60,6 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ url: result.url }, { status: 201 });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal mengunggah file." },
-      { status: 500 }
-    );
+    return serverError(e, "POST /api/upload", "Gagal mengunggah file.");
   }
 }

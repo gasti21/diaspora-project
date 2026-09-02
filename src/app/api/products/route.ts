@@ -4,6 +4,7 @@ import { listPublicProducts, createSubmission } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { PER_PAGE } from "@/lib/constants";
 import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
+import { serverError } from "@/lib/api-error";
 import type { SubmissionPayload } from "@/lib/types";
 import { validateSubmissionPayload } from "@/lib/validation";
 
@@ -23,10 +24,7 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(result);
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal memuat produk." },
-      { status: 500 }
-    );
+    return serverError(e, "GET /api/products", "Gagal memuat produk.");
   }
 }
 
@@ -71,9 +69,6 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(result, { status: 201 });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal menyimpan produk." },
-      { status: 500 }
-    );
+    return serverError(e, "POST /api/products", "Gagal menyimpan produk.");
   }
 }

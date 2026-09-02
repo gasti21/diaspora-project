@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getMyProfile, updateMyProfile, uploadAvatar } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
+import { serverError } from "@/lib/api-error";
 
 /** GET /api/profile - profil user yang sedang login. */
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
     if (!profile) return NextResponse.json({ error: "Profil tidak ditemukan." }, { status: 404 });
     return NextResponse.json(profile);
   } catch (e) {
-    return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
+    return serverError(e, "api/profile");
   }
 }
 
@@ -48,7 +49,7 @@ export async function PATCH(request: NextRequest) {
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
+    return serverError(e, "api/profile");
   }
 }
 
@@ -68,6 +69,6 @@ export async function POST(request: NextRequest) {
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
     return NextResponse.json({ url: result.url }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
+    return serverError(e, "api/profile");
   }
 }

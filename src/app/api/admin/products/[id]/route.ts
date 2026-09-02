@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { adminUpdateProduct } from "@/lib/data";
 import { getAdminUser } from "@/lib/auth";
+import { serverError } from "@/lib/api-error";
 import type { ProductStatus } from "@/lib/types";
 
 const VALID: ProductStatus[] = ["pending", "published", "revision", "rejected"];
@@ -38,9 +39,6 @@ export async function PATCH(
     }
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Gagal memperbarui produk." },
-      { status: 500 }
-    );
+    return serverError(e, "PATCH /api/admin/products/[id]", "Gagal memperbarui produk.");
   }
 }
