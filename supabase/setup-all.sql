@@ -656,3 +656,12 @@ $$;
 -- ============================================================
 
 drop function if exists public.record_product_view(uuid);
+
+-- ============================================================
+-- GRANT baca: pastikan anon & authenticated bisa SELECT semua
+-- tabel public (RLS tetap yang mengatur baris mana yang boleh
+-- dibaca). Kata kunci: permission denied for table products
+-- terjadi kalau grant ini hilang setelah tabel dibuat ulang.
+-- ============================================================
+grant select on all tables in schema public to anon, authenticated;
+grant usage on schema public to anon, authenticated;
