@@ -142,8 +142,11 @@ export default async function ProductDetailPage({
 
           {/* Bagikan produk (informasi kontak lengkap ada di pop-up "Hubungi Pemilik") */}
           <div className="mt-6 rounded-xl border border-line bg-white p-5">
-            <h3 className="text-sm font-bold">Bagikan Produk</h3>
-            <div className="mt-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="text-sm font-bold">Bagikan Produk</h3>
+              <span className="text-xs text-muted">Sebarkan ke jaringanmu</span>
+            </div>
+            <div className="mt-3.5">
               <ShareButtons url={`${SITE_URL}/produk/${product.slug}`} title={product.name} />
             </div>
           </div>

@@ -6,10 +6,30 @@ import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
 import { shareUrls } from "@/lib/utils";
 
 const ITEMS = [
-  { key: "whatsapp", label: "WhatsApp", color: "bg-[#25D366]", path: BRAND.whatsapp },
-  { key: "facebook", label: "Facebook", color: "bg-[#1877F2]", path: BRAND.facebook },
-  { key: "x", label: "X (Twitter)", color: "bg-[#0f1419]", path: BRAND.x },
-  { key: "linkedin", label: "LinkedIn", color: "bg-[#0A66C2]", path: BRAND.linkedin },
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    path: BRAND.whatsapp,
+    tone: "bg-[#25D366]/10 text-[#128C4A] hover:bg-[#25D366] hover:text-white",
+  },
+  {
+    key: "facebook",
+    label: "Facebook",
+    path: BRAND.facebook,
+    tone: "bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2] hover:text-white",
+  },
+  {
+    key: "x",
+    label: "X (Twitter)",
+    path: BRAND.x,
+    tone: "bg-[#0f1419]/10 text-[#0f1419] hover:bg-[#0f1419] hover:text-white",
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    path: BRAND.linkedin,
+    tone: "bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white",
+  },
 ] as const;
 
 export function ShareButtons({ url, title }: { url: string; title: string }) {
@@ -28,9 +48,9 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
 
   return (
     <div>
-      {/* Baris ikon share - seragam, hover terangkat */}
+      {/* Baris ikon share - soft-tinted, hover solid */}
       <div className="flex flex-wrap items-center gap-2.5">
-        {ITEMS.map(({ key, label, color, path }) => (
+        {ITEMS.map(({ key, label, tone, path }) => (
           <a
             key={key}
             href={links[key]}
@@ -38,7 +58,7 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
             rel="noopener noreferrer"
             aria-label={`Bagikan ke ${label}`}
             title={`Bagikan ke ${label}`}
-            className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:opacity-90 ${color}`}
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${tone}`}
           >
             <BrandIcon path={path} className="h-4.5 w-4.5" />
           </a>
