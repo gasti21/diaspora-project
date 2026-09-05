@@ -11,12 +11,13 @@ interface SendArgs {
 
 /**
  * Kirim satu email via Resend HTTP API (tanpa SDK).
- * - No-op aman bila RESEND_API_KEY belum diset (fitur belum diaktifkan).
+ * - Bila RESEND_API_KEY belum diset, return { skipped: true } (BUKAN error) -
+ *   aksi utama tetap dianggap sukses, email hanya dilewati.
  * - Return error string (bukan throw) - pemanggil fire-and-forget.
  */
-export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ error?: string }> {
+export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ error?: string; skipped?: boolean }> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return { error: "RESEND_API_KEY belum diset - email dilewati." };
+  if (!apiKey) return { skipped: true };
 
   try {
     const res = await fetch(RESEND_ENDPOINT, {
