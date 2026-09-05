@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  TrendingUp,
   CheckCircle2,
   CircleX,
   FileText,
@@ -9,7 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { getAdminUser } from "@/lib/auth";
-import { adminGetOverview } from "@/lib/data";
+import { adminGetOverview, adminGetTrends } from "@/lib/data";
 import { RecentActivity } from "@/components/admin/RecentActivity";
 import AdminAccessDenied from "@/components/admin/AdminAccessDenied";
 import { cn, daysSince } from "@/lib/utils";
@@ -50,7 +51,7 @@ export default async function AdminOverviewPage() {
   const admin = await getAdminUser();
   if (!admin) return <AdminAccessDenied />;
 
-  const overview = await adminGetOverview();
+  const [overview, trends] = await Promise.all([adminGetOverview(), adminGetTrends()]);
   const { stats, recent, oldestPending } = overview;
 
   const now = new Date();
@@ -171,6 +172,65 @@ export default async function AdminOverviewPage() {
                 Semua pengajuan sudah diproses. Kerja bagus!
               </p>
             )}
+          </section>
+
+          {/* Tren pengajuan 6 minggu terakhir */}
+          <section className="rounded-2xl border bg-white p-5">
+            <h2 className="flex items-center gap-2 font-bold text-navy">
+              <TrendingUp className="h-4 w-4 text-brand" aria-hidden="true" />
+              Tren Pengajuan (6 Minggu)
+            </h2>
+            <div className="mt-4 flex h-28 items-end gap-2">
+              {trends.weekly.map((w) => {
+                const max = Math.max(...trends.weekly.map((x) => x.count), 1);
+                return (
+                  <div key={w.label} className="flex flex-1 flex-col items-center gap-1">
+                    <span className="text-[10px] font-bold text-navy">{w.count}</span>
+                    <div
+                      className={cn(
+                        "w-full rounded-t-md transition-all",
+                        w.count > 0 ? "bg-brand" : "bg-line"
+                      )}
+                      style={{ height: `${Math.max(4, (w.count / max) * 72)}px` }}
+                      title={`${w.count} pengajuan`}
+                    />
+                    <span className="text-[10px] text-muted">{w.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 grid gap-4 border-t border-line pt-4 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-muted">Negara Teratas</p>
+                {trends.topCountries.length === 0 ? (
+                  <p className="mt-2 text-xs text-muted/70">Belum ada data.</p>
+                ) : (
+                  <ul className="mt-2 space-y-1.5">
+                    {trends.topCountries.map((c) => (
+                      <li key={c.country} className="flex items-center justify-between text-sm">
+                        <span className="text-navy">{c.country}</span>
+                        <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-bold text-muted">{c.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-muted">Kategori Teratas</p>
+                {trends.topCategories.length === 0 ? (
+                  <p className="mt-2 text-xs text-muted/70">Belum ada data.</p>
+                ) : (
+                  <ul className="mt-2 space-y-1.5">
+                    {trends.topCategories.map((c) => (
+                      <li key={c.name} className="flex items-center justify-between text-sm">
+                        <span className="text-navy">{c.name}</span>
+                        <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-bold text-muted">{c.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           </section>
 
           {/* Aksi cepat */}

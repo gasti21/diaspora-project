@@ -189,12 +189,13 @@ export async function getPublishedProductContact(
   const client = createAdminClient();
   const { data } = await client
     .from("products")
-    .select("owner_name, owner_email, owner_whatsapp, website")
+    .select("name, owner_name, owner_email, owner_whatsapp, website")
     .eq("id", id)
     .eq("status", "published")
     .maybeSingle();
   if (!data) return null;
   return {
+    productName: data.name,
     ownerName: data.owner_name,
     ownerEmail: data.owner_email,
     ownerWhatsapp: data.owner_whatsapp,
@@ -741,7 +742,7 @@ export function normalizeSocialUrl(
   platform: keyof ProfileSocials,
   raw: string
 ): string | null {
-  let value = raw.trim().replace(/^@/, "");
+  const value = raw.trim().replace(/^@/, "");
   if (!value) return null;
 
   // Kalau user tempel URL penuh, pastikan hostnya platform yang benar.
@@ -1254,6 +1255,97 @@ export async function adminUpdateProduct(
   }
 
   return {};
+}
+
+export interface AdminTrends {
+  /** Jumlah pengajuan per minggu (6 minggu terakhir, terlama -> terbaru). */
+  weekly: { label: string; count: number }[];
+  topCountries: { country: string; count: number }[];
+  topCategories: { name: string; count: number }[];
+}
+
+/**
+ * Tren pengajuan untuk overview admin: 6 minggu terakhir, negara &
+ * kategori teratas. Query ringan (hanya kolom ringkas, satu tabel).
+ */
+export async function adminGetTrends(): Promise<AdminTrends> {
+  if (!isSupabaseConfigured) {
+    return {
+      weekly: Array.from({ length: 6 }, (_, i) => ({ label: `M-${5 - i}`, count: 0 })),
+      topCountries: [],
+      topCategories: [],
+    };
+  }
+  const client = createAdminClient();
+  const since = new Date(Date.now() - 6 * 7 * 86_400_000).toISOString();
+  const { data, error } = await client
+    .from("products")
+    .select("created_at, country, categories(name)")
+    .gte("created_at", since);
+  if (error) throw new Error(error.message);
+
+  // Kelompokkan per minggu (minggu berjalan = yang terakhir).
+  const weekly = Array.from({ length: 6 }, (_, i) => {
+    const start = new Date(Date.now() - (5 - i) * 7 * 86_400_000);
+    const label = `${start.getDate()}/${start.getMonth() + 1}`;
+    return { label, count: 0, start: start.getTime() };
+  });
+  const countryCount = new Map<string, number>();
+  const categoryCount = new Map<string, number>();
+
+  for (const row of (data ?? []) as {
+    created_at: string;
+    country: string;
+    categories: { name: string } | { name: string }[] | null;
+  }[]) {
+    const t = new Date(row.created_at).getTime();
+    for (let i = weekly.length - 1; i >= 0; i--) {
+      if (t >= weekly[i].start) {
+        weekly[i].count += 1;
+        break;
+      }
+    }
+    if (row.country) {
+      countryCount.set(row.country, (countryCount.get(row.country) ?? 0) + 1);
+    }
+    const cat = Array.isArray(row.categories) ? row.categories[0] : row.categories;
+    if (cat?.name) {
+      categoryCount.set(cat.name, (categoryCount.get(cat.name) ?? 0) + 1);
+    }
+  }
+
+  const sortDesc = (m: Map<string, number>) =>
+    [...m.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([k, v]) => ({ country: k, name: k, count: v }));
+
+  return {
+    weekly: weekly.map(({ label, count }) => ({ label, count })),
+    topCountries: sortDesc(countryCount).map((x) => ({ country: x.country, count: x.count })),
+    topCategories: sortDesc(categoryCount).map((x) => ({ name: x.name, count: x.count })),
+  };
+}
+
+/**
+ * Ubah status banyak produk sekaligus (bulk action kurasi). Per produk
+ * memakai jalur adminUpdateProduct agar email "produk tayang" tetap terkirim.
+ * Kegagalan satu produk tidak menghentikan yang lain - dikembalikan hitungan
+ * sukses + daftar id yang gagal.
+ */
+export async function adminBulkUpdateStatus(
+  ids: string[],
+  status: ProductStatus,
+  opts: { reviewNote?: string | null }
+): Promise<{ updated?: number; failed?: string[]; error?: string }> {
+  let updated = 0;
+  const failed: string[] = [];
+  for (const id of ids) {
+    const result = await adminUpdateProduct(id, { status, reviewNote: opts.reviewNote });
+    if (result.error) failed.push(id);
+    else updated += 1;
+  }
+  return { updated, failed };
 }
 
 /** Upload foto ke Storage bucket `product-images` (butuh service role key). */

@@ -26,6 +26,7 @@ export function ContactOwnerButton({ product }: { product: Product }) {
       // Mode demo (tanpa Supabase): produk contoh membawa kontaknya sendiri.
       if (product.ownerEmail) {
         setContact({
+          productName: product.name,
           ownerName: product.ownerName,
           ownerEmail: product.ownerEmail,
           ownerWhatsapp: product.ownerWhatsapp,

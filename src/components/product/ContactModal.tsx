@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Lock, MessageCircle, Send, X } from "lucide-react";
+import { useToast } from "@/components/toast/ToastProvider";
 import type { OwnerContact, Product } from "@/lib/types";
 import { waLink, formatLocation } from "@/lib/utils";
 
@@ -35,6 +36,41 @@ export function ContactModal({
       document.body.style.overflow = "";
     };
   }, [open, onClose]);
+
+  // ---- Email relay: kirim pesan ke pemilik tanpa membuka email pemilik ----
+  const toast = useToast();
+  const [msg, setMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function sendMessage() {
+    const text = msg.trim();
+    if (!text || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch(`/api/products/${product.id}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, company: "" }), // company = honeypot
+      });
+      const json = (await res.json()) as { error?: string };
+      if (res.status === 401) {
+        toast.info("Masuk untuk mengirim pesan langsung ke pemilik.", { title: "Masuk dulu ya" });
+        return;
+      }
+      if (!res.ok) {
+        toast.error(json.error ?? "Gagal mengirim pesan.");
+        return;
+      }
+      setSent(true);
+      setMsg("");
+      toast.success("Pesan terkirim ke pemilik produk.");
+    } catch {
+      toast.error("Koneksi bermasalah. Coba lagi.");
+    } finally {
+      setSending(false);
+    }
+  }
 
   if (!open) return null;
 
@@ -140,6 +176,45 @@ export function ContactModal({
             </div>
           ))}
         </dl>
+
+        {/* Kirim pesan via platform (email relay) */}
+        <div className="mt-5 rounded-xl border border-line bg-surface/60 p-4">
+          {sent ? (
+            <p className="flex items-center gap-2 text-sm font-medium text-green-700">
+              <Send className="h-4 w-4" aria-hidden="true" />
+              Pesan terkirim! Pemilik akan membalas ke email Anda.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs font-semibold text-navy">
+                Kirim pesan langsung - email pemilik tetap terlindungi
+              </p>
+              <textarea
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Contoh: Halo, saya tertarik dengan produk Anda. Bisa info harga & pengiriman?"
+                className="mt-2 w-full resize-none rounded-lg border border-line bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-brand/50"
+              />
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-[11px] text-muted/70">{msg.length}/2000</span>
+                <button
+                  onClick={() => void sendMessage()}
+                  disabled={sending || !msg.trim()}
+                  className="flex items-center gap-1.5 rounded-lg bg-navy px-3.5 py-2 text-xs font-bold text-white transition hover:bg-navy-dark disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Send className="h-3.5 w-3.5" aria-hidden="true" />
+                  {sending ? "Mengirim…" : "Kirim Pesan"}
+                </button>
+              </div>
+              <p className="mt-2 flex items-center gap-1 text-[11px] text-muted/70">
+                <Lock className="h-3 w-3" aria-hidden="true" />
+                Perlu masuk. Maks 3 pesan/jam untuk mencegah spam.
+              </p>
+            </>
+          )}
+        </div>
 
         <a
           href={waLink(contact.ownerWhatsapp)}

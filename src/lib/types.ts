@@ -125,6 +125,7 @@ export interface SubmissionPayload {
 
 /** Kontak pemilik produk - hanya dikirim via endpoint rate-limited. */
 export interface OwnerContact {
+  productName: string;
   ownerName: string;
   ownerEmail: string;
   ownerWhatsapp: string;

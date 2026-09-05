@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Download, Inbox, Search, SquarePen, X } from "lucide-react";
+import { Ban, Check, Download, Inbox, Search, SquarePen, X } from "lucide-react";
 import { ProductDrawer } from "./ProductDrawer";
 import { STATS_EVENT } from "./admin-nav";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -42,6 +42,49 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Product | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Bulk action: set id produk yang dicentang + status aksi massal aktif.
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  function toggleCheck(id: string) {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function bulkAct(newStatus: ProductStatus) {
+    if (checked.size === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    try {
+      const res = await fetch("/api/admin/products/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [...checked], status: newStatus }),
+      });
+      const json = (await res.json()) as { updated?: number; failed?: string[]; error?: string };
+      if (!res.ok) {
+        toast.error(json.error ?? "Gagal memproses aksi massal.");
+        return;
+      }
+      const failedCount = json.failed?.length ?? 0;
+      toast.success(
+        failedCount > 0
+          ? `${json.updated} produk diperbarui, ${failedCount} gagal.`
+          : `${json.updated} produk diperbarui.`,
+        { title: "Aksi massal selesai" }
+      );
+      setChecked(new Set());
+      await load();
+      window.dispatchEvent(new Event(STATS_EVENT));
+    } catch {
+      toast.error("Koneksi bermasalah. Coba lagi.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
 
   // debounce pencarian -> mulai lagi dari halaman 1
   useEffect(() => {
@@ -223,12 +266,54 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
         </div>
       </div>
 
+      {/* Toolbar aksi massal - muncul saat ada produk dicentang */}
+      {checked.size > 0 && (
+        <div className="sticky top-16 z-20 flex flex-wrap items-center gap-3 rounded-2xl border border-navy/20 bg-navy px-4 py-3 text-white shadow-lg">
+          <span className="text-sm font-bold">{checked.size} produk dipilih</span>
+          <div className="ml-auto flex gap-2">
+            <button
+              onClick={() => void bulkAct("published")}
+              disabled={bulkBusy}
+              className="flex items-center gap-1.5 rounded-lg bg-green-500 px-3.5 py-2 text-xs font-bold transition hover:bg-green-600 disabled:opacity-50"
+            >
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+              {bulkBusy ? "Memproses…" : "Approve Terpilih"}
+            </button>
+            <button
+              onClick={() => void bulkAct("rejected")}
+              disabled={bulkBusy}
+              className="flex items-center gap-1.5 rounded-lg bg-red-500 px-3.5 py-2 text-xs font-bold transition hover:bg-red-600 disabled:opacity-50"
+            >
+              <Ban className="h-3.5 w-3.5" aria-hidden="true" />
+              Tolak Terpilih
+            </button>
+            <button
+              onClick={() => setChecked(new Set())}
+              className="rounded-lg border border-white/25 px-3 py-2 text-xs font-semibold transition hover:bg-white/10"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tabel */}
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead>
               <tr className="border-b border-line bg-surface/60 text-xs uppercase tracking-wide text-muted">
+                <th className="w-10 px-3 py-3">
+                  <input
+                    type="checkbox"
+                    aria-label="Pilih semua produk di halaman ini"
+                    checked={Boolean(list?.data.length) && checked.size === list?.data.length}
+                    onChange={(e) =>
+                      setChecked(e.target.checked ? new Set(list?.data.map((p) => p.id)) : new Set())
+                    }
+                    className="h-4 w-4 cursor-pointer accent-[#d32f2f]"
+                  />
+                </th>
                 <th className="px-4 py-3 font-semibold">Produk</th>
                 <th className="px-4 py-3 font-semibold">Kategori</th>
                 <th className="px-4 py-3 font-semibold">Diajukan</th>
@@ -241,7 +326,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
                 <>
                   {[0, 1, 2, 3].map((i) => (
                     <tr key={i} className="border-b border-line/70">
-                      {[0, 1, 2, 3, 4].map((j) => (
+                      {[0, 1, 2, 3, 4, 5].map((j) => (
                         <td key={j} className="px-4 py-4">
                           <div className="h-4 animate-pulse rounded bg-line" />
                         </td>
@@ -253,7 +338,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
 
               {!loading && list?.data.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-14 text-center">
+                  <td colSpan={6} className="px-4 py-14 text-center">
                     <Inbox className="mx-auto h-9 w-9 text-muted/40" aria-hidden="true" />
                     <p className="mt-3 text-sm font-semibold text-navy">
                       Tidak ada produk pada filter ini
@@ -277,6 +362,15 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
                         selected?.id === p.id && "bg-blue-50/50"
                       )}
                     >
+                      <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Pilih ${p.name}`}
+                          checked={checked.has(p.id)}
+                          onChange={() => toggleCheck(p.id)}
+                          className="h-4 w-4 cursor-pointer accent-[#d32f2f]"
+                        />
+                      </td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg">
