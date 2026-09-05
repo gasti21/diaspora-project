@@ -48,8 +48,8 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
 
   return (
     <div>
-      {/* Baris ikon share - soft-tinted, hover solid */}
-      <div className="flex flex-wrap items-center gap-2.5">
+      {/* Baris ikon share - terbagi rata sepanjang kartu */}
+      <div className="grid grid-cols-4 place-items-center">
         {ITEMS.map(({ key, label, tone, path }) => (
           <a
             key={key}
