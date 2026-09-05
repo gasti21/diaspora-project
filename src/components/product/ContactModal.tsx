@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  ArrowUpRight,
   Check,
   Copy,
   Globe,
@@ -102,12 +103,15 @@ export function ContactModal({
           onClick={(e) => e.stopPropagation()}
         >
           <h3 className="text-lg font-bold">Hubungi Pemilik</h3>
-          <div className="mt-5 space-y-3.5">
+          <div className="mt-5 space-y-2.5">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-4 animate-pulse rounded bg-surface" />
+              <div
+                key={i}
+                className="h-16 animate-pulse rounded-xl border border-line/70 bg-surface/40"
+              />
             ))}
           </div>
-          <div className="mt-6 h-11 animate-pulse rounded-lg bg-surface" />
+          <div className="mt-5 h-12 animate-pulse rounded-xl bg-surface" />
         </div>
       </div>
     );
@@ -173,15 +177,18 @@ export function ContactModal({
           >
             <X className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-4">
             <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-lg font-bold text-white shadow-inner"
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand text-xl font-bold text-white ring-2 ring-white/20"
               aria-hidden="true"
             >
               {initial}
             </div>
             <div className="min-w-0">
-              <h3 className="truncate text-lg font-bold leading-tight">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">
+                Hubungi Pemilik
+              </p>
+              <h3 className="mt-0.5 truncate text-lg font-bold leading-tight">
                 {contact.ownerName}
               </h3>
               <p className="truncate text-sm text-white/70">
@@ -190,66 +197,84 @@ export function ContactModal({
             </div>
           </div>
         </div>
+        {/* Garis aksen brand di bawah header */}
+        <div
+          className="h-1 bg-gradient-to-r from-brand via-brand/50 to-transparent"
+          aria-hidden="true"
+        />
 
-        {/* Detail kontak */}
-        <dl className="space-y-3 px-6 pt-5">
+        {/* Detail kontak - kartu lembut per baris */}
+        <dl className="space-y-2.5 px-5 pt-5">
           {rows.map((r) => (
             <div
               key={r.label}
-              className="flex items-center justify-between gap-4 text-sm"
+              className="group flex items-center gap-3.5 rounded-xl border border-line/70 bg-surface/40 px-4 py-3 transition hover:border-navy/25 hover:bg-surface"
             >
-              <dt className="flex shrink-0 items-center gap-2.5 font-medium text-muted">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-soft text-brand">
-                  <r.icon className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand shadow-sm ring-1 ring-line/60 transition group-hover:bg-brand-soft group-hover:ring-brand/20">
+                <r.icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <dt className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                  {r.label}
+                </dt>
+                <dd className="truncate text-sm font-semibold text-navy">
+                  {r.href ? (
+                    <a
+                      href={r.href}
+                      target={r.href.startsWith("mailto:") ? undefined : "_blank"}
+                      rel="noopener noreferrer"
+                      className="transition hover:text-brand"
+                    >
+                      {r.value}
+                    </a>
+                  ) : (
+                    r.value
+                  )}
+                </dd>
+              </div>
+              {/* Aksi cepat: salin email langsung di barisnya */}
+              {r.label === "Email" && (
+                <button
+                  onClick={copyEmail}
+                  aria-label="Salin email pemilik"
+                  title="Salin email"
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition ${
+                    copied
+                      ? "border-green-500/40 bg-green-50 text-green-600"
+                      : "border-line bg-white text-muted hover:border-navy/40 hover:text-navy"
+                  }`}
+                >
+                  {copied ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
+              {r.href && r.label !== "Email" && (
+                <span className="shrink-0 text-muted transition group-hover:text-brand">
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
-                {r.label}
-              </dt>
-              <dd className="min-w-0 text-right font-semibold break-all text-navy">
-                {r.href ? (
-                  <a
-                    href={r.href}
-                    target={r.href.startsWith("mailto:") ? undefined : "_blank"}
-                    rel="noopener noreferrer"
-                    className="transition hover:text-brand"
-                  >
-                    {r.value}
-                  </a>
-                ) : (
-                  r.value
-                )}
-              </dd>
+              )}
             </div>
           ))}
-          {/* Salin email cepat */}
-          <div className="flex items-center justify-between gap-4 pt-1">
-            <span className="text-xs text-muted">Klik untuk menyalin email</span>
-            <button
-              onClick={copyEmail}
-              aria-label="Salin email pemilik"
-              className={`flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-navy transition hover:border-navy/40 ${
-                copied ? "text-green-600" : ""
-              }`}
+          {copied && (
+            <p
+              className="pt-0.5 text-center text-xs font-medium text-green-600"
+              role="status"
             >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5" /> Tersalin!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" /> Salin Email
-                </>
-              )}
-            </button>
-          </div>
+              Email tersalin ke clipboard
+            </p>
+          )}
         </dl>
 
         {/* Sosmed publik pemilik (kalau dia mengisinya di profil) */}
         {socials.length > 0 && (
-          <div className="mx-6 mt-5 border-t border-line pt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+          <div className="mx-5 mt-5 border-t border-line pt-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               Media Sosial Pemilik
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2.5">
               {socials.map(({ key, label, color, path }) => (
                 <a
                   key={key}
@@ -258,9 +283,9 @@ export function ContactModal({
                   rel="noopener noreferrer"
                   aria-label={label}
                   title={label}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:opacity-85 ${color}`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:-translate-y-0.5 hover:opacity-90 ${color}`}
                 >
-                  <BrandIcon path={path} className="h-4 w-4" />
+                  <BrandIcon path={path} className="h-4.5 w-4.5" />
                 </a>
               ))}
             </div>
@@ -268,19 +293,19 @@ export function ContactModal({
         )}
 
         {/* CTA utama */}
-        <div className="px-6 pb-6 pt-5">
+        <div className="px-5 pb-6 pt-5">
           <a
             href={waLink(contact.ownerWhatsapp)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md active:translate-y-0 active:shadow-sm"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md active:translate-y-0 active:shadow-sm"
           >
             <MessageCircle className="h-4.5 w-4.5" aria-hidden="true" />
             Chat via WhatsApp
           </a>
-          <p className="mt-3 text-center text-xs text-muted">
-            Email &amp; nomor WhatsApp resmi pemilik — balasan langsung dari
-            pemilik produk.
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
+            <Check className="h-3.5 w-3.5 shrink-0 text-green-600" aria-hidden="true" />
+            Kontak resmi pemilik — balasan langsung dari pemilik produk.
           </p>
         </div>
       </div>
