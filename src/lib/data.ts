@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { PROTECTED_ADMIN_EMAIL, type SessionUser } from "@/lib/auth";
+import { waLink } from "@/lib/utils";
 import { SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { CATEGORIES, COUNTRIES, PER_PAGE, slugify } from "@/lib/constants";
 import { sendEmail, notifyAllAdmins } from "@/lib/email/send";
@@ -196,7 +197,18 @@ export async function getPublishedProductContact(
   if (!data) return null;
 
   // Sosmed pemilik dari profil publiknya (sudah dinormalisasi saat disimpan).
+  // Fallback: WA yang tersimpan di produk tetap tampil sebagai ikon WhatsApp
+  // meskipun pemilik belum melengkapi sosmed di profilnya.
   let socials: OwnerContact["socials"] = null;
+  if (data.owner_whatsapp) {
+    socials = {
+      instagram: null,
+      whatsapp: waLink(data.owner_whatsapp),
+      linkedin: null,
+      twitter: null,
+      facebook: null,
+    };
+  }
   if (data.submitted_by) {
     const { data: profile } = await client
       .from("profiles")
@@ -208,7 +220,7 @@ export async function getPublishedProductContact(
     if (profile) {
       socials = {
         instagram: profile.instagram_url,
-        whatsapp: profile.whatsapp_url,
+        whatsapp: profile.whatsapp_url ?? socials?.whatsapp ?? null,
         linkedin: profile.linkedin_url,
         twitter: profile.twitter_url,
         facebook: profile.facebook_url,
