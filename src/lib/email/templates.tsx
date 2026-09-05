@@ -65,32 +65,6 @@ export function supportReplyEmail(opts: { memberName: string; sessionSubject: st
   };
 }
 
-/** Pesan dari user login ke pemilik produk (email relay - email pemilik tak terbuka). */
-export function contactMessageEmail(opts: {
-  ownerName: string;
-  productName: string;
-  senderName: string;
-  senderEmail: string;
-  message: string;
-}): EmailContent {
-  const safeMessage = opts.message
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\n/g, "<br/>");
-  return {
-    subject: `Pesan tentang produk Anda: ${opts.productName}`,
-    html: layout(
-      "Ada yang tertarik dengan produk Anda!",
-      `<p>Halo ${opts.ownerName},</p>
-       <p><strong>${opts.senderName}</strong> (${opts.senderEmail}) mengirim pesan
-       melalui katalog KaryaDiaspora untuk produk <strong>"${opts.productName}"</strong>:</p>
-       <div style="background:#f8fafc;border:1px solid ${BRAND.line};border-radius:10px;padding:14px 16px;margin:12px 0;line-height:1.7;color:#334155;">${safeMessage}</div>
-       <p>Balas langsung ke email pengirim: <strong>${opts.senderEmail}</strong>.</p>`
-    ),
-  };
-}
-
 /** 3) Pengajuan baru masuk - notifikasi ke semua admin. */
 export function newSubmissionEmail(opts: { ownerName: string; productName: string; productId: string }): EmailContent {
   return {

@@ -3,12 +3,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   ChevronLeft,
-  Globe,
-  Mail,
-  MapPin,
-  MessageCircle,
-  ShieldCheck,
-  User,
   type LucideIcon,
 } from "lucide-react";
 import { ImageCarousel } from "@/components/product/ImageCarousel";
@@ -22,7 +16,7 @@ import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds } from "
 import { getSessionUser } from "@/lib/auth";
 import { ViewTracker } from "@/components/product/ViewTracker";
 import { SITE_URL } from "@/lib/supabase/config";
-import { countryFlag, formatLocation, waLink } from "@/lib/utils";
+import { countryFlag, formatLocation } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -145,39 +139,12 @@ export default async function ProductDetailPage({
             <ContactOwnerButton product={product} />
             <FavoriteButton product={product} variant="detail" />
           </div>
-          <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            Pemilik akan dihubungi melalui email Anda.
-          </p>
 
-          {/* Sidebar informasi kontak */}
+          {/* Bagikan produk (informasi kontak lengkap ada di pop-up "Hubungi Pemilik") */}
           <div className="mt-6 rounded-xl border border-line bg-white p-5">
-            <h2 className="font-bold">Informasi Kontak</h2>
-            <dl className="mt-4 space-y-3.5 text-sm">
-              <Row
-                icon={User}
-                label="Nama Pemilik"
-                value={product.ownerName}
-                href={product.submittedBy ? `/u/${product.submittedBy}` : undefined}
-              />
-              <Row icon={MapPin} label="Lokasi" value={formatLocation(product)} />
-              {product.website && (
-                <Row
-                  icon={Globe}
-                  label="Website"
-                  value={product.website}
-                  href={product.website.startsWith("http") ? product.website : `https://${product.website}`}
-                />
-              )}
-              {/* Email & WhatsApp pemilik tidak dirender di sini: kontak diambil
-                  on-demand via tombol "Hubungi Pemilik" (anti-scraping, migration 0005). */}
-            </dl>
-
-            <div className="mt-5 border-t border-line pt-4">
-              <h3 className="text-sm font-bold">Bagikan Produk</h3>
-              <div className="mt-3">
-                <ShareButtons url={`${SITE_URL}/produk/${product.slug}`} title={product.name} />
-              </div>
+            <h3 className="text-sm font-bold">Bagikan Produk</h3>
+            <div className="mt-3">
+              <ShareButtons url={`${SITE_URL}/produk/${product.slug}`} title={product.name} />
             </div>
           </div>
         </div>
@@ -199,44 +166,6 @@ export default async function ProductDetailPage({
           </div>
         </section>
       )}
-    </div>
-  );
-}
-
-function Row({
-  icon: Icon,
-  label,
-  value,
-  href,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  href?: string;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-muted" aria-hidden="true">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0">
-        <dt className="text-xs text-muted">{label}</dt>
-        <dd className="font-semibold break-all">
-          {href ? (
-            href.startsWith("/") ? (
-              <Link href={href} className="hover:text-brand">
-                {value}
-              </Link>
-            ) : (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
-                {value}
-              </a>
-            )
-          ) : (
-            value
-          )}
-        </dd>
-      </div>
     </div>
   );
 }
