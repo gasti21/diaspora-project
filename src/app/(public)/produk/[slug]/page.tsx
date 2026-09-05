@@ -65,14 +65,6 @@ export default async function ProductDetailPage({
   const viewer = await getSessionUser();
   const favoriteIds = viewer ? await listMyFavoriteProductIds(viewer.id) : new Set<string>();
   const related = await getRelatedProducts(product);
-  const specs: { label: string; value: string }[] = [
-    { label: "Jenis Produk", value: product.categoryName ?? "-" },
-    { label: "Tahap Produk", value: product.stage },
-    ...(product.yearFounded
-      ? [{ label: "Tahun Berdiri", value: String(product.yearFounded) }]
-      : []),
-    { label: "Negara", value: product.country },
-  ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -124,15 +116,6 @@ export default async function ProductDetailPage({
               </div>
             </div>
           )}
-
-          <dl className="mt-5 divide-y divide-line rounded-xl border border-line bg-white px-4">
-            {specs.map((s) => (
-              <div key={s.label} className="flex justify-between gap-4 py-3 text-sm">
-                <dt className="text-muted">{s.label}</dt>
-                <dd className="font-semibold">{s.value}</dd>
-              </div>
-            ))}
-          </dl>
 
           {/* PRD MVP: "Hubungi Pemilik" + simpan ke favorit */}
           <div className="mt-5 flex gap-3">

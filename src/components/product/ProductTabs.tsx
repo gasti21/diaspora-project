@@ -8,7 +8,7 @@ import { ProductImage } from "./ProductImage";
 import { BACKGROUND_TYPES } from "@/lib/constants";
 import { cn, formatLocation } from "@/lib/utils";
 
-const TABS = ["Deskripsi", "Tentang Pemilik", "Galeri", "Dokumen"] as const;
+const TABS = ["Deskripsi", "Tentang Produk", "Galeri", "Dokumen"] as const;
 
 export function ProductTabs({ product }: { product: Product }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Deskripsi");
@@ -41,9 +41,28 @@ export function ProductTabs({ product }: { product: Product }) {
           </div>
         )}
 
-        {tab === "Tentang Pemilik" && (
-          <div className="rounded-xl border border-line bg-white p-6">
-            <h3 className="font-bold">{product.ownerName}</h3>
+        {tab === "Tentang Produk" && (
+          <div className="space-y-5">
+            {/* Spesifikasi produk (pindahan dari sidebar kanan) */}
+            <dl className="divide-y divide-line rounded-xl border border-line bg-white px-5">
+              {[
+                { label: "Jenis Produk", value: product.categoryName ?? "-" },
+                { label: "Tahap Produk", value: product.stage },
+                ...(product.yearFounded
+                  ? [{ label: "Tahun Berdiri", value: String(product.yearFounded) }]
+                  : []),
+                { label: "Negara", value: product.country },
+              ].map((s) => (
+                <div key={s.label} className="flex justify-between gap-4 py-3.5 text-sm">
+                  <dt className="text-muted">{s.label}</dt>
+                  <dd className="font-semibold">{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {/* Info pemilik */}
+            <div className="rounded-xl border border-line bg-white p-6">
+              <h3 className="font-bold">{product.ownerName}</h3>
             {product.backgroundTypes.length > 0 && (
               <p className="mt-1 text-sm text-muted">
                 {product.backgroundTypes.join(" · ")} -{" "}
@@ -75,6 +94,7 @@ export function ProductTabs({ product }: { product: Product }) {
                 {product.additionalNotes}
               </p>
             )}
+            </div>
           </div>
         )}
 
