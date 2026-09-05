@@ -189,17 +189,40 @@ export async function getPublishedProductContact(
   const client = createAdminClient();
   const { data } = await client
     .from("products")
-    .select("name, owner_name, owner_email, owner_whatsapp, website")
+    .select("name, owner_name, owner_email, owner_whatsapp, website, submitted_by")
     .eq("id", id)
     .eq("status", "published")
     .maybeSingle();
   if (!data) return null;
+
+  // Sosmed pemilik dari profil publiknya (sudah dinormalisasi saat disimpan).
+  let socials: OwnerContact["socials"] = null;
+  if (data.submitted_by) {
+    const { data: profile } = await client
+      .from("profiles")
+      .select(
+        "instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
+      )
+      .eq("id", data.submitted_by)
+      .maybeSingle();
+    if (profile) {
+      socials = {
+        instagram: profile.instagram_url,
+        whatsapp: profile.whatsapp_url,
+        linkedin: profile.linkedin_url,
+        twitter: profile.twitter_url,
+        facebook: profile.facebook_url,
+      };
+    }
+  }
+
   return {
     productName: data.name,
     ownerName: data.owner_name,
     ownerEmail: data.owner_email,
     ownerWhatsapp: data.owner_whatsapp,
     website: data.website,
+    socials,
   };
 }
 

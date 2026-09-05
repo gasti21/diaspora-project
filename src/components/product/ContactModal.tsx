@@ -5,6 +5,13 @@ import { Lock, MessageCircle, Send, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import type { OwnerContact, Product } from "@/lib/types";
 import { waLink, formatLocation } from "@/lib/utils";
+import {
+  InstagramIcon,
+  WhatsAppIcon,
+  LinkedInIcon,
+  XIcon,
+  FacebookIcon,
+} from "@/components/member/SocialIcons";
 
 /**
  * Modal pop-up kontak pemilik produk (PRD: menggantikan tombol "Saya Tertarik").
@@ -176,6 +183,44 @@ export function ContactModal({
             </div>
           ))}
         </dl>
+
+        {/* Sosmed publik pemilik (kalau dia mengisinya di profil) */}
+        {contact.socials && (
+          <div className="mt-4 border-t border-line pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Media Sosial Pemilik
+            </p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {(
+                [
+                  { key: "whatsapp", url: contact.socials.whatsapp, label: "WhatsApp" },
+                  { key: "instagram", url: contact.socials.instagram, label: "Instagram" },
+                  { key: "linkedin", url: contact.socials.linkedin, label: "LinkedIn" },
+                  { key: "twitter", url: contact.socials.twitter, label: "X (Twitter)" },
+                  { key: "facebook", url: contact.socials.facebook, label: "Facebook" },
+                ] as const
+              )
+                .filter((s) => s.url)
+                .map((s) => (
+                  <a
+                    key={s.key}
+                    href={s.url ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-surface text-navy transition hover:bg-brand hover:text-white"
+                  >
+                    {s.key === "whatsapp" && <WhatsAppIcon className="h-4.5 w-4.5" />}
+                    {s.key === "instagram" && <InstagramIcon className="h-4.5 w-4.5" />}
+                    {s.key === "linkedin" && <LinkedInIcon className="h-4.5 w-4.5" />}
+                    {s.key === "twitter" && <XIcon className="h-4 w-4" />}
+                    {s.key === "facebook" && <FacebookIcon className="h-4.5 w-4.5" />}
+                  </a>
+                ))}
+            </div>
+          </div>
+        )}
 
         {/* Kirim pesan via platform (email relay) */}
         <div className="mt-5 rounded-xl border border-line bg-surface/60 p-4">

@@ -130,4 +130,12 @@ export interface OwnerContact {
   ownerEmail: string;
   ownerWhatsapp: string;
   website: string | null;
+  /** Sosmed publik pemilik (dari profil) - null bila tidak tersedia. */
+  socials: {
+    instagram: string | null;
+    whatsapp: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    facebook: string | null;
+  } | null;
 }
