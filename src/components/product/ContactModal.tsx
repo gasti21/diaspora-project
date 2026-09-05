@@ -303,10 +303,6 @@ export function ContactModal({
             <MessageCircle className="h-4.5 w-4.5" aria-hidden="true" />
             Chat via WhatsApp
           </a>
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
-            <Check className="h-3.5 w-3.5 shrink-0 text-green-600" aria-hidden="true" />
-            Kontak resmi pemilik — balasan langsung dari pemilik produk.
-          </p>
         </div>
       </div>
     </div>
