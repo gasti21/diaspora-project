@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowUpRight,
   Check,
@@ -60,12 +61,12 @@ export function ContactModal({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   if (contactError) {
-    return (
+    return createPortal(
       <div
-        className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/60 p-4"
+        className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-navy-deep/60 p-4"
         onClick={onClose}
         role="dialog"
         aria-modal="true"
@@ -84,15 +85,16 @@ export function ContactModal({
             Tutup
           </button>
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 
   // Kontak belum termuat (fetch sedang berjalan).
   if (!contact) {
-    return (
+    return createPortal(
       <div
-        className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/60 p-4"
+        className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-navy-deep/60 p-4"
         onClick={onClose}
         role="dialog"
         aria-modal="true"
@@ -113,7 +115,8 @@ export function ContactModal({
           </div>
           <div className="mt-5 h-12 animate-pulse rounded-xl bg-surface" />
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 
@@ -156,9 +159,9 @@ export function ContactModal({
       href: normalizeUrl(contact.website),
     });
 
-  return (
+  return createPortal(
     <div
-      className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/60 p-4"
+      className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-navy-deep/60 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -305,7 +308,8 @@ export function ContactModal({
           </a>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
