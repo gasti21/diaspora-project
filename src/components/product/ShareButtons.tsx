@@ -28,6 +28,7 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
 
   return (
     <div>
+      {/* Baris ikon share - seragam, hover terangkat */}
       <div className="flex flex-wrap items-center gap-2.5">
         {ITEMS.map(({ key, label, color, path }) => (
           <a
@@ -42,35 +43,38 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
             <BrandIcon path={path} className="h-4.5 w-4.5" />
           </a>
         ))}
-        <button
-          onClick={copyLink}
-          aria-label="Salin tautan produk"
-          className={`flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition ${
-            copied
-              ? "border-green-500/40 bg-green-50 text-green-600"
-              : "border-line bg-surface text-navy hover:border-navy/40 hover:bg-white"
-          }`}
-          title={copied ? "Tautan tersalin" : "Salin tautan"}
-        >
-          {copied ? (
-            <>
-              <Check className="h-3.5 w-3.5" /> Tersalin!
-            </>
-          ) : (
-            <>
-              <Link2 className="h-3.5 w-3.5" /> Salin Tautan
-            </>
-          )}
-        </button>
       </div>
-      {copied && (
-        <p
-          className="mt-2.5 text-xs font-medium text-green-600"
-          role="status"
+
+      {/* Bar salin tautan dengan preview URL */}
+      <button
+        onClick={copyLink}
+        aria-label="Salin tautan produk"
+        className={`mt-3 flex w-full items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left transition ${
+          copied
+            ? "border-green-500/40 bg-green-50"
+            : "border-line bg-surface/40 hover:border-navy/30 hover:bg-surface"
+        }`}
+      >
+        {copied ? (
+          <Check className="h-4 w-4 shrink-0 text-green-600" aria-hidden="true" />
+        ) : (
+          <Link2 className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+        )}
+        <span
+          className={`min-w-0 flex-1 truncate text-xs ${
+            copied ? "font-medium text-green-700" : "text-muted"
+          }`}
         >
-          Tautan produk tersalin ke clipboard
-        </p>
-      )}
+          {copied ? "Tautan produk tersalin ke clipboard" : url}
+        </span>
+        <span
+          className={`shrink-0 text-xs font-semibold transition ${
+            copied ? "text-green-600" : "text-navy"
+          }`}
+        >
+          {copied ? "Tersalin ✓" : "Salin"}
+        </span>
+      </button>
     </div>
   );
 }
