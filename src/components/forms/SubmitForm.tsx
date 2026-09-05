@@ -490,11 +490,12 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           </Field>
         </Section>
 
-        {/* ===== 5. Kebutuhan Produk ===== */}
-        <Section number={5} title="Kebutuhan Produk" wide>
+        {/* ===== 5. Sedang Mencari ===== */}
+        <Section number={5} title="Sedang Mencari" wide>
           <p className="-mt-1 text-xs text-muted">
-            Apa yang Anda butuhkan untuk mengembangkan produk ini? (Pilih semua
-            yang sesuai)
+            Apa yang Anda butuhkan untuk mengembangkan produk ini? Pilihan ini
+            akan tampil di halaman produk sebagai &quot;Sedang Mencari&quot; agar pengunjung
+            tahu bagaimana mereka bisa membantu. (Pilih semua yang sesuai)
           </p>
           <div className="flex flex-wrap gap-3">
             {NEEDS.map((n) => (
