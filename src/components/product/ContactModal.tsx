@@ -13,13 +13,17 @@ import {
 } from "lucide-react";
 import type { OwnerContact, Product } from "@/lib/types";
 import { waLink, formatLocation } from "@/lib/utils";
-import {
-  InstagramIcon,
-  WhatsAppIcon,
-  LinkedInIcon,
-  XIcon,
-  FacebookIcon,
-} from "@/components/member/SocialIcons";
+import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
+
+/** Warna resmi tiap brand - sama dengan ShareButtons (Bagikan Produk). */
+const SOCIAL_ITEMS = [
+  { key: "whatsapp", label: "WhatsApp", color: "bg-[#25D366]", path: BRAND.whatsapp },
+  { key: "instagram", label: "Instagram", color: "bg-[#E4405F]", path: BRAND.instagram },
+  { key: "linkedin", label: "LinkedIn", color: "bg-[#0A66C2]", path: BRAND.linkedin },
+  { key: "twitter", label: "X (Twitter)", color: "bg-[#0f1419]", path: BRAND.x },
+  { key: "facebook", label: "Facebook", color: "bg-[#1877F2]", path: BRAND.facebook },
+] as const;
+
 
 /**
  * Pop-up kartu kontak lengkap pemilik produk.
@@ -111,13 +115,7 @@ export function ContactModal({
 
   const initial = contact.ownerName.trim().charAt(0).toUpperCase() || "?";
   const socials = contact.socials
-    ? ([
-        { key: "whatsapp", url: contact.socials.whatsapp, label: "WhatsApp" },
-        { key: "instagram", url: contact.socials.instagram, label: "Instagram" },
-        { key: "linkedin", url: contact.socials.linkedin, label: "LinkedIn" },
-        { key: "twitter", url: contact.socials.twitter, label: "X (Twitter)" },
-        { key: "facebook", url: contact.socials.facebook, label: "Facebook" },
-      ] as const).filter((s) => s.url)
+    ? SOCIAL_ITEMS.filter((s) => contact.socials?.[s.key])
     : [];
 
   async function copyEmail() {
@@ -201,7 +199,9 @@ export function ContactModal({
               className="flex items-center justify-between gap-4 text-sm"
             >
               <dt className="flex shrink-0 items-center gap-2.5 font-medium text-muted">
-                <r.icon className="h-4 w-4 text-brand/70" aria-hidden="true" />
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-soft text-brand">
+                  <r.icon className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
                 {r.label}
               </dt>
               <dd className="min-w-0 text-right font-semibold break-all text-navy">
@@ -225,10 +225,9 @@ export function ContactModal({
             <span className="text-xs text-muted">Klik untuk menyalin email</span>
             <button
               onClick={copyEmail}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                copied
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-line bg-surface text-navy hover:border-brand/40 hover:text-brand"
+              aria-label="Salin email pemilik"
+              className={`flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-navy transition hover:border-navy/40 ${
+                copied ? "text-green-600" : ""
               }`}
             >
               {copied ? (
@@ -250,22 +249,18 @@ export function ContactModal({
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
               Media Sosial Pemilik
             </p>
-            <div className="mt-3 flex flex-wrap gap-2.5">
-              {socials.map((s) => (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {socials.map(({ key, label, color, path }) => (
                 <a
-                  key={s.key}
-                  href={s.url ?? "#"}
+                  key={key}
+                  href={contact.socials?.[key] ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={s.label}
-                  title={s.label}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 hover:-translate-y-0.5 hover:text-white ${socialHoverClass(s.key)}`}
+                  aria-label={label}
+                  title={label}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:opacity-85 ${color}`}
                 >
-                  {s.key === "whatsapp" && <WhatsAppIcon className="h-4.5 w-4.5" />}
-                  {s.key === "instagram" && <InstagramIcon className="h-4.5 w-4.5" />}
-                  {s.key === "linkedin" && <LinkedInIcon className="h-4.5 w-4.5" />}
-                  {s.key === "twitter" && <XIcon className="h-4 w-4" />}
-                  {s.key === "facebook" && <FacebookIcon className="h-4.5 w-4.5" />}
+                  <BrandIcon path={path} className="h-4 w-4" />
                 </a>
               ))}
             </div>
@@ -291,24 +286,6 @@ export function ContactModal({
       </div>
     </div>
   );
-}
-
-/** Warna hover brand untuk tiap ikon sosmed. */
-function socialHoverClass(key: string) {
-  switch (key) {
-    case "whatsapp":
-      return "border-emerald-200 bg-emerald-50 text-emerald-600 hover:border-emerald-500 hover:bg-emerald-500";
-    case "instagram":
-      return "border-pink-200 bg-pink-50 text-pink-600 hover:border-pink-500 hover:bg-pink-500";
-    case "linkedin":
-      return "border-sky-200 bg-sky-50 text-sky-700 hover:border-sky-600 hover:bg-sky-600";
-    case "twitter":
-      return "border-line bg-surface text-navy hover:border-navy hover:bg-navy";
-    case "facebook":
-      return "border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-600 hover:bg-blue-600";
-    default:
-      return "border-line bg-surface text-navy hover:border-brand hover:bg-brand";
-  }
 }
 
 function normalizeUrl(url: string) {
