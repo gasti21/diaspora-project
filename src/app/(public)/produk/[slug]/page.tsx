@@ -107,7 +107,10 @@ export default async function ProductDetailPage({
 
           {product.needs.length > 0 && (
             <div className="mt-5 rounded-xl border border-line bg-white p-4">
-              <h2 className="text-sm font-bold">Kebutuhan</h2>
+              <h2 className="text-sm font-bold">Sedang Mencari</h2>
+              <p className="mt-0.5 text-xs text-muted">
+                Pemilik produk ini sedang mencari:
+              </p>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {product.needs.map((n) => (
                   <NeedTag key={n} need={n} />
