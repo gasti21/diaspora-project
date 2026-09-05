@@ -5,7 +5,6 @@ import { useState } from "react";
 import { FileText } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
-import { BACKGROUND_TYPES } from "@/lib/constants";
 import { cn, formatLocation } from "@/lib/utils";
 
 const TABS = ["Deskripsi", "Tentang Produk", "Galeri", "Dokumen"] as const;
@@ -43,7 +42,7 @@ export function ProductTabs({ product }: { product: Product }) {
 
         {tab === "Tentang Produk" && (
           <div className="space-y-5">
-            {/* Spesifikasi produk (pindahan dari sidebar kanan) */}
+            {/* Satu kartu spesifikasi gabungan (tanpa duplikasi tahun/lokasi) */}
             <dl className="divide-y divide-line rounded-xl border border-line bg-white px-5">
               {[
                 { label: "Jenis Produk", value: product.categoryName ?? "-" },
@@ -51,50 +50,53 @@ export function ProductTabs({ product }: { product: Product }) {
                 ...(product.yearFounded
                   ? [{ label: "Tahun Berdiri", value: String(product.yearFounded) }]
                   : []),
-                { label: "Negara", value: product.country },
+                { label: "Lokasi", value: formatLocation(product) },
+                ...(product.website
+                  ? [
+                      {
+                        label: "Website",
+                        value: product.website,
+                        href: product.website.startsWith("http")
+                          ? product.website
+                          : `https://${product.website}`,
+                      },
+                    ]
+                  : []),
+                ...(product.videoUrl
+                  ? [{ label: "Video", value: product.videoUrl, href: product.videoUrl }]
+                  : []),
               ].map((s) => (
                 <div key={s.label} className="flex justify-between gap-4 py-3.5 text-sm">
-                  <dt className="text-muted">{s.label}</dt>
-                  <dd className="font-semibold">{s.value}</dd>
+                  <dt className="shrink-0 text-muted">{s.label}</dt>
+                  <dd className="text-right font-semibold">
+                    {s.href ? (
+                      <a
+                        href={s.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="break-all transition hover:text-brand"
+                      >
+                        {s.value}
+                      </a>
+                    ) : (
+                      s.value
+                    )}
+                  </dd>
                 </div>
               ))}
             </dl>
 
-            {/* Info pemilik */}
-            <div className="rounded-xl border border-line bg-white p-6">
-              <h3 className="font-bold">{product.ownerName}</h3>
-            {product.backgroundTypes.length > 0 && (
-              <p className="mt-1 text-sm text-muted">
-                {product.backgroundTypes.join(" · ")} -{" "}
-                {BACKGROUND_TYPES.includes(
-                  product.backgroundTypes[0] as never
-                )
-                  ? "bagian dari ekosistem diaspora Indonesia"
-                  : ""}
-              </p>
-            )}
-            <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-              <Detail label="Lokasi" value={formatLocation(product)} />
-              {product.yearFounded && (
-                <Detail label="Tahun Berdiri" value={String(product.yearFounded)} />
-              )}
-              {product.website && (
-                <Detail
-                  label="Website"
-                  value={product.website}
-                  href={product.website.startsWith("http") ? product.website : `https://${product.website}`}
-                />
-              )}
-              {product.videoUrl && (
-                <Detail label="Video" value={product.videoUrl} href={product.videoUrl} />
-              )}
-            </dl>
+            {/* Catatan tambahan pemilik (kalau ada) */}
             {product.additionalNotes && (
-              <p className="mt-5 rounded-lg bg-surface p-4 text-sm text-navy/80">
-                {product.additionalNotes}
-              </p>
+              <div className="rounded-xl border border-line bg-white p-6">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Catatan Pemilik
+                </p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-navy/90">
+                  {product.additionalNotes}
+                </p>
+              </div>
             )}
-            </div>
           </div>
         )}
 
@@ -126,22 +128,5 @@ export function ProductTabs({ product }: { product: Product }) {
         )}
       </div>
     </section>
-  );
-}
-
-function Detail({ label, value, href }: { label: string; value: string; href?: string }) {
-  return (
-    <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted">{label}</dt>
-      <dd className="mt-0.5 font-semibold break-all">
-        {href ? (
-          <a href={href} target="_blank" rel="noopener noreferrer" className="text-navy hover:text-brand">
-            {value}
-          </a>
-        ) : (
-          value
-        )}
-      </dd>
-    </div>
   );
 }
