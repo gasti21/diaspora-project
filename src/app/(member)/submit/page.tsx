@@ -23,21 +23,26 @@ export default async function SubmitPage() {
   const categories = await listCategories();
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold">Halo, {user.name} 👋</h1>
-          <p className="mt-2 max-w-xl text-muted">
+          <p className="text-xs font-bold uppercase tracking-wider text-brand">
+            Formulir Pengajuan
+          </p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Halo, {user.name} 👋
+          </h1>
+          <p className="mt-2 max-w-xl leading-relaxed text-muted">
             Lengkapi informasi produk Anda - tim kami akan meninjau sebelum
             ditampilkan di katalog diaspora.
           </p>
         </div>
         <Link
           href="/pengajuan"
-          className="flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-navy shadow-sm transition hover:bg-surface"
+          className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-navy shadow-sm transition hover:-translate-y-0.5 hover:border-navy/30 hover:shadow-md"
         >
-          <ClipboardList className="h-4 w-4" aria-hidden="true" />
+          <ClipboardList className="h-4 w-4 text-brand" aria-hidden="true" />
           Pengajuan Saya
         </Link>
       </div>

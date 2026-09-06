@@ -1,162 +1,414 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LocateFixed, MapPin, Navigation } from "lucide-react";
+import { Crosshair, Loader2 } from "lucide-react";
 import { COUNTRIES } from "@/lib/constants";
 import { useToast } from "@/components/toast/ToastProvider";
 import { cn } from "@/lib/utils";
+import "leaflet/dist/leaflet.css";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/** Peta interaktif: pin selalu di TENGAH peta (crosshair). Geser = pilih titik. */
+function MapPicker({
+  target,
+  accuracy,
+  locating,
+  fineTune,
+  onPick,
+  onLocate,
+}: {
+  /** koordinat yang harus dituju peta (dari tombol lokasiku); null = biarkan */
+  target: { lat: number; lng: number; zoom?: number } | null;
+  accuracy?: number | null;
+  locating?: boolean;
+  /** true = akurasi GPS kasar -> otomatis satelit + zoom jalan supaya user koreksi presisi */
+  fineTune?: boolean;
+  onPick: (lat: number, lng: number) => void;
+  onLocate: () => void;
+}) {
+  const divRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<any>(null);
+  const circleRef = useRef<any>(null);
+  const mapCenterRef = useRef<{ lat: number; lng: number } | null>(null);
+  const layersRef = useRef<{ osm: any; sat: any; map: any } | null>(null);
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
+
+  useEffect(() => {
+    let cancelled = false;
+    let resize: () => void = () => {};
+    (async () => {
+      const L = (await import("leaflet")).default;
+      if (cancelled || !divRef.current || mapRef.current) return;
+      const map = L.map(divRef.current, { center: [-2.5, 118], zoom: 4, zoomControl: false });
+      const osmLayer = L.tileLayer("/api/map-tile/{z}/{x}/{y}.png?v=2", {
+        attribution: "&copy; OpenStreetMap contributors",
+        maxZoom: 19,
+      });
+      const satLayer = L.tileLayer("/api/map-tile/{z}/{x}/{y}?src=esri", {
+        attribution: "Imagery &copy; Esri",
+        maxZoom: 19,
+      });
+      osmLayer.addTo(map);
+      layersRef.current = { osm: osmLayer, sat: satLayer, map };
+      mapCenterRef.current = { lat: map.getCenter().lat, lng: map.getCenter().lng };
+      L.control.layers(
+        { "🗺️ Peta": osmLayer, "🛰️ Satelit": satLayer },
+        {},
+        { position: "bottomleft" }
+      ).addTo(map);
+      L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+      // lingkaran akurasi mengikuti tengah peta (penunjuk = crosshair)
+      const syncCircle = () => {
+        const c = map.getCenter();
+        if (circleRef.current) circleRef.current.setLatLng([c.lat, c.lng]);
+        mapCenterRef.current = { lat: c.lat, lng: c.lng };
+      };
+      map.on("move", syncCircle);
+
+      map.on("moveend", () => {
+        const c = map.getCenter();
+        onPickRef.current(c.lat, c.lng);
+      });
+      map.on("click", (e: { latlng: { lat: number; lng: number } }) => {
+        map.setView([e.latlng.lat, e.latlng.lng], Math.max(map.getZoom(), 15), { animate: true });
+      });
+      mapRef.current = map;
+
+      const doResize = () => map.invalidateSize();
+      resize = doResize;
+      setTimeout(doResize, 150);
+      setTimeout(doResize, 600);
+      window.addEventListener("resize", doResize);
+    })();
+    return () => {
+      cancelled = true;
+      window.removeEventListener("resize", resize);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        circleRef.current = null;
+      }
+    };
+  }, []);
+
+  // lingkaran akurasi GPS
+  useEffect(() => {
+    (async () => {
+      if (!mapRef.current) return;
+      const L = (await import("leaflet")).default;
+      const map = mapRef.current;
+      if (accuracy != null && accuracy > 0) {
+        const c = map.getCenter();
+        if (circleRef.current) {
+          circleRef.current.setLatLng([c.lat, c.lng]).setRadius(accuracy);
+        } else {
+          circleRef.current = L.circle([c.lat, c.lng], {
+            radius: accuracy,
+            color: "#2563eb",
+            weight: 1,
+            fillColor: "#3b82f6",
+            fillOpacity: 0.12,
+          }).addTo(map);
+        }
+      } else if (circleRef.current) {
+        circleRef.current.remove();
+        circleRef.current = null;
+      }
+    })();
+  }, [accuracy]);
+
+  // fine-tune: akurasi GPS kasar -> otomatis pindah ke satelit + zoom jalan (zoom 18)
+  useEffect(() => {
+    if (!fineTune || !layersRef.current) return;
+    const { osm, sat, map } = layersRef.current;
+    try {
+      map.removeLayer(osm);
+    } catch {
+      /* sudah tidak aktif */
+    }
+    sat.addTo(map);
+    map.setView(map.getCenter(), 18, { animate: true });
+  }, [fineTune]);
+
+  // terbang ke target (dari tombol lokasiku)
+  useEffect(() => {
+    (async () => {
+      if (!target || !mapRef.current) return;
+      const map = mapRef.current;
+      map.setView([target.lat, target.lng], target.zoom ?? Math.max(map.getZoom(), 16), { animate: true });
+    })();
+  }, [target]);
+
+  return (
+    <div className="relative">
+      <div
+        ref={divRef}
+        className="h-72 w-full overflow-hidden rounded-xl border border-line"
+        aria-label="Peta pilih lokasi"
+      />
+      {/* crosshair tengah: posisi pin = titik tengah peta */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 z-[600] -translate-x-1/2 -translate-y-1/2"
+        aria-hidden="true"
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28">
+          <circle cx="14" cy="14" r="5" fill="none" stroke="#d32f2f" strokeWidth="2" />
+          <line x1="14" y1="0" x2="14" y2="9" stroke="#d32f2f" strokeWidth="2" />
+          <line x1="14" y1="19" x2="14" y2="28" stroke="#d32f2f" strokeWidth="2" />
+          <line x1="0" y1="14" x2="9" y2="14" stroke="#d32f2f" strokeWidth="2" />
+          <line x1="19" y1="14" x2="28" y2="14" stroke="#d32f2f" strokeWidth="2" />
+        </svg>
+      </div>
+      {locating && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-[600] flex -translate-x-1/2 items-center gap-2 rounded-full bg-navy/90 px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+          Mencari posisi presisi...
+        </div>
+      )}
+      {/* Tombol lokasiku (ala Google Maps) */}
+      <button
+        type="button"
+        onClick={onLocate}
+        aria-label={locating ? "Batalkan pencarian lokasi" : "Kunci posisi saat ini"}
+        title={locating ? "Batalkan pencarian lokasi" : "Kunci posisi saat ini (GPS)"}
+        className={cn(
+          "absolute bottom-12 right-3 z-[700] flex h-11 w-11 items-center justify-center rounded-full border shadow-lg transition active:scale-95",
+          locating
+            ? "border-brand/30 bg-brand text-white"
+            : "border-line bg-white text-navy hover:bg-surface"
+        )}
+      >
+        {locating ? (
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+        ) : (
+          <Crosshair className="h-5 w-5" aria-hidden="true" />
+        )}
+      </button>
+    </div>
+  );
+}
 
 interface Props {
   country: string;
   city: string;
   onCountry: (value: string) => void;
   onCity: (value: string) => void;
+  /** Dipanggil dengan koordinat terpilih (disimpan ke produk). */
+  onCoordinates?: (latitude: number, longitude: number) => void;
   error?: string;
 }
 
-interface Detected {
+interface Resolved {
   country: string;
   city: string;
-  latitude: number;
-  longitude: number;
 }
 
 /**
- * Pemilih lokasi ala aplikasi marketplace modern (seperti Shopee):
- * - Tombol "Deteksi Otomatis" membaca GPS perangkat secara realtime
- *   (watchPosition, akurasi terus disegarkan sampai sinyal stabil).
- * - Koordinat diterjemahkan jadi nama negara & kota lewat reverse geocoding
- *   BigDataCloud (gratis, tanpa API key) lalu mengisi form otomatis.
- * - Menolak izin / GPS gagal? Tetap bisa pilih negara & kota manual.
+ * Pemilih lokasi ala aplikasi peta modern:
+ * - Pin selalu di tengah peta (crosshair) — geser peta = memilih titik.
+ * - Tombol lokasiku di kanan-bawah peta: kunci posisi GPS perangkat.
+ * - Negara & kota terisi otomatis via reverse geocoding server-side.
  */
-export function LocationPicker({ country, city, onCountry, onCity, error }: Props) {
+export function LocationPicker({ country, city, onCountry, onCity, onCoordinates, error }: Props) {
   const toast = useToast();
-  const [detecting, setDetecting] = useState(false);
+  const [picked, setPicked] = useState<{ lat: number; lng: number } | null>(null);
+  const [resolved, setResolved] = useState<Resolved | null>(null);
+  const [target, setTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
+  const [locating, setLocating] = useState(false);
   const [accuracy, setAccuracy] = useState<number | null>(null);
-  const [detected, setDetected] = useState<Detected | null>(null);
+  const [fineTune, setFineTune] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
+  const [searchResults, setSearchResults] = useState<Array<{ lat: number; lng: number; label: string }>>([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mapCenterRef = useRef<{ lat: number; lng: number } | null>(null);
 
+  function runSearch(q: string) {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (q.trim().length < 3) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        let url = `/api/geocode/search?q=${encodeURIComponent(q.trim())}`;
+        const c = mapCenterRef.current;
+        if (c) url += `&lat=${c.lat.toFixed(5)}&lng=${c.lng.toFixed(5)}`;
+        const res = await fetch(`${url}&v=3`, { cache: "no-store" });
+        const data = (await res.json()) as { results: Array<{ lat: number; lng: number; label: string }> };
+        setSearchResults(data.results ?? []);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+  }
+
+  function chooseSearchResult(r: { lat: number; lng: number; label: string }) {
+    setSearchResults([]);
+    setSearchQ(r.label);
+    setFineTune(false);
+    setTarget({ lat: r.lat, lng: r.lng, zoom: 18 });
+    void applyCoords(r.lat, r.lng, true);
+  }
   const watchRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bestAccRef = useRef(Infinity);
-  const geocodedRef = useRef(false);
+  const lastImproveRef = useRef(0);
 
-  // pastikan watch & timer berhenti saat komponen dilepas
-  useEffect(() => {
-    return () => {
-      stopWatch();
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  function stopWatch() {
+  const stopWatch = () => {
     if (watchRef.current !== null) {
       navigator.geolocation.clearWatch(watchRef.current);
       watchRef.current = null;
     }
-  }
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
 
-  /** Koordinat -> nama negara & kota (Bahasa Indonesia bila tersedia). */
+  useEffect(() => stopWatch, []);
+
   async function reverseGeocode(lat: number, lon: number) {
-    const res = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=id`
-    );
-    if (!res.ok) throw new Error("reverse geocode gagal");
-    const json = (await res.json()) as {
-      countryName?: string;
-      city?: string;
-      locality?: string;
-      principalSubdivision?: string;
-    };
-    return {
-      country: json.countryName ?? "",
-      city: json.city || json.locality || json.principalSubdivision || "",
-    };
+    const res = await fetch(`/api/geocode/reverse?lat=${lat}&lon=${lon}`);
+    if (!res.ok) throw new Error(`geocode ${res.status}`);
+    const loc = (await res.json()) as { country: string; city: string };
+    if (!loc.country && !loc.city) throw new Error("geocode kosong");
+    return loc;
   }
 
-  /** Mulai deteksi realtime: posisi terus disegarkan sampai akurasinya stabil. */
-  function detect() {
+  /** Simpan koordinat + isi negara/kota otomatis. */
+  async function applyCoords(lat: number, lng: number, announce: boolean) {
+    setPicked({ lat, lng });
+    onCoordinates?.(lat, lng);
+    try {
+      const loc = await reverseGeocode(lat, lng);
+      if (loc.country) {
+        const match = COUNTRIES.find((c) => c.toLowerCase() === loc.country.toLowerCase());
+        onCountry(match ?? loc.country);
+      }
+      if (loc.city) onCity(loc.city);
+      setResolved(loc);
+      if (announce) {
+        toast.success(
+          `Lokasi terkunci: ${[loc.city, loc.country].filter(Boolean).join(", ")}.`,
+          { title: "Posisi saat ini ditemukan" }
+        );
+      }
+    } catch {
+      if (announce) {
+        toast.info("Koordinat tersimpan. Nama negara/kota gagal diisi otomatis - silakan isi manual.");
+      }
+    }
+  }
+
+  /** Tombol lokasiku: pantau GPS sampai fix terbaik, lalu kunci. */
+  function locateMe() {
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
-      toast.error("Perangkat Anda tidak mendukung deteksi lokasi. Pilih manual.");
+      toast.error("Perangkat tidak mendukung GPS. Geser peta ke lokasimu ya.");
       return;
     }
-
-    setDetecting(true);
+    if (locating) {
+      // sedang mencari -> klik lagi = batalkan
+      stopWatch();
+      setLocating(false);
+      toast.info("Pencarian lokasi dibatalkan.");
+      return;
+    }
+    setLocating(true);
     setAccuracy(null);
-    setDetected(null);
     bestAccRef.current = Infinity;
-    geocodedRef.current = false;
+    lastImproveRef.current = Date.now();
+
+    const finish = () => {
+      stopWatch();
+      setLocating(false);
+    };
 
     watchRef.current = navigator.geolocation.watchPosition(
-      async (pos) => {
+      (pos) => {
         const { latitude, longitude, accuracy: acc } = pos.coords;
         setAccuracy(acc);
-
-        // geocode pada fix pertama; ulangi bila fix berikutnya jauh lebih akurat
-        if (!geocodedRef.current || acc < bestAccRef.current * 0.6) {
+        // fix pertama SELALU diabaikan sebagai final (sering cache Wi-Fi) — hanya progres
+        if (acc < bestAccRef.current) {
+          const isFirst = bestAccRef.current === Infinity;
           bestAccRef.current = acc;
-          geocodedRef.current = true;
-          try {
-            const loc = await reverseGeocode(latitude, longitude);
-            if (loc.country) {
-              // samakan dengan daftar negara platform (mis. "The Netherlands" -> tak ada)
-              const match = COUNTRIES.find(
-                (c) => c.toLowerCase() === loc.country.toLowerCase()
-              );
-              onCountry(match ?? loc.country);
-            }
-            if (loc.city) onCity(loc.city);
-            setDetected({ ...loc, latitude, longitude });
-            toast.success(
-              `Lokasi terdeteksi: ${[loc.city, loc.country].filter(Boolean).join(", ")}.`,
-              { title: "Deteksi lokasi berhasil" }
+          lastImproveRef.current = Date.now();
+          const zoom =
+            acc <= 25 ? 18 : acc <= 60 ? 17 : acc <= 200 ? 16 : acc <= 1000 ? 15 : 14;
+          setTarget({ lat: latitude, lng: longitude, zoom });
+          void applyCoords(latitude, longitude, false);
+          if (isFirst) return; // jangan kunci di fix pertama walau "akhirnya" — tunggu GPS menyelesaikan
+        }
+        // cukup presisi atau sudah lama tidak membaik -> kunci
+        const improvedRecently = Date.now() - lastImproveRef.current < 4000;
+        if (acc <= 30 || !improvedRecently) {
+          finish();
+          if (acc > 30) {
+            setFineTune(true);
+            toast.info(
+              `Akurasi ±${Math.round(acc)} m — peta pindah ke satelit. Geser sampai crosshair tepat di titikmu.`,
+              { title: "Posisi terkunci" }
             );
-          } catch {
-            toast.error(
-              "Gagal menerjemahkan koordinat menjadi alamat. Silakan pilih manual."
-            );
-          } finally {
-            stopWatch();
-            setDetecting(false);
-            if (timerRef.current) clearTimeout(timerRef.current);
           }
         }
       },
       (err) => {
-        stopWatch();
-        setDetecting(false);
-        if (timerRef.current) clearTimeout(timerRef.current);
+        finish();
         if (err.code === err.PERMISSION_DENIED) {
-          toast.error(
-            "Izin lokasi ditolak. Anda tetap bisa memilih negara & kota manual di bawah."
-          );
+          toast.error("Izin lokasi ditolak. Geser peta ke lokasimu ya.");
         } else {
-          toast.error("Deteksi lokasi gagal (sinyal GPS lemah). Coba lagi atau isi manual.");
+          toast.error("GPS sinyal lemah. Coba lagi atau geser peta manual.");
         }
       },
+      // maximumAge: 0 — WAJIB. Angka selain 0 membolehkan browser memakai posisi cache (stale).
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
 
-    // pengaman: jangan biarkan spinner selamanya
     timerRef.current = setTimeout(() => {
       if (watchRef.current !== null) {
-        stopWatch();
-        setDetecting(false);
-        toast.info("Deteksi terlalu lama - silakan isi lokasi manual.");
+        finish();
+        const best = bestAccRef.current;
+        if (Number.isFinite(best) && best < Infinity && best > 30) {
+          setFineTune(true);
+          toast.info(
+            `Akurasi ±${Math.round(best)} m — peta pindah ke satelit. Geser sampai crosshair tepat di titikmu.`
+          );
+        }
       }
-    }, 25000);
+    }, 15000);
   }
 
-  function cancel() {
-    stopWatch();
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setDetecting(false);
-  }
+  // AUTO: deteksi sekali saat halaman dibuka — satu fix fresh langsung (perilaku terbukti
+  // akurat di desktop), maximumAge: 0 agar bukan posisi cache.
+  const autoTriedRef = useRef(false);
+  useEffect(() => {
+    if (autoTriedRef.current) return;
+    autoTriedRef.current = true;
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy: acc } = pos.coords;
+        setAccuracy(acc);
+        const zoom =
+          acc <= 25 ? 18 : acc <= 60 ? 17 : acc <= 200 ? 16 : acc <= 1000 ? 15 : 14;
+        setTarget({ lat: latitude, lng: longitude, zoom });
+        void applyCoords(latitude, longitude, false);
+      },
+      () => {}, // ditolak/sinyal lemah diam saja — user bisa pakai tombol 🎯
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // negara hasil deteksi mungkin di luar daftar -> tampilkan sebagai opsi ekstra
   const countryOptions =
-    country && !COUNTRIES.includes(country)
-      ? [country, ...COUNTRIES]
-      : COUNTRIES;
+    country && !COUNTRIES.includes(country) ? [country, ...COUNTRIES] : COUNTRIES;
 
   return (
     <div>
@@ -166,69 +418,66 @@ export function LocationPicker({ country, city, onCountry, onCity, error }: Prop
         </label>
       </div>
 
-      {/* Panel deteksi otomatis */}
-      <div
-        className={cn(
-          "mt-2 rounded-xl border border-dashed p-4",
-          detected ? "border-green-200 bg-green-50/60" : "border-line bg-surface/60"
-        )}
-      >
-        {detecting ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                <span className="absolute inset-0 animate-ping rounded-full bg-blue-200/60" />
-                <Navigation className="h-4.5 w-4.5" aria-hidden="true" />
+      <div className="mt-2">
+        {/* Pencarian alamat (ala Shopee/Google Maps): ketik alamat -> pilih -> peta terbang ke titiknya */}
+        <div className="relative z-[1100] mb-2">
+          <input
+            type="text"
+            value={searchQ}
+            onChange={(e) => {
+              setSearchQ(e.target.value);
+              void runSearch(e.target.value);
+            }}
+            placeholder="🔍 Cari alamat, jalan, gedung, kota..."
+            className="w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/60 hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
+          />
+          {searching && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted">mencari...</span>
+          )}
+          {searchResults.length > 0 && (
+            <ul className="absolute inset-x-0 top-full z-[900] mt-1 max-h-56 overflow-y-auto rounded-xl border border-line bg-white py-1 shadow-xl">
+              {searchResults.map((r, i) => (
+                <li key={i}>
+                  <button
+                    type="button"
+                    onClick={() => chooseSearchResult(r)}
+                    className="block w-full px-3.5 py-2 text-left text-xs leading-snug hover:bg-surface"
+                  >
+                    {r.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <MapPicker
+          target={target}
+          accuracy={locating || picked ? accuracy : null}
+          fineTune={fineTune}
+          locating={locating}
+          onPick={(lat, lng) => void applyCoords(lat, lng, false)}
+          onLocate={locateMe}
+        />
+        {/* Bar status di bawah peta */}
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          {picked ? (
+            <p className="text-xs text-muted">
+              <span className="font-semibold text-green-700">
+                📌 {picked.lat.toFixed(5)}, {picked.lng.toFixed(5)}
               </span>
-              <div>
-                <p className="text-sm font-semibold text-navy">Mendeteksi lokasi Anda…</p>
-                <p className="mt-0.5 text-xs text-muted">
-                  {accuracy !== null ? `Sinyal GPS realtime · akurasi ±${Math.round(accuracy)} m` : "Menghubungkan ke GPS perangkat…"}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={cancel}
-              className="shrink-0 rounded-lg border border-line bg-white px-4 py-2 text-xs font-semibold text-muted transition hover:bg-surface"
-            >
-              Batalkan
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
-                <LocateFixed className="h-4.5 w-4.5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-navy">
-                  {detected ? "Lokasi terdeteksi" : "Males isi satu-satu?"}
-                </p>
-                {detected ? (
-                  <p className="mt-0.5 truncate text-xs text-green-700">
-                    <MapPin className="mr-1 inline h-3 w-3" aria-hidden="true" />
-                    {[detected.city, detected.country].filter(Boolean).join(", ")}
-                    <span className="text-green-600/70">
-                      {" "}({detected.latitude.toFixed(4)}, {detected.longitude.toFixed(4)})
-                    </span>
-                  </p>
-                ) : (
-                  <p className="mt-0.5 text-xs text-muted">
-                    Tap tombol di kanan - kami mengisi negara & kota otomatis dari GPS Anda.
-                  </p>
-                )}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={detect}
-              className="shrink-0 rounded-lg bg-navy px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-navy-dark"
-            >
-              {detected ? "Deteksi Ulang" : "Deteksi Otomatis"}
-            </button>
-          </div>
-        )}
+              {resolved && (
+                <span className="text-muted/80">
+                  {" "}· {[resolved.city, resolved.country].filter(Boolean).join(", ")}
+                </span>
+              )}
+              <span className="text-muted/60"> — geser peta untuk menyesuaikan</span>
+            </p>
+          ) : (
+            <p className="text-xs text-muted">
+              Klik tombol lokasi di peta untuk mengunci posisimu, atau geser peta ke lokasimu.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Pilihan manual (fallback / koreksi) */}
@@ -238,8 +487,10 @@ export function LocationPicker({ country, city, onCountry, onCity, error }: Prop
           <select
             aria-label="Negara"
             className={cn(
-              "mt-1.5 w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none transition",
-              error ? "border-brand" : "border-line focus:border-navy"
+              "mt-1.5 w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm outline-none transition",
+              error
+                ? "border-brand focus:border-brand focus:ring-4 focus:ring-brand/10"
+                : "border-line hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
             )}
             value={country}
             onChange={(e) => onCountry(e.target.value)}
@@ -256,7 +507,7 @@ export function LocationPicker({ country, city, onCountry, onCity, error }: Prop
           <label className="block text-xs font-semibold text-muted">Kota</label>
           <input
             aria-label="Kota"
-            className="mt-1.5 w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/70 focus:border-navy"
+            className="mt-1.5 w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/60 hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
             placeholder="Contoh: Kuala Lumpur"
             value={city}
             onChange={(e) => onCity(e.target.value)}

@@ -28,6 +28,8 @@ const initialForm = {
   stage: "" as Stage | "",
   country: "",
   city: "",
+  latitude: null as number | null,
+  longitude: null as number | null,
   yearFounded: "",
   backgroundTypes: [] as string[],
   additionalNotes: "",
@@ -208,6 +210,8 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       stage: form.stage as Stage,
       country: form.country,
       city: form.city.trim() || undefined,
+      latitude: form.latitude ?? undefined,
+      longitude: form.longitude ?? undefined,
       yearFounded: form.yearFounded ? parseInt(form.yearFounded, 10) : null,
       backgroundTypes: form.backgroundTypes,
       additionalNotes: form.additionalNotes.trim() || undefined,
@@ -295,7 +299,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
   return (
     <form onSubmit={handleSubmit} className="mt-8">
       {/* ===== Stepper wizard ===== */}
-      <nav aria-label="Langkah pengisian" className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+      <nav aria-label="Langkah pengisian" className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
         <ol className="flex items-center gap-2 sm:gap-3">
           {STEPS.map((s, i) => {
             const isDone = i < step;
@@ -382,6 +386,10 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
             city={form.city}
             onCountry={(v) => set("country", v)}
             onCity={(v) => set("city", v)}
+            onCoordinates={(lat, lng) => {
+              set("latitude", lat);
+              set("longitude", lng);
+            }}
             error={errors.country}
           />
           <Field label="Tahun Berdiri (opsional)">
@@ -572,24 +580,24 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       </div>
 
       {/* ===== Navigasi wizard ===== */}
-      <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-white p-4 sm:p-5">
+      <div className="sticky bottom-4 z-30 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-white/95 p-4 shadow-lg shadow-navy/5 backdrop-blur sm:p-5">
         <button
           type="button"
           onClick={goBack}
           disabled={step === 0}
-          className="flex items-center gap-1.5 rounded-lg border border-line px-5 py-3 text-sm font-semibold text-navy transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+          className="flex items-center gap-1.5 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white sm:px-5 sm:py-3"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Kembali
+          <span className="hidden sm:inline">Kembali</span>
         </button>
         <p className="text-xs font-medium text-muted">
-          Langkah {step + 1} dari {STEPS.length}
+          Langkah <span className="font-bold text-navy">{step + 1}</span> dari {STEPS.length}
         </p>
         {step < STEPS.length - 1 ? (
           <button
             type="button"
             onClick={goNext}
-            className="flex items-center gap-1.5 rounded-lg bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-dark"
+            className="flex items-center gap-1.5 rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-navy-dark hover:shadow-md sm:px-6 sm:py-3"
           >
             Lanjut
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -598,7 +606,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:px-6 sm:py-3"
           >
             {submitting && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
             {submitting
@@ -629,13 +637,16 @@ function Section({
   return (
     <section
       className={cn(
-        "form-section rounded-2xl border border-line bg-white p-6",
+        "form-section rounded-2xl border border-line bg-white p-6 shadow-sm",
         wide && "lg:col-span-2"
       )}
     >
-      <h2 className="text-lg font-extrabold">
-        {number}. {title}
-      </h2>
+      <div className="flex items-center gap-3 border-b border-line pb-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy text-sm font-extrabold text-white">
+          {number}
+        </span>
+        <h2 className="text-lg font-extrabold tracking-tight">{title}</h2>
+      </div>
       <div className="mt-5 space-y-5">{children}</div>
     </section>
   );
@@ -682,16 +693,18 @@ function Counter({ value, max }: { value: number; max: number }) {
 
 function inputCls(error?: string) {
   return cn(
-    "w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/70",
-    error ? "border-brand" : "border-line focus:border-navy"
+    "w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/60",
+    error
+      ? "border-brand focus:border-brand focus:ring-4 focus:ring-brand/10"
+      : "border-line hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
   );
 }
 
 function chipCls(active: boolean) {
   return cn(
-    "cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition select-none",
+    "cursor-pointer rounded-xl border px-4 py-2 text-sm font-medium transition select-none",
     active
-      ? "border-navy bg-navy text-white"
-      : "border-line bg-white text-navy hover:border-navy/40"
+      ? "border-navy bg-navy text-white shadow-sm"
+      : "border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-sm"
   );
 }
