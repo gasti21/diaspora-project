@@ -409,17 +409,21 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           </Field>
           <Field label="Kisah/Latar Belakang" hint="Apa yang Anda lakukan? (Pilih semua yang sesuai)">
             <div className="flex flex-wrap gap-2.5">
-              {BACKGROUND_TYPES.map((b) => (
-                <label key={b} className={chipCls(form.backgroundTypes.includes(b))}>
-                  <input type="checkbox" className="sr-only" checked={form.backgroundTypes.includes(b)} onChange={() => toggleArray("backgroundTypes", b)} />
-                  {form.backgroundTypes.includes(b) && <Check className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />}
-                  {b}
-                </label>
-              ))}
+              {BACKGROUND_TYPES.map((b) => {
+                const active = form.backgroundTypes.includes(b);
+                return (
+                  <label key={b} className={chipCls(active)}>
+                    <input type="checkbox" className="sr-only" checked={active} onChange={() => toggleArray("backgroundTypes", b)} />
+                    <span aria-hidden="true" className="text-base leading-none">{BACKGROUND_ICONS[b] ?? "🏷️"}</span>
+                    {b}
+                    {active && <Check className="h-4 w-4" aria-hidden="true" />}
+                  </label>
+                );
+              })}
             </div>
           </Field>
           <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
-            <textarea rows={3} maxLength={1000} className={inputCls()} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
+            <textarea rows={3} maxLength={1000} className={cn(inputCls(), "resize-none")} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
           </Field>
         </Section>
         )}
@@ -429,10 +433,10 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         <>
         <Section number={2} title="Deskripsi Produk">
           <Field label="Deskripsi Singkat" required error={errors.shortDescription} hint="Jelaskan produk Anda dalam 1–3 kalimat" counter={<Counter value={form.shortDescription.length} max={200} />}>
-            <textarea rows={5} maxLength={220} className={inputCls(errors.shortDescription)} placeholder="Jelaskan produk Anda dalam 1–3 kalimat" value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
+            <textarea rows={5} maxLength={220} className={cn(inputCls(errors.shortDescription), "resize-none")} placeholder="Jelaskan produk Anda dalam 1–3 kalimat" value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
           </Field>
           <Field label="Deskripsi Lengkap" required error={errors.longDescription} hint="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." counter={<Counter value={form.longDescription.length} max={2000} />}>
-            <textarea rows={12} maxLength={2200} className={inputCls(errors.longDescription)} placeholder="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." value={form.longDescription} onChange={(e) => set("longDescription", e.target.value)} />
+            <textarea rows={12} maxLength={2200} className={cn(inputCls(errors.longDescription), "resize-none")} placeholder="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." value={form.longDescription} onChange={(e) => set("longDescription", e.target.value)} />
           </Field>
         </Section>
 
@@ -715,11 +719,18 @@ function inputCls(error?: string) {
   );
 }
 
+const BACKGROUND_ICONS: Record<string, string> = {
+  Produsen: "🏭",
+  UMKM: "🛍️",
+  Startup: "🚀",
+  Komunitas: "👥",
+};
+
 function chipCls(active: boolean) {
   return cn(
-    "cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition select-none",
+    "flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition select-none",
     active
-      ? "border-navy bg-navy text-white shadow-sm"
-      : "border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-sm"
+      ? "border-navy bg-navy text-white shadow-md shadow-navy/20"
+      : "border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-md hover:shadow-navy/5"
   );
 }
