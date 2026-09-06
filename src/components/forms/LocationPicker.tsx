@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Crosshair, Loader2 } from "lucide-react";
+import { Check, Copy, Crosshair, Loader2 } from "lucide-react";
 import { COUNTRIES } from "@/lib/constants";
 import { useToast } from "@/components/toast/ToastProvider";
 import { cn } from "@/lib/utils";
@@ -459,32 +459,41 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
           onPick={(lat, lng) => void applyCoords(lat, lng, false)}
           onLocate={locateMe}
         />
-        {/* Bar status di bawah peta: nama tempat sebagai info utama */}
+        {/* Strip status di bawah peta */}
         {picked ? (
-          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <div>
-              <p className="text-sm font-semibold text-green-700">
-                ✅ Lokasi terpilih
-                {resolved && (resolved.city || resolved.country) && (
-                  <span className="text-navy">
-                    {" "}- {[resolved.city, resolved.country].filter(Boolean).join(", ")}
-                  </span>
-                )}
+          <div className="mt-2.5 flex items-start justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-green-700">
+                <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                Lokasi terpilih
               </p>
-              <p className="mt-0.5 text-[11px] text-muted/70">Geser peta bila perlu disesuaikan</p>
+              <p className="mt-0.5 truncate text-sm font-semibold text-navy">
+                {resolved && (resolved.city || resolved.country)
+                  ? [resolved.city, resolved.country].filter(Boolean).join(", ")
+                  : "Titik di peta"}
+              </p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
+                <span className="tabular-nums">
+                  {picked.lat.toFixed(5)}, {picked.lng.toFixed(5)}
+                </span>
+                {accuracy != null && <> - akurasi ±{Math.round(accuracy)} m</>}
+                {" - "}geser peta untuk penyesuaian halus
+              </p>
             </div>
             <button
               type="button"
               onClick={() => {
-                const text = `${picked.lat.toFixed(5)}, ${picked.lng.toFixed(5)}`;
-                void navigator.clipboard.writeText(text);
+                void navigator.clipboard.writeText(
+                  `${picked.lat.toFixed(5)}, ${picked.lng.toFixed(5)}`
+                );
                 setCopied(true);
                 toast.success("Koordinat tersalin.");
                 setTimeout(() => setCopied(false), 2000);
               }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted transition hover:border-navy/40 hover:text-navy"
             >
-              {copied ? "✅ Tersalin" : "📋 Salin koordinat"}
+              {copied ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+              {copied ? "Tersalin" : "Salin"}
             </button>
           </div>
         ) : (
