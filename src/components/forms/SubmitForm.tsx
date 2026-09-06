@@ -434,10 +434,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
             }}
             error={errors.country}
           />
-          <p className="hidden text-xs text-muted lg:col-span-2 sm:block">
-            <Info className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
-            Tahun berdiri & jenis pelaku kini diatur di Halaman Profil - tampil otomatis di semua produk Anda.
-          </p>
           <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
             <textarea rows={3} maxLength={1000} className={cn(inputCls(), "resize-none")} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
           </Field>
