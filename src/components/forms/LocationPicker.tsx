@@ -480,13 +480,9 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
         </div>
       </div>
 
-      {/* Koreksi manual — tersembunyi, dibuka hanya bila perlu */}
-      <details className="mt-3 group">
-        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 text-xs font-semibold text-muted transition hover:text-navy [&::-webkit-details-marker]:hidden">
-          <span className="transition group-open:rotate-180" aria-hidden="true">▸</span>
-          Koreksi manual (opsional)
-        </summary>
-        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Dropdown manual: hanya tampil otomatis bila peta belum menghasilkan titik */}
+      {!picked && (
+      <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="block text-sm font-semibold">Negara</label>
           <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta — bisa dikoreksi</p>
@@ -520,8 +516,8 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
             onChange={(e) => onCity(e.target.value)}
           />
         </div>
-        </div>
-      </details>
+      </div>
+      )}
       {error && <p className="mt-1.5 text-xs font-medium text-brand">{error}</p>}
     </div>
   );
