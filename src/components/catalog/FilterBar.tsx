@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const FILTERS = [
   { key: "kategori", label: "Kategori", options: CATEGORIES.map((c) => ({ value: c.slug, label: c.name })) },
   { key: "lokasi", label: "Lokasi", options: [] as { value: string; label: string }[] },
-  { key: "status", label: "Status", options: STAGES.map((s) => ({ value: s, label: s })) },
+  { key: "status", label: "Tahap", options: STAGES.map((s) => ({ value: s, label: s })) },
   { key: "kebutuhan", label: "Kebutuhan", options: NEEDS.filter((n) => n !== "Lainnya").map((n) => ({ value: n, label: n })) },
 ];
 
