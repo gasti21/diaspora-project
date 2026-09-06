@@ -363,24 +363,8 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
             );
           })}
         </ol>
-        {/* Progress bar */}
-        <div className="mt-5 border-t border-line pt-4">
-          <div
-            className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={STEPS.length}
-            aria-valuenow={step + 1}
-            aria-label={`Progres pengisian: langkah ${step + 1} dari ${STEPS.length}`}
-          >
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-navy to-navy-dark transition-all duration-500 ease-out"
-              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-            />
-          </div>
-        </div>
         {/* Judul langkah utk mobile (detail tersembunyi di sm) */}
-        <p className="mt-3 text-sm font-bold text-navy sm:hidden">
+        <p className="mt-4 text-sm font-bold text-navy sm:hidden">
           Langkah {step + 1}/{STEPS.length}: {STEPS[step].title}
         </p>
       </nav>
