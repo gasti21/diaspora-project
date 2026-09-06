@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -811,6 +811,33 @@ function LinkPreview({ url }: { url: string }) {
   if (!u) return null;
 
   const href = u.startsWith("http") ? u : `https://${u}`;
+
+  // Situs tanpa og:image: kartu ringkas, bukan kotak besar kosong.
+  if (!state.image && !state.loading) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-2 flex items-center gap-3 overflow-hidden rounded-xl border border-line bg-white px-3.5 py-3 transition hover:border-navy/40"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-navy">
+          <Globe className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-navy">
+            {state.title || state.host || href}
+          </span>
+          <span className="block truncate text-[11px] text-muted">{state.host || href}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-green-700">
+          <CircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
+          Link valid
+        </span>
+      </a>
+    );
+  }
+
   return (
     <a
       href={href}
@@ -823,7 +850,7 @@ function LinkPreview({ url }: { url: string }) {
           <img src={`/api/link-preview/image?url=${encodeURIComponent(state.image)}`} alt="Pratinjau" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-xs text-muted">
-            {state.loading ? "Memuat pratinjau..." : "Pratinjau tidak tersedia - link tetap disimpan"}
+            Memuat pratinjau...
           </span>
         )}
         {state.image && state.title && (
