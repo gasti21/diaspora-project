@@ -14,6 +14,8 @@ interface Props {
   width?: 640 | 1280;
   /** true = priority/LCP (satu gambar teratas saja). */
   priority?: boolean;
+  /** object-fit: "contain" untuk logo/ilustrasi, "cover" untuk foto. Default cover. */
+  fit?: "cover" | "contain";
 }
 
 /** Ubah URL object public Supabase jadi endpoint render (resize + kualitas). */
@@ -30,17 +32,24 @@ function toRenderUrl(src: string, width: number): string {
  * Gambar produk: next/image + transform Supabase Render (WebP otomatis,
  * resize server-side) dengan fallback ke placeholder kategori.
  */
-export function ProductImage({ src, alt, categorySlug, className, width = 640, priority }: Props) {
+export function ProductImage({ src, alt, categorySlug, className, width = 640, priority, fit = "cover" }: Props) {
   const fallback = `/placeholders/${categoryBySlug(categorySlug)?.slug ?? "makanan-minuman"}.svg`;
-  const [failed, setFailed] = useState(false);
-  // Setelah URL render gagal, tampilkan placeholder SVG - lewat <img> biasa
-  // karena optimizer next/image memblokir SVG (400) tanpa dangerouslyAllowSVG.
-  const usePlainImg = failed || !src;
-  const resolved = usePlainImg ? fallback : toRenderUrl(src, width);
+  const objectFit = fit === "contain" ? "object-contain" : "object-cover";
+  // Tahap kegagalan: 0 = coba render transform, 1 = tampilkan URL asli polos,
+  // 2 = tampilkan placeholder kategori (URL asli juga rusak).
+  const [stage, setStage] = useState(0);
+  const usePlainImg = stage > 0 || !src;
+  const resolved = stage === 2 || !src ? fallback : stage === 1 ? src : toRenderUrl(src, width);
 
   return usePlainImg ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={resolved} alt={alt} loading={priority ? "eager" : "lazy"} className={cn("object-cover", className)} />
+    <img
+      src={resolved}
+      alt={alt}
+      loading={priority ? "eager" : "lazy"}
+      className={cn(objectFit, "bg-white", className)}
+      onError={() => setStage((s) => Math.min(s + 1, 2))}
+    />
   ) : (
     <Image
       src={resolved}
@@ -49,8 +58,8 @@ export function ProductImage({ src, alt, categorySlug, className, width = 640, p
       height={Math.round((width * 3) / 4)}
       priority={priority}
       loading={priority ? undefined : "lazy"}
-      className={cn("object-cover", className)}
-      onError={() => setFailed(true)}
+      className={cn(objectFit, fit === "contain" && "bg-white", className)}
+      onError={() => setStage(1)}
     />
   );
 }

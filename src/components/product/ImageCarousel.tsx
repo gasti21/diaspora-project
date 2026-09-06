@@ -238,7 +238,8 @@ export function ImageCarousel({
             src={current.url}
             alt={`${alt} - foto ${index + 1}`}
             categorySlug={categorySlug}
-            className="h-full w-full"
+            fit="contain"
+            className="h-full w-full bg-white"
           />
         )}
 
@@ -287,6 +288,7 @@ export function ImageCarousel({
                     src={m.url}
                     alt={`${alt} - thumbnail ${i + 1}`}
                     categorySlug={categorySlug}
+                    fit="contain"
                     className="h-full w-full"
                   />
                 ) : (
