@@ -59,12 +59,6 @@ export function ProductTabs({
               {[
                 { label: "Jenis Produk", value: product.categoryName ?? "-" },
                 { label: "Tahap Produk", value: product.stage },
-                ...(ownerBio?.yearFounded
-                  ? [{ label: "Tahun Berdiri", value: String(ownerBio.yearFounded) }]
-                  : []),
-                ...(ownerBio?.backgroundTypes.length
-                  ? [{ label: "Jenis Pelaku", value: ownerBio.backgroundTypes.join(", ") }]
-                  : []),
                 { label: "Lokasi", value: formatLocation(product) },
                 ...(product.website
                   ? [
