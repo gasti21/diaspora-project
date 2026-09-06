@@ -820,7 +820,7 @@ function LinkPreview({ url }: { url: string }) {
     >
       <div className="relative aspect-video w-full bg-surface">
         {state.image ? (
-          <img src={state.image} alt="Pratinjau" className="h-full w-full object-cover" />
+          <img src={`/api/link-preview/image?url=${encodeURIComponent(state.image)}`} alt="Pratinjau" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-xs text-muted">
             {state.loading ? "Memuat pratinjau..." : "Pratinjau tidak tersedia - link tetap disimpan"}
