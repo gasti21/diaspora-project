@@ -434,8 +434,8 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
             }}
             error={errors.country}
           />
-          <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
-            <textarea rows={3} maxLength={1000} className={cn(inputCls(), "resize-none")} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
+          <Field label="Catatan Tambahan" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
+            <textarea rows={3} maxLength={1000} className={cn(inputCls(), "resize-none")} placeholder="Contoh: siap kirim ke luar kota, butuh partner produksi, minimal order 10 pcs…" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
           </Field>
         </Section>
         )}
