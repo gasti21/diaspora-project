@@ -74,6 +74,10 @@ export function ImageCarousel({
 }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  // Zoom hover ala Tokopedia: skala 2x dengan titik fokus mengikuti kursor.
+  // Dipicu lewat onMouseMove (bukan enter/leave) + reset tuntas di mouseleave,
+  // pindah slide, dan pergantian media - agar tidak pernah "nyangkut".
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
   // Thumbnail untuk link platform yang tidak bisa di-embed (og:image via proxy).
   const [extThumb, setExtThumb] = useState<{ image: string | null; host: string } | null>(null);
 
@@ -123,6 +127,7 @@ export function ImageCarousel({
   const goTo = (i: number) => {
     setIndex(i);
     setPlaying(false);
+    setZoom(null);
     setExtThumb(null);
   };
   const prev = () => goTo((index - 1 + count) % count);
@@ -164,7 +169,18 @@ export function ImageCarousel({
   return (
     <div>
       {/* ===== Media utama ===== */}
-      <div className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-surface">
+      <div
+        className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-surface"
+        onMouseMove={(e) => {
+          if (isVideo) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          setZoom({
+            x: ((e.clientX - r.left) / r.width) * 100,
+            y: ((e.clientY - r.top) / r.height) * 100,
+          });
+        }}
+        onMouseLeave={() => setZoom(null)}
+      >
         {isVideo && playing && embedSrc ? (
           <iframe
             key={current.url}
@@ -233,14 +249,26 @@ export function ImageCarousel({
             </span>
           </button>
         ) : (
-          <ProductImage
+          <div
             key={current.url}
-            src={current.url}
-            alt={`${alt} - foto ${index + 1}`}
-            categorySlug={categorySlug}
-            fit="contain"
-            className="h-full w-full bg-white"
-          />
+            className="h-full w-full bg-white transition-transform duration-200 ease-out"
+            style={
+              zoom
+                ? {
+                    transform: "scale(2)",
+                    transformOrigin: `${zoom.x}% ${zoom.y}%`,
+                  }
+                : undefined
+            }
+          >
+            <ProductImage
+              src={current.url}
+              alt={`${alt} - foto ${index + 1}`}
+              categorySlug={categorySlug}
+              fit="contain"
+              className="h-full w-full"
+            />
+          </div>
         )}
 
         {/* Badge counter */}
