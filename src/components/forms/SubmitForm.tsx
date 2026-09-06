@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, NEEDS, BACKGROUND_TYPES, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -412,14 +412,14 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
               {BACKGROUND_TYPES.map((b) => (
                 <label key={b} className={chipCls(form.backgroundTypes.includes(b))}>
                   <input type="checkbox" className="sr-only" checked={form.backgroundTypes.includes(b)} onChange={() => toggleArray("backgroundTypes", b)} />
+                  {form.backgroundTypes.includes(b) && <Check className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />}
                   {b}
                 </label>
               ))}
             </div>
           </Field>
-          <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)">
+          <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
             <textarea rows={3} maxLength={1000} className={inputCls()} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
-            <Counter value={form.additionalNotes.length} max={1000} />
           </Field>
         </Section>
         )}
@@ -428,13 +428,11 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         {step === 1 && (
         <>
         <Section number={2} title="Deskripsi Produk">
-          <Field label="Deskripsi Singkat" required error={errors.shortDescription} hint="Jelaskan produk Anda dalam 1–3 kalimat">
+          <Field label="Deskripsi Singkat" required error={errors.shortDescription} hint="Jelaskan produk Anda dalam 1–3 kalimat" counter={<Counter value={form.shortDescription.length} max={200} />}>
             <textarea rows={5} maxLength={220} className={inputCls(errors.shortDescription)} placeholder="Jelaskan produk Anda dalam 1–3 kalimat" value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
-            <Counter value={form.shortDescription.length} max={200} />
           </Field>
-          <Field label="Deskripsi Lengkap" required error={errors.longDescription} hint="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah.">
+          <Field label="Deskripsi Lengkap" required error={errors.longDescription} hint="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." counter={<Counter value={form.longDescription.length} max={2000} />}>
             <textarea rows={12} maxLength={2200} className={inputCls(errors.longDescription)} placeholder="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." value={form.longDescription} onChange={(e) => set("longDescription", e.target.value)} />
-            <Counter value={form.longDescription.length} max={2000} />
           </Field>
         </Section>
 
@@ -669,19 +667,24 @@ function Field({
   required,
   hint,
   error,
+  counter,
   children,
 }: {
   label: string;
   required?: boolean;
   hint?: string;
   error?: string;
+  counter?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold">
-        {label} {required && <span className="text-brand">*</span>}
-      </label>
+      <div className="flex items-baseline justify-between gap-3">
+        <label className="block text-sm font-semibold">
+          {label} {required && <span className="text-brand">*</span>}
+        </label>
+        {counter && <span className="shrink-0 text-xs tabular-nums text-muted">{counter}</span>}
+      </div>
       {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
       <div className="mt-2">{children}</div>
       {error && <p className="mt-1.5 text-xs font-medium text-brand">{error}</p>}
@@ -694,7 +697,7 @@ function Counter({ value, max }: { value: number; max: number }) {
   return (
     <p
       className={cn(
-        "mt-1 text-right text-xs tabular-nums",
+        "text-xs tabular-nums",
         nearLimit ? "font-semibold text-amber-600" : "text-muted"
       )}
     >
@@ -714,7 +717,7 @@ function inputCls(error?: string) {
 
 function chipCls(active: boolean) {
   return cn(
-    "cursor-pointer rounded-xl border px-4 py-2 text-sm font-medium transition select-none",
+    "cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition select-none",
     active
       ? "border-navy bg-navy text-white shadow-sm"
       : "border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-sm"

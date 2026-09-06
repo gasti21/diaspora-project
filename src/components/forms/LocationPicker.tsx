@@ -483,7 +483,8 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
       {/* Pilihan manual (fallback / koreksi) */}
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-semibold text-muted">Pilih negara</label>
+          <label className="block text-sm font-semibold">Negara</label>
+          <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta — bisa dikoreksi</p>
           <select
             aria-label="Negara"
             className={cn(
@@ -504,10 +505,11 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-muted">Kota</label>
+          <label className="block text-sm font-semibold">Kota</label>
+          <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta — bisa dikoreksi</p>
           <input
             aria-label="Kota"
-            className="mt-1.5 w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/60 hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
+            className="mt-2 w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/60 hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
             placeholder="Contoh: Kuala Lumpur"
             value={city}
             onChange={(e) => onCity(e.target.value)}
