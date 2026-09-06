@@ -526,7 +526,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           </Field>
           <Field label="Website (opsional)">
             <input className={inputCls()} placeholder="https://tokomu.com" value={form.website} onChange={(e) => set("website", e.target.value)} />
-            <LinkPreview url={form.website} />
+            <LinkPreview url={form.website} screenshot />
           </Field>
         </Section>
         </>
@@ -769,7 +769,7 @@ function chipCls(active: boolean) {
  * Pratinjau link: sampul besar (og:image) dari video/sosmed/situs, via
  * proxy server sendiri sehingga semua platform terdukung tanpa CORS.
  */
-function LinkPreview({ url }: { url: string }) {
+function LinkPreview({ url, screenshot = false }: { url: string; screenshot?: boolean }) {
   const u = url.trim();
   const [state, setState] = useState<{
     loading: boolean;
@@ -777,12 +777,15 @@ function LinkPreview({ url }: { url: string }) {
     title: string;
     host: string;
   }>({ loading: false, image: null, title: "", host: "" });
+  const [shotFailed, setShotFailed] = useState(false);
 
   useEffect(() => {
     if (!u) {
       setState({ loading: false, image: null, title: "", host: "" });
+      setShotFailed(false);
       return;
     }
+    setShotFailed(false);
     let alive = true;
     setState((st) => ({ ...st, loading: true }));
     const t = setTimeout(async () => {
@@ -813,7 +816,10 @@ function LinkPreview({ url }: { url: string }) {
   const href = u.startsWith("http") ? u : `https://${u}`;
 
   // Situs tanpa og:image: kartu ringkas, bukan kotak besar kosong.
-  if (!state.image && !state.loading) {
+  const shotUrl = screenshot && !state.image && !shotFailed
+    ? `/api/link-preview/screenshot?url=${encodeURIComponent(href)}`
+    : null;
+  if (!state.image && !shotUrl && !state.loading) {
     return (
       <a
         href={href}
@@ -846,8 +852,13 @@ function LinkPreview({ url }: { url: string }) {
       className="mt-2 block overflow-hidden rounded-xl border border-line bg-white transition hover:border-navy/40"
     >
       <div className="relative aspect-video w-full bg-surface">
-        {state.image ? (
-          <img src={`/api/link-preview/image?url=${encodeURIComponent(state.image)}`} alt="Pratinjau" className="h-full w-full object-cover" />
+        {state.image || shotUrl ? (
+          <img
+            src={state.image ? `/api/link-preview/image?url=${encodeURIComponent(state.image)}` : shotUrl!}
+            alt="Pratinjau"
+            className="h-full w-full object-cover"
+            onError={() => setShotFailed(true)}
+          />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-xs text-muted">
             Memuat pratinjau...
