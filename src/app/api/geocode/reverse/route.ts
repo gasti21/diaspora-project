@@ -12,13 +12,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "invalid coordinates" }, { status: 400 });
   }
 
-  type Loc = { country: string; city: string };
+  type Loc = { country: string; city: string; detail: string };
 
   const providers: Array<() => Promise<Loc>> = [
     // 1) Nominatim (OpenStreetMap)
     async () => {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=id&zoom=10`,
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=id&zoom=18&addressdetails=1`,
         {
           headers: {
             "User-Agent": "KaryaDiaspora/1.0 (reverse geocode proxy)",
@@ -36,6 +36,9 @@ export async function GET(req: NextRequest) {
         country: a.country ?? "",
         city:
           a.city || a.town || a.village || a.county || a.state_district || a.state || "",
+        detail: [a.road, a.neighbourhood || a.suburb, a.postcode]
+          .filter(Boolean)
+          .join(", "),
       };
     },
     // 2) BigDataCloud
@@ -50,10 +53,12 @@ export async function GET(req: NextRequest) {
         city?: string;
         locality?: string;
         principalSubdivision?: string;
+        localityInfo?: { administrative?: Array<{ name?: string }> };
       };
       return {
         country: json.countryName ?? "",
         city: json.city || json.locality || json.principalSubdivision || "",
+        detail: json.localityInfo?.administrative?.[2]?.name ?? "",
       };
     },
   ];
@@ -63,9 +68,10 @@ export async function GET(req: NextRequest) {
     try {
       const loc = await provider();
       if (loc.country || loc.city) {
-        return NextResponse.json(loc, {
-          headers: { "Cache-Control": "public, max-age=3600" },
-        });
+        return NextResponse.json(
+          { ...loc, detail: loc.detail || null },
+          { headers: { "Cache-Control": "public, max-age=3600" } }
+        );
       }
     } catch (err) {
       lastErr = err;

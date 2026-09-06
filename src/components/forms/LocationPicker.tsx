@@ -204,6 +204,7 @@ interface Props {
 interface Resolved {
   country: string;
   city: string;
+  detail?: string | null;
 }
 
 /**
@@ -467,7 +468,10 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
                 <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 Lokasi terpilih
               </p>
-              <p className="mt-0.5 truncate text-sm font-semibold text-navy">
+              {resolved?.detail && (
+                <p className="mt-0.5 truncate text-sm font-semibold text-navy">{resolved.detail}</p>
+              )}
+              <p className="truncate text-sm font-semibold text-navy">
                 {resolved && (resolved.city || resolved.country)
                   ? [resolved.city, resolved.country].filter(Boolean).join(", ")
                   : "Titik di peta"}
