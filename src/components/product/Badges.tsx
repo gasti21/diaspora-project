@@ -5,7 +5,7 @@ export function CategoryBadge({ name, slug, className }: { name?: string; slug?:
   return (
     <span
       className={cn(
-        "inline-block rounded-full px-3 py-1 text-xs font-semibold",
+        "inline-block max-w-full truncate rounded-full px-2.5 py-1 text-xs font-semibold",
         categoryStyle(slug),
         className
       )}
@@ -19,7 +19,7 @@ export function StageBadge({ stage, className }: { stage: string; className?: st
   return (
     <span
       className={cn(
-        "inline-block rounded-full px-3 py-1 text-xs font-semibold",
+        "inline-block max-w-full truncate rounded-full px-2.5 py-1 text-xs font-semibold",
         STAGE_STYLES[stage] ?? "bg-gray-100 text-gray-700",
         className
       )}
