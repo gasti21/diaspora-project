@@ -221,6 +221,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [fineTune, setFineTune] = useState(false);
   const [searchQ, setSearchQ] = useState("");
+  const [copied, setCopied] = useState(false);
   const [searchResults, setSearchResults] = useState<Array<{ lat: number; lng: number; label: string }>>([]);
   const [searching, setSearching] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -458,26 +459,39 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
           onPick={(lat, lng) => void applyCoords(lat, lng, false)}
           onLocate={locateMe}
         />
-        {/* Bar status di bawah peta */}
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          {picked ? (
-            <p className="text-xs text-muted">
-              <span className="font-semibold text-green-700">
-                📌 {picked.lat.toFixed(5)}, {picked.lng.toFixed(5)}
-              </span>
-              {resolved && (
-                <span className="text-muted/80">
-                  {" "}· {[resolved.city, resolved.country].filter(Boolean).join(", ")}
-                </span>
-              )}
-              <span className="text-muted/60"> - geser peta untuk menyesuaikan</span>
-            </p>
-          ) : (
-            <p className="text-xs text-muted">
-              Klik tombol lokasi di peta untuk mengunci posisimu, atau geser peta ke lokasimu.
-            </p>
-          )}
-        </div>
+        {/* Bar status di bawah peta: nama tempat sebagai info utama */}
+        {picked ? (
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <div>
+              <p className="text-sm font-semibold text-green-700">
+                ✅ Lokasi terpilih
+                {resolved && (resolved.city || resolved.country) && (
+                  <span className="text-navy">
+                    {" "}- {[resolved.city, resolved.country].filter(Boolean).join(", ")}
+                  </span>
+                )}
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted/70">Geser peta bila perlu disesuaikan</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const text = `${picked.lat.toFixed(5)}, ${picked.lng.toFixed(5)}`;
+                void navigator.clipboard.writeText(text);
+                setCopied(true);
+                toast.success("Koordinat tersalin.");
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted transition hover:border-navy/40 hover:text-navy"
+            >
+              {copied ? "✅ Tersalin" : "📋 Salin koordinat"}
+            </button>
+          </div>
+        ) : (
+          <p className="mt-2.5 text-xs text-muted">
+            Klik tombol lokasi di peta untuk mengunci posisimu, atau geser peta ke lokasimu.
+          </p>
+        )}
       </div>
 
       {/* Dropdown manual: hanya tampil otomatis bila peta belum menghasilkan titik */}
