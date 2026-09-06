@@ -463,13 +463,9 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
         {/* Strip status di bawah peta */}
         {picked ? (() => {
           const acc = accuracy != null ? Math.round(accuracy) : null;
-          const accMeta = acc == null
-            ? null
-            : acc <= 30
-              ? { dot: "bg-green-500", label: "Presisi tinggi", cls: "text-green-700" }
-              : acc <= 100
-                ? { dot: "bg-amber-500", label: "Cukup presisi", cls: "text-amber-700" }
-                : { dot: "bg-brand", label: "Kasar - periksa posisi", cls: "text-brand" };
+          const accMeta = acc != null && acc > 100
+            ? { dot: "bg-brand", label: "Kasar - periksa posisi", cls: "text-brand" }
+            : null;
           return (
           <div className="mt-2.5 rounded-xl border border-line bg-surface/60 p-4">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
