@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, LockKeyhole, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -540,28 +540,19 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         {/* ===== 4. Kontak ===== */}
         <Section number={4} title="Kontak">
           <Field label="Nama Lengkap" required error={errors.ownerName} hint="Diatur di Halaman Profil">
-            <div className="relative">
-              <input readOnly className={cn(inputCls(errors.ownerName), "cursor-default bg-surface pr-10 text-navy/80")} value={form.ownerName} />
-              <LockKeyhole className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-            </div>
+            <input readOnly className={cn(inputCls(errors.ownerName), "bg-surface text-navy/80")} value={form.ownerName} />
           </Field>
           <Field label="Email" required error={errors.ownerEmail} hint="Diatur di Halaman Profil">
-            <div className="relative">
-              <input type="email" readOnly className={cn(inputCls(errors.ownerEmail), "cursor-default bg-surface pr-10 text-navy/80")} value={form.ownerEmail} />
-              <LockKeyhole className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-            </div>
+            <input type="email" readOnly className={cn(inputCls(errors.ownerEmail), "bg-surface text-navy/80")} value={form.ownerEmail} />
           </Field>
           <Field
             label="WhatsApp / No. HP"
             required
-            error={errors.ownerWhatsapp}
+            error={form.ownerWhatsapp ? errors.ownerWhatsapp : undefined}
             hint={form.ownerWhatsapp ? "Diatur di Halaman Profil" : undefined}
           >
             {form.ownerWhatsapp ? (
-              <div className="relative">
-                <input readOnly className={cn(inputCls(errors.ownerWhatsapp), "cursor-default bg-surface pr-10 text-navy/80")} value={form.ownerWhatsapp} />
-                <LockKeyhole className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-              </div>
+              <input readOnly className={cn(inputCls(errors.ownerWhatsapp), "bg-surface text-navy/80")} value={form.ownerWhatsapp} />
             ) : (
               <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 Nomor WhatsApp belum ada di profil Anda.{" "}
