@@ -5,12 +5,52 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { ProductImage } from "./ProductImage";
 import { cn } from "@/lib/utils";
 
-/** Ambil ID video YouTube dari berbagai bentuk URL; null jika bukan YouTube. */
-function youtubeId(url: string): string | null {
-  const m = url.match(
+type Player =
+  | { kind: "youtube"; src: string }
+  | { kind: "vimeo"; src: string }
+  | { kind: "dailymotion"; src: string }
+  | { kind: "tiktok"; src: string }
+  | { kind: "instagram"; src: string }
+  | { kind: "file" }
+  | { kind: "external" };
+
+/** Deteksi jenis & URL pemutar dari sebuah link video. */
+function resolvePlayer(url: string): Player {
+  let m = url.match(
     /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/
   );
-  return m ? m[1] : null;
+  if (m) return { kind: "youtube", src: `https://www.youtube.com/embed/${m[1]}?autoplay=1` };
+
+  m = url.match(/vimeo\.com\/(?:video\/)?(\d{6,})/);
+  if (m) return { kind: "vimeo", src: `https://player.vimeo.com/video/${m[1]}?autoplay=1` };
+
+  m = url.match(/dailymotion\.com\/video\/([A-Za-z0-9]+)/);
+  if (m)
+    return {
+      kind: "dailymotion",
+      src: `https://geo.dailymotion.com/player.html?video=${m[1]}&autoplay=1`,
+    };
+
+  m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  if (m) return { kind: "tiktok", src: `https://www.tiktok.com/embed/v2/${m[1]}` };
+
+  m = url.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
+  if (m) return { kind: "instagram", src: `https://www.instagram.com/p/${m[1]}/embed` };
+
+  if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) || !url.includes("/"))
+    return { kind: "file" };
+  if (url.endsWith(".mp4") || url.endsWith(".webm") || url.includes("supabase"))
+    return { kind: "file" };
+  return { kind: "external" };
+}
+
+/** Judul platform untuk kartu fallback. */
+function platformLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return url;
+  }
 }
 
 /**
@@ -34,6 +74,8 @@ export function ImageCarousel({
 }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  // Thumbnail untuk link platform yang tidak bisa di-embed (og:image via proxy).
+  const [extThumb, setExtThumb] = useState<{ image: string | null; host: string } | null>(null);
 
   // Deteksi apakah strip thumbnail perlu scroll (panah hanya tampil bila perlu).
   const stripRef = useRef<HTMLDivElement>(null);
@@ -81,9 +123,29 @@ export function ImageCarousel({
   const goTo = (i: number) => {
     setIndex(i);
     setPlaying(false);
+    setExtThumb(null);
   };
   const prev = () => goTo((index - 1 + count) % count);
   const next = () => goTo((index + 1) % count);
+
+  // Link eksternal (platform tanpa embed publik): ambil og:image untuk thumbnail.
+  useEffect(() => {
+    if (!player || player.kind !== "external") {
+      setExtThumb(null);
+      return;
+    }
+    let alive = true;
+    fetch(`/api/link-preview?url=${encodeURIComponent(current.url)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d) setExtThumb({ image: d.image ?? null, host: d.host ?? platformLabel(current.url) });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
 
   // Tidak ada media sama sekali: tampilkan placeholder.
   if (count === 0) {
@@ -95,22 +157,24 @@ export function ImageCarousel({
   }
 
   const isVideo = current?.type === "video";
-  const ytId = current && youtubeId(current.url);
+  const player = current && isVideo ? resolvePlayer(current.url) : null;
+  const embedSrc =
+    player && player.kind !== "file" && player.kind !== "external" ? player.src : null;
 
   return (
     <div>
       {/* ===== Media utama ===== */}
       <div className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-surface">
-        {isVideo && playing && ytId ? (
+        {isVideo && playing && embedSrc ? (
           <iframe
             key={current.url}
-            src={`https://www.youtube.com/embed/${ytId}?autoplay=1`}
+            src={embedSrc}
             title={alt}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="h-full w-full"
           />
-        ) : isVideo && playing ? (
+        ) : isVideo && player?.kind === "file" && playing ? (
           <video
             key={current.url}
             src={current.url}
@@ -119,6 +183,34 @@ export function ImageCarousel({
             playsInline
             className="h-full w-full bg-black"
           />
+        ) : isVideo && player?.kind === "external" ? (
+          /* Platform tanpa embed publik: thumbnail + tombol buka di tab baru. */
+          <a
+            href={current.url}
+            target="_blank"
+            rel="noreferrer"
+            className="group/play relative block h-full w-full bg-black"
+          >
+            {extThumb?.image ? (
+                <img
+                src={`/api/link-preview/image?url=${encodeURIComponent(extThumb.image)}`}
+                alt={alt}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center bg-navy text-xs text-white/80">
+                {extThumb?.host ?? platformLabel(current.url)}
+              </span>
+            )}
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg transition group-hover/play:scale-110">
+                <Play className="h-8 w-8 fill-brand text-brand" />
+              </span>
+            </span>
+            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8 text-center text-xs font-semibold text-white">
+              Buka di {platformLabel(current.url)}
+            </span>
+          </a>
         ) : isVideo ? (
           <button
             type="button"

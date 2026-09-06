@@ -18,7 +18,7 @@ const securityHeaders = [
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co",
       "media-src 'self' https://*.supabase.co https://*.supabase.in",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://geo.dailymotion.com https://www.tiktok.com https://www.instagram.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
