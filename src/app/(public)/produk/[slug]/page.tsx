@@ -32,7 +32,7 @@ export async function generateMetadata({
   if (!product) return {};
 
   const title = product.name;
-  const description = product.shortDescription;
+  const description = product.shortDescription || product.longDescription;
   // OG image dinamis: selalu pakai /api/og/[slug] (brand overlay di atas
   // foto produk). URL absolut agar crawler luar mengambil gambar dengan benar.
   const ogImage = `${SITE_URL}/api/og/${slug}`;
@@ -53,6 +53,11 @@ export async function generateMetadata({
       images: [ogImage],
     },
   };
+}
+
+/** Paragraf pertama dari deskripsi panjang - untuk ringkasan di halaman. */
+function firstParagraph(text: string): string {
+  return text.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ?? "";
 }
 
 export default async function ProductDetailPage({
@@ -107,7 +112,7 @@ export default async function ProductDetailPage({
             {formatLocation(product)}
           </p>
           <p className="mt-3 text-justify text-sm leading-relaxed text-navy/85">
-            {product.shortDescription}
+            {product.shortDescription || firstParagraph(product.longDescription)}
           </p>
 
           {product.needs.length > 0 && (

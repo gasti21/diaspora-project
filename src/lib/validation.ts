@@ -14,7 +14,6 @@ export function validateSubmissionPayload(body: SubmissionPayload): string[] {
   if (!body.categoryId) errors.push("Kategori wajib dipilih.");
   if (!body.stage || !STAGE_VALUES.includes(body.stage)) errors.push("Tahap produk tidak valid.");
   if (!body.country?.trim()) errors.push("Negara/lokasi wajib diisi.");
-  if (!body.shortDescription?.trim()) errors.push("Deskripsi singkat wajib diisi.");
   if (!body.longDescription?.trim()) errors.push("Deskripsi lengkap wajib diisi.");
   if (!Array.isArray(body.images) || body.images.length === 0)
     errors.push("Minimal 1 foto produk.");

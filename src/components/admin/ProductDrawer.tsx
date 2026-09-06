@@ -131,12 +131,7 @@ export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props
           </dl>
 
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-muted">Deskripsi Singkat</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-navy/85">{product.shortDescription}</p>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-muted">Deskripsi Lengkap</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted">Deskripsi</h3>
             <p className="mt-1.5 text-sm leading-relaxed text-navy/85">{product.longDescription}</p>
           </div>
 

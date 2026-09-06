@@ -31,7 +31,6 @@ const initialForm = {
   latitude: null as number | null,
   longitude: null as number | null,
   additionalNotes: "",
-  shortDescription: "",
   longDescription: "",
   videoUrl: "",
   website: "",
@@ -65,7 +64,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           country: initial.country,
           city: initial.city ?? "",
           additionalNotes: initial.additionalNotes ?? "",
-          shortDescription: initial.shortDescription,
           longDescription: initial.longDescription,
           videoUrl: initial.videoUrl ?? "",
           website: initial.website ?? "",
@@ -144,8 +142,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
     if (!form.categoryId) e.categoryId = "Pilih kategori.";
     if (!form.stage) e.stage = "Pilih tahap produk.";
     if (!form.country) e.country = "Pilih negara/lokasi.";
-    if (!form.shortDescription.trim()) e.shortDescription = "Deskripsi singkat wajib diisi.";
-    else if (form.shortDescription.length > 200) e.shortDescription = "Maksimal 200 karakter.";
     if (!form.longDescription.trim()) e.longDescription = "Deskripsi lengkap wajib diisi.";
     else if (form.longDescription.length > 2000) e.longDescription = "Maksimal 2000 karakter.";
     if (images.length === 0) e.images = "Unggah minimal 1 foto produk.";
@@ -165,8 +161,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       if (!form.stage) e.stage = "Pilih tahap produk.";
       if (!form.country) e.country = "Pilih negara/lokasi.";
     } else if (s === 1) {
-      if (!form.shortDescription.trim()) e.shortDescription = "Deskripsi singkat wajib diisi.";
-      else if (form.shortDescription.length > 200) e.shortDescription = "Maksimal 200 karakter.";
       if (!form.longDescription.trim()) e.longDescription = "Deskripsi lengkap wajib diisi.";
       else if (form.longDescription.length > 2000) e.longDescription = "Maksimal 2000 karakter.";
       if (images.length === 0) e.images = "Unggah minimal 1 foto produk.";
@@ -210,7 +204,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       latitude: form.latitude ?? undefined,
       longitude: form.longitude ?? undefined,
       additionalNotes: form.additionalNotes.trim() || undefined,
-      shortDescription: form.shortDescription.trim(),
       longDescription: form.longDescription.trim(),
       images,
       videoUrl: form.videoUrl.trim() || undefined,
@@ -287,7 +280,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
     { label: "Tahap", value: form.stage, editStep: 0 },
     { label: "Lokasi", value: locationLabel, editStep: 0 },
     { label: "Foto", value: images.length ? `${images.length} foto terunggah` : "Belum ada foto", editStep: 1 },
-    { label: "Deskripsi Singkat", value: form.shortDescription ? "Sudah diisi" : "Belum diisi", editStep: 1 },
     { label: "Kontak (WA)", value: form.ownerWhatsapp, editStep: null },
   ];
 
@@ -445,9 +437,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         {step === 1 && (
         <>
         <Section number={2} title="Deskripsi Produk">
-          <Field label="Deskripsi Singkat" required error={errors.shortDescription} counter={<Counter value={form.shortDescription.length} max={200} />}>
-            <textarea rows={5} maxLength={220} className={cn(inputCls(errors.shortDescription), "resize-none")} placeholder="Contoh: Keripik ubi ungu asli, dipanggang tanpa minyak, renyah tahan 3 bulan." value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
-          </Field>
           <Field label="Deskripsi Lengkap" required error={errors.longDescription} hint="Ceritakan manfaat, keunikan, bahan, dan cara memesan." counter={<Counter value={form.longDescription.length} max={2000} />}>
             <textarea rows={12} maxLength={2200} className={cn(inputCls(errors.longDescription), "resize-none")} placeholder={"Contoh:\n\nKeripik ubi ungu ini dibuat dari ubi ungu pilihan petani lokal, dipanggang tanpa minyak sehingga lebih sehat.\n\nKeunikannya: warna alami tanpa pewarna, renyahnya bertahan hingga 3 bulan.\n\nTersedia 3 varian rasa. Pemesanan melalui WhatsApp, minimal 5 pcs."} value={form.longDescription} onChange={(e) => set("longDescription", e.target.value)} />
           </Field>

@@ -367,7 +367,10 @@ export async function updateMySubmission(
       longitude: payload.longitude ?? null,
 
       additional_notes: payload.additionalNotes || null,
-      short_description: payload.shortDescription,
+      short_description:
+        payload.shortDescription?.trim() ||
+        payload.longDescription?.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ||
+        null,
       long_description: payload.longDescription,
       images: payload.images,
       video_url: payload.videoUrl || null,
@@ -436,7 +439,10 @@ export async function createSubmission(
       longitude: payload.longitude ?? null,
 
       additional_notes: payload.additionalNotes || null,
-      short_description: payload.shortDescription,
+      short_description:
+        payload.shortDescription?.trim() ||
+        payload.longDescription?.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ||
+        null,
       long_description: payload.longDescription,
       images: payload.images,
       video_url: payload.videoUrl || null,
@@ -1006,7 +1012,10 @@ export async function adminUpdateProductFields(
       longitude: payload.longitude ?? null,
 
       additional_notes: payload.additionalNotes || null,
-      short_description: payload.shortDescription,
+      short_description:
+        payload.shortDescription?.trim() ||
+        payload.longDescription?.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ||
+        null,
       long_description: payload.longDescription,
       images: payload.images,
       video_url: payload.videoUrl || null,

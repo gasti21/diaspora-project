@@ -115,7 +115,8 @@ export interface SubmissionPayload {
   latitude?: number;
   longitude?: number;
   additionalNotes?: string;
-  shortDescription: string;
+  /** Diisi otomatis dari paragraf pertama longDescription (field form dihapus). */
+  shortDescription?: string;
   longDescription: string;
   images: string[];
   videoUrl?: string;
