@@ -2,12 +2,11 @@
 
 
 import { useState } from "react";
-import { FileText } from "lucide-react";
 import type { Product, ProductReview } from "@/lib/types";
 import { ProductReviews } from "./reviews/ProductReviews";
 import { cn, formatLocation } from "@/lib/utils";
 
-const TABS = ["Deskripsi", "Tentang Produk", "Ulasan", "Dokumen"] as const;
+const TABS = ["Deskripsi", "Tentang Produk", "Ulasan"] as const;
 
 export function ProductTabs({
   product,
@@ -113,14 +112,6 @@ export function ProductTabs({
           <ProductReviews productId={product.id} viewer={viewer} initialReviews={reviews} />
         )}
 
-        {tab === "Dokumen" && (
-          <div className="rounded-xl border border-dashed border-line bg-surface/60 py-14 text-center">
-            <FileText className="mx-auto h-8 w-8 text-muted" aria-hidden="true" />
-            <p className="mt-3 text-sm text-muted">
-              Dokumen produk belum tersedia.
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );
