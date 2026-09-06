@@ -18,14 +18,18 @@ interface Props {
   fit?: "cover" | "contain";
 }
 
-/** Ubah URL object public Supabase jadi endpoint render (resize + kualitas). */
+/** Ubah URL object public Supabase jadi endpoint render (resize + kualitas).
+ * width+height+resize=contain: hasil selalu pas rasio bingkai 4:3 dengan
+ * gambar utuh di dalamnya - render param width saja bisa menghasilkan
+ * gambar ekstrem memanjang (mis. 640x5000) yang merusak layout. */
 function toRenderUrl(src: string, width: number): string {
   const marker = "/storage/v1/object/public/";
   const idx = src.indexOf(marker);
   if (idx === -1) return src;
   const origin = src.slice(0, idx);
   const rest = src.slice(idx + marker.length); // product-images/user/file.jpg
-  return `${origin}/storage/v1/render/image/public/${rest}?width=${width}&quality=75`;
+  const height = Math.round((width * 3) / 4);
+  return `${origin}/storage/v1/render/image/public/${rest}?width=${width}&height=${height}&resize=contain&quality=75`;
 }
 
 /**
