@@ -73,7 +73,7 @@ export default async function EditSubmissionPage({
       </div>
 
       <div className="mt-8">
-        <SubmitForm categories={categories} user={{ name: user.name, email: user.email }} initial={product} editId={product.id} />
+        <SubmitForm categories={categories} user={{ name: user.name, email: user.email, whatsapp: product.ownerWhatsapp }} initial={product} editId={product.id} />
       </div>
     </div>
   );

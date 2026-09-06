@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CheckCircle2, ClipboardList, Info, ShieldCheck } from "lucide-react";
 import { getSessionUser, getAdminUser } from "@/lib/auth";
+import { getMyProfile } from "@/lib/data";
 import { listCategories } from "@/lib/data";
 import { SubmitForm } from "@/components/forms/SubmitForm";
 
@@ -21,6 +22,10 @@ export default async function SubmitPage() {
   if (await getAdminUser()) redirect("/admin");
 
   const categories = await listCategories();
+  const profile = await getMyProfile(user.id);
+  // Normalisasi whatsapp_url (wa.me/62812... / 0812...) menjadi nomor polos.
+  const rawWa = profile?.socials.whatsapp ?? "";
+  const whatsapp = rawWa.replace(/^https?:\/\/wa\.me\//, "").replace(/[^+\d]/g, "");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
@@ -48,7 +53,7 @@ export default async function SubmitPage() {
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <SubmitForm categories={categories} user={{ name: user.name, email: user.email }} />
+        <SubmitForm categories={categories} user={{ name: user.name, email: user.email, whatsapp }} />
 
         {/* Sidebar tips (desktop) */}
         <aside className="hidden lg:block">

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, LockKeyhole, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -12,7 +12,7 @@ import type { Product, SubmissionPayload, Stage } from "@/lib/types";
 
 interface Props {
   categories: { id: string; slug: string; name: string }[];
-  user: { name: string; email: string };
+  user: { name: string; email: string; whatsapp: string };
   /** Data pengajuan lama saat mode edit (alur revisi). */
   initial?: Product;
   /** ID pengajuan yang sedang diedit - aktifkan mode PATCH. */
@@ -55,6 +55,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
     ...initialForm,
     ownerName: user.name,
     ownerEmail: user.email,
+    ownerWhatsapp: user.whatsapp,
     // Prefill data lama saat mode edit revisi.
     ...(initial
       ? {
@@ -68,9 +69,9 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           longDescription: initial.longDescription,
           videoUrl: initial.videoUrl ?? "",
           website: initial.website ?? "",
-          ownerName: initial.ownerName || user.name,
-          ownerEmail: initial.ownerEmail || user.email,
-          ownerWhatsapp: initial.ownerWhatsapp,
+          ownerName: user.name,
+          ownerEmail: user.email,
+          ownerWhatsapp: user.whatsapp,
           needs: initial.needs,
           needsOther: initial.needsOther ?? "",
         }
@@ -262,7 +263,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           {!isEdit && (
             <button
               onClick={() => {
-                setForm({ ...initialForm, ownerName: user.name, ownerEmail: user.email });
+                setForm({ ...initialForm, ownerName: user.name, ownerEmail: user.email, ownerWhatsapp: user.whatsapp });
                 setImages([]);
                 setDone(false);
               }}
@@ -538,14 +539,38 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
 
         {/* ===== 4. Kontak ===== */}
         <Section number={4} title="Kontak">
-          <Field label="Nama Lengkap" required error={errors.ownerName}>
-            <input className={inputCls(errors.ownerName)} placeholder="Masukkan nama lengkap" value={form.ownerName} onChange={(e) => set("ownerName", e.target.value)} />
+          <Field label="Nama Lengkap" required error={errors.ownerName} hint="Diatur di Halaman Profil">
+            <div className="relative">
+              <input readOnly className={cn(inputCls(errors.ownerName), "cursor-default bg-surface pr-10 text-navy/80")} value={form.ownerName} />
+              <LockKeyhole className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
+            </div>
           </Field>
-          <Field label="Email" required error={errors.ownerEmail} hint="Terisi otomatis dari akun Google Anda">
-            <input type="email" className={inputCls(errors.ownerEmail)} placeholder="Masukkan email aktif" value={form.ownerEmail} onChange={(e) => set("ownerEmail", e.target.value)} />
+          <Field label="Email" required error={errors.ownerEmail} hint="Diatur di Halaman Profil">
+            <div className="relative">
+              <input type="email" readOnly className={cn(inputCls(errors.ownerEmail), "cursor-default bg-surface pr-10 text-navy/80")} value={form.ownerEmail} />
+              <LockKeyhole className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
+            </div>
           </Field>
-          <Field label="WhatsApp / No. HP" required error={errors.ownerWhatsapp}>
-            <input className={inputCls(errors.ownerWhatsapp)} placeholder="Masukkan nomor WhatsApp" value={form.ownerWhatsapp} onChange={(e) => set("ownerWhatsapp", e.target.value)} />
+          <Field
+            label="WhatsApp / No. HP"
+            required
+            error={errors.ownerWhatsapp}
+            hint={form.ownerWhatsapp ? "Diatur di Halaman Profil" : undefined}
+          >
+            {form.ownerWhatsapp ? (
+              <div className="relative">
+                <input readOnly className={cn(inputCls(errors.ownerWhatsapp), "cursor-default bg-surface pr-10 text-navy/80")} value={form.ownerWhatsapp} />
+                <LockKeyhole className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Nomor WhatsApp belum ada di profil Anda.{" "}
+                <Link href="/profil" className="font-semibold underline">
+                  Lengkapi di Halaman Profil
+                </Link>{" "}
+                untuk melanjutkan pengajuan.
+              </div>
+            )}
           </Field>
         </Section>
 

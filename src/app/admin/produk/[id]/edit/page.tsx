@@ -42,7 +42,7 @@ export default async function AdminEditProductPage({
       <div className="mt-8">
         <SubmitForm
           categories={categories}
-          user={{ name: product.ownerName, email: product.ownerEmail }}
+          user={{ name: product.ownerName, email: product.ownerEmail, whatsapp: product.ownerWhatsapp }}
           initial={product}
           editId={product.id}
           doneHref="/admin/produk"
