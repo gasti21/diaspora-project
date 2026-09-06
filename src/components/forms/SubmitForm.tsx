@@ -1,9 +1,9 @@
 "use client";
 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, ExternalLink, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -522,11 +522,11 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           </Field>
           <Field label="Link Video / Media Sosial (opsional)">
             <input className={inputCls()} placeholder="https://youtube.com/watch?v=... atau link TikTok/Instagram" value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} />
-            <LinkPreview url={form.videoUrl} kind="video" />
+            <LinkPreview url={form.videoUrl} />
           </Field>
           <Field label="Website (opsional)">
             <input className={inputCls()} placeholder="https://tokomu.com" value={form.website} onChange={(e) => set("website", e.target.value)} />
-            <LinkPreview url={form.website} kind="site" />
+            <LinkPreview url={form.website} />
           </Field>
         </Section>
         </>
@@ -766,71 +766,80 @@ function chipCls(active: boolean) {
 }
 
 /**
- * Pratinjau link: thumbnail video YouTube, atau favicon + domain untuk
- * link lain. Berfungsi sebagai verifikasi visual bahwa URL valid.
+ * Pratinjau link: sampul besar (og:image) dari video/sosmed/situs, via
+ * proxy server sendiri sehingga semua platform terdukung tanpa CORS.
  */
-function LinkPreview({ url, kind }: { url: string; kind: "video" | "site" }) {
+function LinkPreview({ url }: { url: string }) {
   const u = url.trim();
+  const [state, setState] = useState<{
+    loading: boolean;
+    image: string | null;
+    title: string;
+    host: string;
+  }>({ loading: false, image: null, title: "", host: "" });
+
+  useEffect(() => {
+    if (!u) {
+      setState({ loading: false, image: null, title: "", host: "" });
+      return;
+    }
+    let alive = true;
+    setState((st) => ({ ...st, loading: true }));
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/link-preview?url=${encodeURIComponent(u)}`
+        );
+        const data = await res.json();
+        if (!alive) return;
+        setState({
+          loading: false,
+          image: data.image ?? null,
+          title: data.title ?? "",
+          host: data.host ?? "",
+        });
+      } catch {
+        if (alive) setState((st) => ({ ...st, loading: false }));
+      }
+    }, 450);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [u]);
+
   if (!u) return null;
 
-  let host = "";
-  let valid = false;
-  try {
-    const parsed = new URL(u.startsWith("http") ? u : `https://${u}`);
-    host = parsed.hostname.replace(/^www\./, "");
-    valid = host.includes(".");
-  } catch {
-    valid = false;
-  }
-  if (!valid) {
-    return (
-      <p className="mt-1.5 text-xs font-medium text-brand">
-        Link belum valid - pastikan diawali https:// dan nama domainnya benar.
-      </p>
-    );
-  }
-
-  // Thumbnail YouTube bila URL-nya video YouTube
-  const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
-  if (kind === "video" && yt) {
-    return (
-      <a
-        href={u.startsWith("http") ? u : `https://${u}`}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-2 flex items-center gap-3 rounded-xl border border-line bg-white p-2 transition hover:border-navy/40"
-      >
-        <img
-          src={`https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg`}
-          alt="Pratinjau video"
-          className="h-14 w-24 rounded-lg object-cover"
-        />
-        <span className="min-w-0">
-          <span className="block text-xs font-semibold text-navy">Video YouTube terdeteksi</span>
-          <span className="block truncate text-[11px] text-muted">{host}</span>
-        </span>
-        <ExternalLink className="ml-auto h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-      </a>
-    );
-  }
-
+  const href = u.startsWith("http") ? u : `https://${u}`;
   return (
     <a
-      href={u.startsWith("http") ? u : `https://${u}`}
+      href={href}
       target="_blank"
       rel="noreferrer"
-      className="mt-2 flex items-center gap-2.5 rounded-xl border border-line bg-white px-3 py-2 transition hover:border-navy/40"
+      className="mt-2 block overflow-hidden rounded-xl border border-line bg-white transition hover:border-navy/40"
     >
-      <img
-        src={`https://www.google.com/s2/favicons?domain=${host}&sz=64`}
-        alt=""
-        className="h-5 w-5 rounded"
-      />
-      <span className="min-w-0 truncate text-xs font-medium text-navy">{host}</span>
-      <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold text-green-700">
-        <CircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
-        Link valid
+      <div className="relative aspect-video w-full bg-surface">
+        {state.image ? (
+          <img src={state.image} alt="Pratinjau" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-xs text-muted">
+            {state.loading ? "Memuat pratinjau..." : "Pratinjau tidak tersedia - link tetap disimpan"}
+          </span>
+        )}
+        {state.image && state.title && (
+          <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-6">
+            <span className="block truncate text-xs font-semibold text-white">{state.title}</span>
+          </span>
+        )}
+      </div>
+      <span className="flex items-center gap-2 px-3 py-2">
+        <span className="min-w-0 truncate text-[11px] font-medium text-muted">{state.host || href}</span>
+        <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold text-green-700">
+          <CircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
+          Link valid
+        </span>
       </span>
     </a>
   );
 }
+
