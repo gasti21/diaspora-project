@@ -364,7 +364,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           })}
         </ol>
         {/* Progress bar */}
-        <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
+        <div className="mt-5 border-t border-line pt-4">
           <div
             className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface"
             role="progressbar"
@@ -378,9 +378,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
               style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
             />
           </div>
-          <span className="shrink-0 text-[11px] font-bold tabular-nums text-muted">
-            {Math.round(((step + 1) / STEPS.length) * 100)}%
-          </span>
         </div>
         {/* Judul langkah utk mobile (detail tersembunyi di sm) */}
         <p className="mt-3 text-sm font-bold text-navy sm:hidden">
