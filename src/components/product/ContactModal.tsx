@@ -5,7 +5,9 @@ import { createPortal } from "react-dom";
 import {
   ArrowUpRight,
   Check,
+  ChevronDown,
   Copy,
+  ExternalLink,
   Globe,
   Mail,
   MapPin,
@@ -16,6 +18,7 @@ import {
 import type { OwnerContact, Product } from "@/lib/types";
 import { waLink, formatLocation } from "@/lib/utils";
 import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
+import { MiniMap } from "@/components/product/MiniMap";
 
 /** Warna resmi tiap brand - sama dengan ShareButtons (Bagikan Produk). */
 const SOCIAL_ITEMS = [
@@ -46,10 +49,12 @@ export function ContactModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setCopied(false);
+    setProfileOpen(false);
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
@@ -121,6 +126,10 @@ export function ContactModal({
   }
 
   const initial = contact.ownerName.trim().charAt(0).toUpperCase() || "?";
+  // Expand profil hanya kalau pemilik benar-benar melengkapi profilnya.
+  const hasProfileInfo = Boolean(
+    contact.profile?.avatarUrl || contact.profile?.fullName || contact.profile?.memberSince,
+  );
   const socials = contact.socials
     ? SOCIAL_ITEMS.filter((s) => contact.socials?.[s.key])
     : [];
@@ -136,20 +145,27 @@ export function ContactModal({
     }
   }
 
+  // Peta real-time: pakai koordinat GPS persis saat pengajuan bila tersedia,
+  // fallback ke nama kota/negara untuk produk lama tanpa koordinat.
+  const hasCoords = product.latitude != null && product.longitude != null;
+  const coordsQuery = hasCoords
+    ? `${product.latitude},${product.longitude}`
+    : encodeURIComponent(formatLocation(product));
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${coordsQuery}`;
+
   const rows: {
     icon: typeof User;
     label: string;
     value: string;
     href?: string;
+    hint?: string;
   }[] = [
-    { icon: User, label: "Nama Pemilik", value: contact.ownerName },
     {
       icon: Mail,
       label: "Email",
       value: contact.ownerEmail,
       href: `mailto:${contact.ownerEmail}`,
     },
-    { icon: MapPin, label: "Lokasi", value: formatLocation(product) },
   ];
   if (contact.website)
     rows.push({
@@ -180,14 +196,28 @@ export function ContactModal({
           >
             <X className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setProfileOpen((v) => !v)}
+            aria-expanded={profileOpen}
+            className="flex w-full items-center gap-4 text-left"
+          >
             <div
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand text-xl font-bold text-white ring-2 ring-white/20"
               aria-hidden="true"
             >
-              {initial}
+              {contact.profile?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={contact.profile.avatarUrl}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                initial
+              )}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">
                 Hubungi Pemilik
               </p>
@@ -198,7 +228,55 @@ export function ContactModal({
                 Pemilik {product.name}
               </p>
             </div>
-          </div>
+            {hasProfileInfo && (
+              <>
+                <ChevronDown
+                  className={`h-5 w-5 shrink-0 text-white/70 transition-transform duration-300 ${profileOpen ? "rotate-180" : ""}`}
+                  aria-hidden="true"
+                />
+              </>
+            )}
+          </button>
+          {/* Panel detail profil - hanya muncul bila pemilik melengkapi profilnya */}
+          {hasProfileInfo && (
+            <div
+              className={`grid transition-all duration-300 ease-out ${profileOpen ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+            >
+              <div className="overflow-hidden">
+                <div className="flex items-center gap-3 rounded-xl bg-white/10 p-4 ring-1 ring-white/15">
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15 text-base font-bold text-white"
+                    aria-hidden="true"
+                  >
+                    {contact.profile?.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={contact.profile.avatarUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      initial
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-white">
+                      {contact.profile?.fullName ?? contact.ownerName}
+                    </p>
+                    {contact.profile?.memberSince && (
+                      <p className="text-xs text-white/70">
+                        Bergabung sejak{" "}
+                        {new Date(contact.profile.memberSince).toLocaleDateString("id-ID", {
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         {/* Garis aksen brand di bawah header */}
         <div
@@ -232,6 +310,11 @@ export function ContactModal({
                     </a>
                   ) : (
                     r.value
+                  )}
+                  {r.hint && (
+                    <span className="block truncate text-[11px] font-normal text-muted">
+                      {r.hint}
+                    </span>
                   )}
                 </dd>
               </div>
@@ -270,6 +353,45 @@ export function ContactModal({
             </p>
           )}
         </dl>
+
+        {/* Peta lokasi real - embed interaktif, pin persis di koordinat GPS saat pengajuan */}
+        <div className="mx-5 mt-5 overflow-hidden rounded-xl border border-line/70 shadow-sm">
+          <div className="flex items-center justify-between gap-2 bg-surface/60 px-4 py-2.5">
+            <p className="flex min-w-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />
+              <span className="truncate">
+                Lokasi Seller{hasCoords ? " — Koordinat GPS" : ""}
+              </span>
+            </p>
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-brand transition hover:text-brand-dark"
+            >
+              Google Maps
+              <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+            </a>
+          </div>
+          {hasCoords ? (
+            <MiniMap
+              latitude={product.latitude!}
+              longitude={product.longitude!}
+              label={`Lokasi ${product.name}`}
+            />
+          ) : (
+            <p className="flex h-48 items-center justify-center bg-surface px-4 text-center text-xs text-muted">
+              Koordinat GPS belum tersedia untuk produk ini — lokasi tercatat:{" "}
+              {formatLocation(product)}
+            </p>
+          )}
+          {hasCoords && (
+            <p className="bg-white px-4 py-2 text-[11px] text-muted">
+              Titik persis: {product.latitude!.toFixed(5)}, {product.longitude!.toFixed(5)} ·{" "}
+              {formatLocation(product)}
+            </p>
+          )}
+        </div>
 
         {/* Sosmed publik pemilik (kalau dia mengisinya di profil) */}
         {socials.length > 0 && (

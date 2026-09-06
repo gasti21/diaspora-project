@@ -32,6 +32,7 @@ export function ContactOwnerButton({ product }: { product: Product }) {
           ownerWhatsapp: product.ownerWhatsapp,
           website: product.website ?? null,
           socials: null,
+          profile: null,
         });
       } else {
         setContactError("Kontak sementara tidak tersedia. Coba lagi nanti.");
