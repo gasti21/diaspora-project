@@ -17,6 +17,8 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in https://lh3.googleusercontent.com https://*.googleusercontent.com",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co",
+      "media-src 'self' https://*.supabase.co https://*.supabase.in",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

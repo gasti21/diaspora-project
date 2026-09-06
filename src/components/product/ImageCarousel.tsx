@@ -5,12 +5,20 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { ProductImage } from "./ProductImage";
 import { cn } from "@/lib/utils";
 
+/** Ambil ID video YouTube dari berbagai bentuk URL; null jika bukan YouTube. */
+function youtubeId(url: string): string | null {
+  const m = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/
+  );
+  return m ? m[1] : null;
+}
+
 /**
  * Galeri produk (desktop):
  * - Gambar utama besar + strip thumbnail di bawah; panah < > HANYA tampil
  *   bila thumbnail melebihi kapasitas baris (perlu scroll).
  * - Video produk jadi slide pertama; klik play = diputar inline di tempat
- *   (tanpa popup/lightbox).
+ *   (YouTube via embed, file video via <video>) - tanpa popup/lightbox.
  */
 export function ImageCarousel({
   images,
@@ -87,43 +95,51 @@ export function ImageCarousel({
   }
 
   const isVideo = current?.type === "video";
+  const ytId = current && youtubeId(current.url);
 
   return (
     <div>
       {/* ===== Media utama ===== */}
       <div className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-surface">
-        {isVideo ? (
-          playing ? (
+        {isVideo && playing && ytId ? (
+          <iframe
+            key={current.url}
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1`}
+            title={alt}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="h-full w-full"
+          />
+        ) : isVideo && playing ? (
+          <video
+            key={current.url}
+            src={current.url}
+            controls
+            autoPlay
+            playsInline
+            className="h-full w-full bg-black"
+          />
+        ) : isVideo ? (
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            aria-label="Putar video"
+            className="group/play relative block h-full w-full"
+          >
             <video
               key={current.url}
               src={current.url}
-              controls
-              autoPlay
+              muted
               playsInline
-              className="h-full w-full bg-black"
+              preload="metadata"
+              className="h-full w-full bg-black object-cover"
             />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setPlaying(true)}
-              aria-label="Putar video"
-              className="group/play relative block h-full w-full"
-            >
-              <video
-                key={current.url}
-                src={current.url}
-                muted
-                playsInline
-                preload="metadata"
-                className="h-full w-full bg-black object-cover"
-              />
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg transition group-hover/play:scale-110">
-                  <Play className="h-8 w-8 fill-brand text-brand" />
-                </span>
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg transition group-hover/play:scale-110">
+                <Play className="h-8 w-8 fill-brand text-brand" />
               </span>
-            </button>
-          )
+            </span>
+          </button>
         ) : (
           <ProductImage
             key={current.url}
