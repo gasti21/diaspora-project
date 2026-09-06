@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, ExternalLink, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -457,10 +457,33 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           <Field label="Foto Produk" required error={errors.images}>
             <div className="space-y-3">
               {images.length > 0 && (
-                <div className="flex flex-wrap gap-3">
+                <div className="group flex flex-wrap gap-3">
                   {images.map((img, i) => (
-                    <div key={img} className="relative h-20 w-24 overflow-hidden rounded-lg border border-line">
+                    <div
+                      key={img}
+                      className={cn(
+                        "relative h-20 w-24 overflow-hidden rounded-lg border-2 transition",
+                        i === 0 ? "border-navy" : "border-line"
+                      )}
+                    >
                       <img src={img} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                      {i > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setImages((prev) => {
+                              const next = [...prev];
+                              const [chosen] = next.splice(i, 1);
+                              return [chosen, ...next];
+                            })
+                          }
+                          aria-label={`Jadikan sampul: foto ${i + 1}`}
+                          title="Jadikan sampul"
+                          className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-navy opacity-0 transition hover:bg-white group-hover:opacity-100"
+                        >
+                          <Star className="h-3 w-3" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
@@ -471,7 +494,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
                       </button>
                       {i === 0 && (
                         <span className="absolute bottom-0 w-full bg-navy-deep/70 py-0.5 text-center text-[10px] text-white">
-                          Utama
+                          Sampul
                         </span>
                       )}
                     </div>
@@ -499,9 +522,11 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           </Field>
           <Field label="Link Video / Media Sosial (opsional)">
             <input className={inputCls()} placeholder="https://youtube.com/watch?v=... atau link TikTok/Instagram" value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} />
+            <LinkPreview url={form.videoUrl} kind="video" />
           </Field>
           <Field label="Website (opsional)">
             <input className={inputCls()} placeholder="https://tokomu.com" value={form.website} onChange={(e) => set("website", e.target.value)} />
+            <LinkPreview url={form.website} kind="site" />
           </Field>
         </Section>
         </>
@@ -737,5 +762,75 @@ function chipCls(active: boolean) {
     active
       ? "border-navy bg-navy text-white shadow-md shadow-navy/20"
       : "border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-md hover:shadow-navy/5"
+  );
+}
+
+/**
+ * Pratinjau link: thumbnail video YouTube, atau favicon + domain untuk
+ * link lain. Berfungsi sebagai verifikasi visual bahwa URL valid.
+ */
+function LinkPreview({ url, kind }: { url: string; kind: "video" | "site" }) {
+  const u = url.trim();
+  if (!u) return null;
+
+  let host = "";
+  let valid = false;
+  try {
+    const parsed = new URL(u.startsWith("http") ? u : `https://${u}`);
+    host = parsed.hostname.replace(/^www\./, "");
+    valid = host.includes(".");
+  } catch {
+    valid = false;
+  }
+  if (!valid) {
+    return (
+      <p className="mt-1.5 text-xs font-medium text-brand">
+        Link belum valid - pastikan diawali https:// dan nama domainnya benar.
+      </p>
+    );
+  }
+
+  // Thumbnail YouTube bila URL-nya video YouTube
+  const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
+  if (kind === "video" && yt) {
+    return (
+      <a
+        href={u.startsWith("http") ? u : `https://${u}`}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-2 flex items-center gap-3 rounded-xl border border-line bg-white p-2 transition hover:border-navy/40"
+      >
+        <img
+          src={`https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg`}
+          alt="Pratinjau video"
+          className="h-14 w-24 rounded-lg object-cover"
+        />
+        <span className="min-w-0">
+          <span className="block text-xs font-semibold text-navy">Video YouTube terdeteksi</span>
+          <span className="block truncate text-[11px] text-muted">{host}</span>
+        </span>
+        <ExternalLink className="ml-auto h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={u.startsWith("http") ? u : `https://${u}`}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-2 flex items-center gap-2.5 rounded-xl border border-line bg-white px-3 py-2 transition hover:border-navy/40"
+    >
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${host}&sz=64`}
+        alt=""
+        className="h-5 w-5 rounded"
+      />
+      <span className="min-w-0 truncate text-xs font-medium text-navy">{host}</span>
+      <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold text-green-700">
+        <CircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
+        Link valid
+      </span>
+    </a>
   );
 }
