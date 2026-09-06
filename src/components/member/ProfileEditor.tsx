@@ -220,7 +220,7 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
 
         <label className="block">
           <span className="mb-1.5 flex items-baseline justify-between">
-            <span className="text-xs font-semibold text-navy">Bio Singkat</span>
+            <span className="text-xs font-semibold text-navy">Bio</span>
             <span className="text-[11px] text-muted">{bio.length}/280</span>
           </span>
           <textarea
@@ -230,7 +230,7 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
               touch();
             }}
             rows={2}
-            placeholder="Ceritakan singkat tentang Anda atau produk yang Anda kembangkan…"
+            placeholder="Ceritakan tentang Anda atau usaha yang Anda kembangkan…"
             className={`${inputCls} resize-none`}
           />
         </label>
