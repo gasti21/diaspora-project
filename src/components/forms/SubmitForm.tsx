@@ -310,11 +310,12 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
                   type="button"
                   onClick={() => isDone && setStep(i)}
                   disabled={!isDone}
+                  title={isDone ? `Kembali ke: ${s.title}` : undefined}
                   className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
-                    isCurrent && "bg-navy text-white ring-4 ring-navy/10",
-                    isDone && "bg-green-100 text-green-700 hover:bg-green-200",
-                    !isCurrent && !isDone && "bg-surface text-muted"
+                    "group flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
+                    isCurrent && "bg-navy text-white ring-4 ring-navy/15 scale-105",
+                    isDone && "bg-green-100 text-green-700 ring-2 ring-green-200 hover:scale-110 hover:bg-green-200 cursor-pointer",
+                    !isCurrent && !isDone && "bg-surface text-muted ring-1 ring-line"
                   )}
                   aria-current={isCurrent ? "step" : undefined}
                 >
@@ -327,29 +328,53 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
                   )}
                 </button>
                 <div className="hidden min-w-0 sm:block">
-                  <p className={cn("truncate text-xs font-bold", isCurrent ? "text-navy" : "text-muted")}>{s.title}</p>
-                  <p className="truncate text-[11px] text-muted">{s.desc}</p>
+                  <p
+                    className={cn(
+                      "truncate text-xs font-bold transition",
+                      isCurrent && "text-navy",
+                      isDone && "text-green-700 group-hover:underline decoration-green-400 underline-offset-2",
+                      !isCurrent && !isDone && "text-muted"
+                    )}
+                  >
+                    {s.title}
+                  </p>
+                  <p className={cn("truncate text-[11px]", isCurrent ? "text-navy/60" : "text-muted/80")}>{s.desc}</p>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <span aria-hidden="true" className={cn("h-px flex-1", i < step ? "bg-green-400" : "bg-line")} />
+                  <span
+                    aria-hidden="true"
+                    className="relative h-1 flex-1 overflow-hidden rounded-full bg-line"
+                  >
+                    <span
+                      className={cn(
+                        "absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-green-400 to-green-300 transition-all duration-500 ease-out",
+                        i < step ? "w-full" : "w-0"
+                      )}
+                    />
+                  </span>
                 )}
               </li>
             );
           })}
         </ol>
         {/* Progress bar */}
-        <div
-          className="mt-4 h-1.5 overflow-hidden rounded-full bg-surface"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={STEPS.length}
-          aria-valuenow={step + 1}
-          aria-label={`Progres pengisian: langkah ${step + 1} dari ${STEPS.length}`}
-        >
+        <div className="mt-4 flex items-center gap-3">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-navy to-navy-dark transition-all duration-500 ease-out"
-            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-          />
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={STEPS.length}
+            aria-valuenow={step + 1}
+            aria-label={`Progres pengisian: langkah ${step + 1} dari ${STEPS.length}`}
+          >
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-navy to-navy-dark transition-all duration-500 ease-out"
+              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+            />
+          </div>
+          <span className="shrink-0 text-[11px] font-bold tabular-nums text-muted">
+            {Math.round(((step + 1) / STEPS.length) * 100)}%
+          </span>
         </div>
         {/* Judul langkah utk mobile (detail tersembunyi di sm) */}
         <p className="mt-3 text-sm font-bold text-navy sm:hidden">
