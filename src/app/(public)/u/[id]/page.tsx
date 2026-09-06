@@ -35,7 +35,7 @@ export async function generateMetadata({
   const member = await getPublicMember(id);
   if (!member) return {};
   return {
-    title: `${member.name} — Portofolio`,
+    title: `${member.name} - Portofolio`,
     description: `Portofolio ${member.name}: ${member.productCount} produk karya diaspora di KaryaDiaspora.`,
   };
 }

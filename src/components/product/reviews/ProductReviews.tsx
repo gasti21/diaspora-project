@@ -321,7 +321,7 @@ export function ProductReviews({
           >
             <h3 className="text-sm font-bold">
               {editing ? "Edit Ulasanmu" : "Tulis Ulasan"}
-              {editing && <span className="ml-2 text-xs font-normal text-muted">— ubah lalu simpan kembali</span>}
+              {editing && <span className="ml-2 text-xs font-normal text-muted">- ubah lalu simpan kembali</span>}
             </h3>
             <div className="mt-3 flex items-center gap-1" role="radiogroup" aria-label="Rating">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -442,7 +442,7 @@ export function ProductReviews({
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line bg-surface/60 p-6 text-center">
           <p className="text-sm text-muted">
-            <span className="font-semibold text-navy">Masuk</span> untuk menulis ulasan — semua orang
+            <span className="font-semibold text-navy">Masuk</span> untuk menulis ulasan - semua orang
             bisa membaca ulasannya.
           </p>
           <button

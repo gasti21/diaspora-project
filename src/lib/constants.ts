@@ -28,7 +28,7 @@ export const STAGE_META: Record<
   Stage,
   { icon: typeof Lightbulb; desc: string; color: string }
 > = {
-  Ide: { icon: Lightbulb, desc: "Baru gagasan — belum ada contoh fisiknya", color: "text-slate-500" },
+  Ide: { icon: Lightbulb, desc: "Baru gagasan - belum ada contoh fisiknya", color: "text-slate-500" },
   Prototipe: { icon: FlaskConical, desc: "Sudah ada contoh yang berfungsi", color: "text-amber-500" },
   Produksi: { icon: Factory, desc: "Sudah diproduksi dan siap dipesan", color: "text-blue-500" },
   "Sudah Dipasarkan": { icon: ShoppingBag, desc: "Sudah dijual dan sampai ke konsumen", color: "text-green-500" },
@@ -116,5 +116,5 @@ export function slugify(text: string) {
     .slice(0, 80);
 }
 
-/** Event kustom: favorit berubah — sinkronisasi antar komponen di tab yang sama. */
+/** Event kustom: favorit berubah - sinkronisasi antar komponen di tab yang sama. */
 export const FAVORITES_EVENT = "kd:favorites";

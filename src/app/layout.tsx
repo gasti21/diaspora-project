@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "KaryaDiaspora",
-    template: "%s — KaryaDiaspora",
+    template: "%s - KaryaDiaspora",
   },
   description:
     "Platform Konektivitas Bisnis Diaspora Indonesia. Jelajahi produk, bisnis, aplikasi, riset, dan karya kreatif buatan diaspora Indonesia di seluruh dunia.",

@@ -208,7 +208,7 @@ interface Resolved {
 
 /**
  * Pemilih lokasi ala aplikasi peta modern:
- * - Pin selalu di tengah peta (crosshair) — geser peta = memilih titik.
+ * - Pin selalu di tengah peta (crosshair) - geser peta = memilih titik.
  * - Tombol lokasiku di kanan-bawah peta: kunci posisi GPS perangkat.
  * - Negara & kota terisi otomatis via reverse geocoding server-side.
  */
@@ -335,7 +335,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
       (pos) => {
         const { latitude, longitude, accuracy: acc } = pos.coords;
         setAccuracy(acc);
-        // fix pertama SELALU diabaikan sebagai final (sering cache Wi-Fi) — hanya progres
+        // fix pertama SELALU diabaikan sebagai final (sering cache Wi-Fi) - hanya progres
         if (acc < bestAccRef.current) {
           const isFirst = bestAccRef.current === Infinity;
           bestAccRef.current = acc;
@@ -344,7 +344,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
             acc <= 25 ? 18 : acc <= 60 ? 17 : acc <= 200 ? 16 : acc <= 1000 ? 15 : 14;
           setTarget({ lat: latitude, lng: longitude, zoom });
           void applyCoords(latitude, longitude, false);
-          if (isFirst) return; // jangan kunci di fix pertama walau "akhirnya" — tunggu GPS menyelesaikan
+          if (isFirst) return; // jangan kunci di fix pertama walau "akhirnya" - tunggu GPS menyelesaikan
         }
         // cukup presisi atau sudah lama tidak membaik -> kunci
         const improvedRecently = Date.now() - lastImproveRef.current < 4000;
@@ -353,7 +353,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
           if (acc > 30) {
             setFineTune(true);
             toast.info(
-              `Akurasi ±${Math.round(acc)} m — peta pindah ke satelit. Geser sampai crosshair tepat di titikmu.`,
+              `Akurasi ±${Math.round(acc)} m - peta pindah ke satelit. Geser sampai crosshair tepat di titikmu.`,
               { title: "Posisi terkunci" }
             );
           }
@@ -367,7 +367,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
           toast.error("GPS sinyal lemah. Coba lagi atau geser peta manual.");
         }
       },
-      // maximumAge: 0 — WAJIB. Angka selain 0 membolehkan browser memakai posisi cache (stale).
+      // maximumAge: 0 - WAJIB. Angka selain 0 membolehkan browser memakai posisi cache (stale).
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
 
@@ -378,14 +378,14 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
         if (Number.isFinite(best) && best < Infinity && best > 30) {
           setFineTune(true);
           toast.info(
-            `Akurasi ±${Math.round(best)} m — peta pindah ke satelit. Geser sampai crosshair tepat di titikmu.`
+            `Akurasi ±${Math.round(best)} m - peta pindah ke satelit. Geser sampai crosshair tepat di titikmu.`
           );
         }
       }
     }, 15000);
   }
 
-  // AUTO: deteksi sekali saat halaman dibuka — satu fix fresh langsung (perilaku terbukti
+  // AUTO: deteksi sekali saat halaman dibuka - satu fix fresh langsung (perilaku terbukti
   // akurat di desktop), maximumAge: 0 agar bukan posisi cache.
   const autoTriedRef = useRef(false);
   useEffect(() => {
@@ -401,7 +401,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
         setTarget({ lat: latitude, lng: longitude, zoom });
         void applyCoords(latitude, longitude, false);
       },
-      () => {}, // ditolak/sinyal lemah diam saja — user bisa pakai tombol 🎯
+      () => {}, // ditolak/sinyal lemah diam saja - user bisa pakai tombol 🎯
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -470,7 +470,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
                   {" "}· {[resolved.city, resolved.country].filter(Boolean).join(", ")}
                 </span>
               )}
-              <span className="text-muted/60"> — geser peta untuk menyesuaikan</span>
+              <span className="text-muted/60"> - geser peta untuk menyesuaikan</span>
             </p>
           ) : (
             <p className="text-xs text-muted">
@@ -485,7 +485,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
       <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="block text-sm font-semibold">Negara</label>
-          <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta — bisa dikoreksi</p>
+          <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta - bisa dikoreksi</p>
           <select
             aria-label="Negara"
             className={cn(
@@ -507,7 +507,7 @@ export function LocationPicker({ country, city, onCountry, onCity, onCoordinates
         </div>
         <div>
           <label className="block text-sm font-semibold">Kota</label>
-          <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta — bisa dikoreksi</p>
+          <p className="mt-0.5 text-xs text-muted">Terisi otomatis dari peta - bisa dikoreksi</p>
           <input
             aria-label="Kota"
             className="mt-2 w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-muted/60 hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"

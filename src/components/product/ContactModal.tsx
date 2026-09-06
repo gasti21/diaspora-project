@@ -360,7 +360,7 @@ export function ContactModal({
             <p className="flex min-w-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />
               <span className="truncate">
-                Lokasi Seller{hasCoords ? " — Koordinat GPS" : ""}
+                Lokasi Seller{hasCoords ? " - Koordinat GPS" : ""}
               </span>
             </p>
             <a
@@ -381,7 +381,7 @@ export function ContactModal({
             />
           ) : (
             <p className="flex h-48 items-center justify-center bg-surface px-4 text-center text-xs text-muted">
-              Koordinat GPS belum tersedia untuk produk ini — lokasi tercatat:{" "}
+              Koordinat GPS belum tersedia untuk produk ini - lokasi tercatat:{" "}
               {formatLocation(product)}
             </p>
           )}

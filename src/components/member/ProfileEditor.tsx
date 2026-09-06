@@ -236,7 +236,7 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
             className="mt-0.5 h-4 w-4 accent-[#d32f2f]"
           />
           <span className="text-sm leading-relaxed text-muted">
-            <span className="font-semibold text-navy">Terima email notifikasi</span> —
+            <span className="font-semibold text-navy">Terima email notifikasi</span> -
             kabar produk tayang, balasan chat support, dan info penting akun.
           </span>
         </label>

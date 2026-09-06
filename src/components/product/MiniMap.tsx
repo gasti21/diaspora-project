@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
 /**
- * Peta mini interaktif untuk modal kontak — pakai tile same-origin via
+ * Peta mini interaktif untuk modal kontak - pakai tile same-origin via
  * /api/map-tile (proxy server) sehingga tidak bisa diblokir ekstensi/setelan
  * browser. Pin dipasang persis di koordinat GPS seller saat pengajuan.
  */

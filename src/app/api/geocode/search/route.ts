@@ -68,7 +68,7 @@ export async function GET(req: Request) {
     }
     // Tier ranking ala Google Maps: tier-1 dekat (relevansi Nominatim di dalam
     // radius, diurutkan jarak), tier-2 sesenegara (relevansi), tier-3 global.
-    // JANGAN sort ulang semua berdasarkan jarak — POI persis-matching di kota
+    // JANGAN sort ulang semua berdasarkan jarak - POI persis-matching di kota
     // lain harus bisa mengalahkan jalan kecil yang sekadar lebih dekat.
     const seen = new Set<string>();
     const toResult = (d: { lat: string; lon: string; display_name: string }) => ({

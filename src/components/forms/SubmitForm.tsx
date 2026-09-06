@@ -364,7 +364,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       </nav>
 
       <div key={step} className="animate-step-in mt-5 grid gap-5 lg:grid-cols-2">
-        {/* ===== LANGKAH 1 — Informasi Produk ===== */}
+        {/* ===== LANGKAH 1 - Informasi Produk ===== */}
         {step === 0 && (
           <Section number={1} title="Informasi Produk" wide>
           <Field label="Nama Produk" required error={errors.name}>
@@ -436,7 +436,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           />
           <p className="hidden text-xs text-muted lg:col-span-2 sm:block">
             <Info className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
-            Tahun berdiri & jenis pelaku kini diatur di Halaman Profil — tampil otomatis di semua produk Anda.
+            Tahun berdiri & jenis pelaku kini diatur di Halaman Profil - tampil otomatis di semua produk Anda.
           </p>
           <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
             <textarea rows={3} maxLength={1000} className={cn(inputCls(), "resize-none")} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
@@ -444,7 +444,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         </Section>
         )}
 
-        {/* ===== LANGKAH 2 — Deskripsi & Foto ===== */}
+        {/* ===== LANGKAH 2 - Deskripsi & Foto ===== */}
         {step === 1 && (
         <>
         <Section number={2} title="Deskripsi Produk">
@@ -511,7 +511,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         </>
         )}
 
-        {/* ===== LANGKAH 3 — Kontak & Kirim ===== */}
+        {/* ===== LANGKAH 3 - Kontak & Kirim ===== */}
         {step === 2 && (
         <>
 

@@ -239,7 +239,7 @@ export function CategoriesView({ categories }: Props) {
 
       <p className="text-xs text-muted">
         Catatan: slug dibuat otomatis dari nama. Kategori yang masih dipakai produk tidak
-        dapat dihapus — pindahkan produknya dulu.
+        dapat dihapus - pindahkan produknya dulu.
       </p>
     </div>
   );

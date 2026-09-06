@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Proxy reverse geocoding (same-origin) — dipanggil server sehingga tidak
+ * Proxy reverse geocoding (same-origin) - dipanggil server sehingga tidak
  * kena blokir ekstensi/setelan browser terhadap API pihak ketiga.
  * Provider berantai: Nominatim (OSM) -> BigDataCloud.
  */
