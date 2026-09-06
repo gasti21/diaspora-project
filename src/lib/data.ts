@@ -16,7 +16,10 @@ import type {
   OwnerContact,
   Product,
   ProductFilters,
+  ProductReview,
   ProductStatus,
+  ReviewMediaItem,
+  ReviewSummary,
   SubmissionPayload,
 } from "@/lib/types";
 
@@ -31,7 +34,10 @@ interface DbRow {
   stage: string;
   country: string;
   city: string | null;
-  short_description: string;
+  short_description: string | null;
+  /** Koordinat GPS saat pengajuan (null untuk produk lama tanpa deteksi lokasi). */
+  latitude: number | null;
+  longitude: number | null;
   long_description: string;
   background_types: string[] | null;
   additional_notes: string | null;
@@ -65,7 +71,9 @@ function toProduct(row: DbRow): Product {
     stage: row.stage as Product["stage"],
     country: row.country,
     city: row.city,
-    shortDescription: row.short_description,
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
+    shortDescription: row.short_description ?? "",
     longDescription: row.long_description,
     backgroundTypes: row.background_types ?? [],
     additionalNotes: row.additional_notes,
@@ -94,7 +102,7 @@ function toProduct(row: DbRow): Product {
  * Query via service-role (admin client) bebas memakai "*".
  */
 const SAFE_PRODUCT_COLUMNS =
-  "id, slug, name, category_id, stage, country, city, short_description, long_description, background_types, additional_notes, images, video_url, website, year_founded, needs, needs_other, owner_name, status, review_note, submitted_by, created_at, updated_at";
+  "id, slug, name, category_id, stage, country, city, latitude, longitude, short_description, long_description, background_types, additional_notes, images, video_url, website, year_founded, needs, needs_other, owner_name, status, review_note, submitted_by, created_at, updated_at";
 
 /* ============================ PUBLIK ============================ */
 
@@ -200,6 +208,7 @@ export async function getPublishedProductContact(
   // Fallback: WA yang tersimpan di produk tetap tampil sebagai ikon WhatsApp
   // meskipun pemilik belum melengkapi sosmed di profilnya.
   let socials: OwnerContact["socials"] = null;
+  let ownerProfile: OwnerContact["profile"] = null;
   if (data.owner_whatsapp) {
     socials = {
       instagram: null,
@@ -213,7 +222,7 @@ export async function getPublishedProductContact(
     const { data: profile } = await client
       .from("profiles")
       .select(
-        "instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
+        "instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url, full_name, avatar_url, created_at"
       )
       .eq("id", data.submitted_by)
       .maybeSingle();
@@ -225,6 +234,11 @@ export async function getPublishedProductContact(
         twitter: profile.twitter_url,
         facebook: profile.facebook_url,
       };
+      ownerProfile = {
+        avatarUrl: profile.avatar_url ?? null,
+        fullName: profile.full_name ?? null,
+        memberSince: profile.created_at ?? null,
+      };
     }
   }
 
@@ -235,6 +249,7 @@ export async function getPublishedProductContact(
     ownerWhatsapp: data.owner_whatsapp,
     website: data.website,
     socials,
+    profile: ownerProfile,
   };
 }
 
@@ -346,6 +361,9 @@ export async function updateMySubmission(
       stage: payload.stage,
       country: payload.country,
       city: payload.city || null,
+      latitude: payload.latitude ?? null,
+      longitude: payload.longitude ?? null,
+
       year_founded: payload.yearFounded || null,
       background_types: payload.backgroundTypes,
       additional_notes: payload.additionalNotes || null,
@@ -414,6 +432,9 @@ export async function createSubmission(
       stage: payload.stage,
       country: payload.country,
       city: payload.city || null,
+      latitude: payload.latitude ?? null,
+      longitude: payload.longitude ?? null,
+
       year_founded: payload.yearFounded || null,
       background_types: payload.backgroundTypes,
       additional_notes: payload.additionalNotes || null,
@@ -967,6 +988,9 @@ export async function adminUpdateProductFields(
       stage: payload.stage,
       country: payload.country,
       city: payload.city || null,
+      latitude: payload.latitude ?? null,
+      longitude: payload.longitude ?? null,
+
       year_founded: payload.yearFounded || null,
       background_types: payload.backgroundTypes,
       additional_notes: payload.additionalNotes || null,
@@ -1420,6 +1444,205 @@ export async function uploadProductImage(
   if (uploadError) return { error: uploadError.message };
 
   const { data } = admin.storage.from("product-images").getPublicUrl(path);
+  return { url: data.publicUrl };
+}
+
+/* ======================= ULASAN PRODUK ======================= */
+
+interface ReviewRow {
+  id: string;
+  product_id: string;
+  user_id: string;
+  rating: number;
+  content: string;
+  media: ReviewMediaItem[] | null;
+  author_name: string;
+  author_avatar: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+function toReview(row: ReviewRow): ProductReview {
+  return {
+    id: row.id,
+    productId: row.product_id,
+    userId: row.user_id,
+    rating: row.rating,
+    content: row.content,
+    media: Array.isArray(row.media) ? row.media : [],
+    authorName: row.author_name,
+    authorAvatar: row.author_avatar,
+    createdAt: row.created_at,
+    // Ulasan lama sebelum migrasi 0014: pakai created_at sebagai fallback.
+    updatedAt: row.updated_at ?? row.created_at,
+  };
+}
+
+function summarize(reviews: ProductReview[]): ReviewSummary {
+  const total = reviews.length;
+  const distribution: [number, number, number, number, number] = [0, 0, 0, 0, 0];
+  let sum = 0;
+  let withMedia = 0;
+  for (const r of reviews) {
+    distribution[r.rating - 1] += 1;
+    sum += r.rating;
+    if (r.media.length > 0) withMedia += 1;
+  }
+  return {
+    average: total > 0 ? sum / total : 0,
+    total,
+    withMedia,
+    distribution,
+  };
+}
+
+/** Semua ulasan satu produk (publik - tidak butuh login). */
+export async function getProductReviews(productId: string): Promise<ProductReview[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("product_reviews")
+    .select("*")
+    .eq("product_id", productId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return (data ?? []).map(toReview);
+}
+
+/** Ringkasan ulasan satu produk (rata-rata, distribusi bintang, dll). */
+export async function getReviewSummary(productId: string): Promise<ReviewSummary> {
+  const reviews = await getProductReviews(productId);
+  return summarize(reviews);
+}
+
+/**
+ * Simpan ulasan baru (hanya user login, 1 ulasan per user per produk).
+ * Nama & avatar penulis disimpan denormalisasi agar bisa dibaca publik
+ * (RLS profiles membatasi baca profil antar user).
+ */
+export async function createProductReview(input: {
+  productId: string;
+  userId: string;
+  authorName: string;
+  authorAvatar?: string | null;
+  rating: number;
+  content: string;
+  media: ReviewMediaItem[];
+}): Promise<{ review?: ProductReview; error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+
+  // Cegah dobel ulasan dari user yang sama untuk produk yang sama.
+  const { data: existing } = await supabase
+    .from("product_reviews")
+    .select("id")
+    .eq("product_id", input.productId)
+    .eq("user_id", input.userId)
+    .maybeSingle();
+  if (existing) {
+    return { error: "Anda sudah pernah memberi ulasan untuk produk ini." };
+  }
+
+  const { data, error } = await supabase
+    .from("product_reviews")
+    .insert({
+      product_id: input.productId,
+      user_id: input.userId,
+      rating: input.rating,
+      content: input.content,
+      media: input.media,
+      author_name: input.authorName,
+      author_avatar: input.authorAvatar ?? null,
+    })
+    .select("*")
+    .single();
+
+  if (error) return { error: error.message };
+  return { review: toReview(data as ReviewRow) };
+}
+
+/** Ubah ulasan milik sendiri (rating/teks/media). */
+export async function updateMyProductReview(input: {
+  productId: string;
+  userId: string;
+  rating: number;
+  content: string;
+  media: ReviewMediaItem[];
+}): Promise<{ review?: ProductReview; error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("product_reviews")
+    .update({
+      rating: input.rating,
+      content: input.content,
+      media: input.media,
+      // Ala Google Maps: tanggal yang tampil = edit terakhir.
+      updated_at: new Date().toISOString(),
+    })
+    .eq("product_id", input.productId)
+    .eq("user_id", input.userId)
+    .select("*")
+    .single();
+
+  if (error) return { error: error.message };
+  if (!data) return { error: "Ulasan tidak ditemukan." };
+  return { review: toReview(data as ReviewRow) };
+}
+
+/** Hapus ulasan milik sendiri. */
+export async function deleteMyProductReview(
+  productId: string,
+  userId: string
+): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("product_reviews")
+    .delete()
+    .eq("product_id", productId)
+    .eq("user_id", userId);
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Upload media ulasan (foto/video) ke Storage bucket `review-media`. */
+export async function uploadReviewMedia(
+  file: File,
+  userId: string,
+  maxFilesPerUser?: number
+): Promise<{ url?: string; error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return { error: "SUPABASE_SERVICE_ROLE_KEY belum diisi di .env.local." };
+
+  const admin = createAdminClient();
+
+  if (maxFilesPerUser !== undefined) {
+    const { data: existing, error: listError } = await admin.storage
+      .from("review-media")
+      .list(userId, { limit: 1000 });
+    if (listError) return { error: listError.message };
+    if ((existing?.length ?? 0) >= maxFilesPerUser) {
+      return {
+        error: `Kuota media ulasan penuh (maks ${maxFilesPerUser} file). Coba lagi nanti.`,
+      };
+    }
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { error: uploadError } = await admin.storage
+    .from("review-media")
+    .upload(path, await file.arrayBuffer(), {
+      contentType: file.type,
+      upsert: false,
+    });
+  if (uploadError) return { error: uploadError.message };
+
+  const { data } = admin.storage.from("review-media").getPublicUrl(path);
   return { url: data.publicUrl };
 }
 

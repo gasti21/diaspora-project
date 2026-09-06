@@ -30,6 +30,9 @@ export interface Product {
   stage: Stage;
   country: string;
   city?: string | null;
+  /** Koordinat GPS lokasi saat pengajuan (null bila tanpa deteksi lokasi). */
+  latitude?: number | null;
+  longitude?: number | null;
   shortDescription: string;
   longDescription: string;
   backgroundTypes: string[];
@@ -109,6 +112,9 @@ export interface SubmissionPayload {
   country: string;
   city?: string;
   yearFounded?: number | null;
+  /** Koordinat GPS dari deteksi lokasi saat pengajuan (opsional). */
+  latitude?: number;
+  longitude?: number;
   backgroundTypes: string[];
   additionalNotes?: string;
   shortDescription: string;
@@ -121,6 +127,35 @@ export interface SubmissionPayload {
   ownerWhatsapp: string;
   needs: string[];
   needsOther?: string;
+}
+
+/** Item media pada ulasan: foto atau video (disimpan sebagai JSON di kolom media). */
+export interface ReviewMediaItem {
+  type: "image" | "video";
+  url: string;
+}
+
+/** Ulasan produk - hanya user login bisa menulis, semua orang bisa membaca. */
+export interface ProductReview {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  content: string;
+  media: ReviewMediaItem[];
+  authorName: string;
+  authorAvatar?: string | null;
+  createdAt: string;
+  /** Waktu edit terakhir (ala Google Maps: tanggal yang ditampilkan). */
+  updatedAt: string;
+}
+
+/** Ringkasan ulasan sebuah produk (ala Tokopedia). */
+export interface ReviewSummary {
+  average: number;
+  total: number;
+  withMedia: number;
+  distribution: [number, number, number, number, number];
 }
 
 /** Kontak pemilik produk - hanya dikirim via endpoint rate-limited. */
@@ -137,5 +172,11 @@ export interface OwnerContact {
     linkedin: string | null;
     twitter: string | null;
     facebook: string | null;
+  } | null;
+  /** Detail profil publik pemilik (foto, nama, sejak kapan bergabung). */
+  profile: {
+    avatarUrl: string | null;
+    fullName: string | null;
+    memberSince: string | null;
   } | null;
 }

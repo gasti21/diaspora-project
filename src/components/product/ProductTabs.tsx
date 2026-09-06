@@ -3,13 +3,22 @@
 
 import { useState } from "react";
 import { FileText } from "lucide-react";
-import type { Product } from "@/lib/types";
-import { ProductImage } from "./ProductImage";
+import type { Product, ProductReview } from "@/lib/types";
+import { ProductReviews } from "./reviews/ProductReviews";
 import { cn, formatLocation } from "@/lib/utils";
 
-const TABS = ["Deskripsi", "Tentang Produk", "Galeri", "Dokumen"] as const;
+const TABS = ["Deskripsi", "Tentang Produk", "Ulasan", "Dokumen"] as const;
 
-export function ProductTabs({ product }: { product: Product }) {
+export function ProductTabs({
+  product,
+  viewer,
+  reviews,
+}: {
+  product: Product;
+  /** User login saat ini (null = tamu) - dipakai tab Ulasan. */
+  viewer: { id: string; name: string; avatarUrl?: string } | null;
+  reviews: ProductReview[];
+}) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Deskripsi");
 
   return (
@@ -100,22 +109,8 @@ export function ProductTabs({ product }: { product: Product }) {
           </div>
         )}
 
-        {tab === "Galeri" && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {(product.images.length > 0
-              ? product.images
-              : [null, null, null]
-            ).map((img, i) => (
-              <div key={i} className="aspect-[4/3] overflow-hidden rounded-xl bg-surface">
-                <ProductImage
-                  src={img}
-                  alt={`${product.name} - galeri ${i + 1}`}
-                  categorySlug={product.categorySlug}
-                  className="h-full w-full"
-                />
-              </div>
-            ))}
-          </div>
+        {tab === "Ulasan" && (
+          <ProductReviews productId={product.id} viewer={viewer} initialReviews={reviews} />
         )}
 
         {tab === "Dokumen" && (

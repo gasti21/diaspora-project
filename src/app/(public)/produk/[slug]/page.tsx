@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   ChevronLeft,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { ImageCarousel } from "@/components/product/ImageCarousel";
@@ -12,7 +13,7 @@ import { ProductTabs } from "@/components/product/ProductTabs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
-import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds } from "@/lib/data";
+import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds, getProductReviews } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { ViewTracker } from "@/components/product/ViewTracker";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -65,6 +66,7 @@ export default async function ProductDetailPage({
   const viewer = await getSessionUser();
   const favoriteIds = viewer ? await listMyFavoriteProductIds(viewer.id) : new Set<string>();
   const related = await getRelatedProducts(product);
+  const reviews = await getProductReviews(product.id);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -83,10 +85,11 @@ export default async function ProductDetailPage({
             images={product.images}
             alt={product.name}
             categorySlug={product.categorySlug}
+            videoUrl={product.videoUrl}
           />
 
           <div className="hidden lg:block">
-            <ProductTabs product={product} />
+            <ProductTabs product={product} viewer={viewer} reviews={reviews} />
           </div>
         </div>
 
@@ -107,11 +110,13 @@ export default async function ProductDetailPage({
 
           {product.needs.length > 0 && (
             <div className="mt-5 rounded-xl border border-line bg-white p-4">
-              <h2 className="text-sm font-bold">Sedang Mencari</h2>
-              <p className="mt-0.5 text-xs text-muted">
-                Pemilik produk ini sedang mencari:
-              </p>
-              <div className="mt-2.5 flex flex-wrap gap-2">
+              <h2 className="flex items-center gap-2 text-sm font-bold">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-soft text-brand">
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                </span>
+                Sedang Mencari
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
                 {product.needs.map((n) => (
                   <NeedTag key={n} need={n} />
                 ))}
@@ -138,7 +143,7 @@ export default async function ProductDetailPage({
 
       {/* Tabs tampil di bawah pada layar kecil */}
       <div className="lg:hidden">
-        <ProductTabs product={product} />
+        <ProductTabs product={product} viewer={viewer} reviews={reviews} />
       </div>
 
       {/* ===== Produk Terkait ===== */}

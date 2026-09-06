@@ -69,6 +69,21 @@ export const IMAGE_MAX_MB = 5;
 export const IMAGE_TYPES = ["image/jpeg", "image/png"];
 export const MAX_IMAGES = 5;
 
+/* ===================== ULASAN PRODUK ===================== */
+/** Jumlah media (foto+video gabungan) maksimal per ulasan. */
+export const MAX_REVIEW_MEDIA = 5;
+export const REVIEW_IMAGE_MAX_MB = 5;
+export const REVIEW_VIDEO_MAX_MB = 50;
+/** Batas panjang teks ulasan (harus sama dengan check DB di migrasi 0013). */
+export const REVIEW_MAX_LENGTH = 1000;
+export const REVIEW_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const REVIEW_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+/** Rate limit ulasan: maks 5 ulasan per jam per user. */
+export const REVIEW_RATE_LIMIT = 5;
+export const REVIEW_RATE_WINDOW_MINUTES = 60;
+/** Kuota file media ulasan per user di bucket review-media. */
+export const MAX_REVIEW_MEDIA_FILES = 15;
+
 export function categoryBySlug(slug?: string | null) {
   return CATEGORIES.find((c) => c.slug === slug);
 }
