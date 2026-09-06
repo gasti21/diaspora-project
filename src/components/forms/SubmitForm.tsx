@@ -299,51 +299,57 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
   return (
     <form onSubmit={handleSubmit} className="mt-8">
       {/* ===== Stepper wizard ===== */}
-      <nav aria-label="Langkah pengisian" className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
-        <ol className="flex items-center gap-2 sm:gap-3">
+      <nav aria-label="Langkah pengisian" className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-6">
+        <ol className="flex items-start">
           {STEPS.map((s, i) => {
             const isDone = i < step;
             const isCurrent = i === step;
             return (
-              <li key={s.title} className="flex flex-1 items-center gap-2 sm:gap-3">
-                <button
-                  type="button"
-                  onClick={() => isDone && setStep(i)}
-                  disabled={!isDone}
-                  title={isDone ? `Kembali ke: ${s.title}` : undefined}
-                  className={cn(
-                    "group flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
-                    isCurrent && "bg-navy text-white ring-4 ring-navy/15 scale-105",
-                    isDone && "bg-green-100 text-green-700 ring-2 ring-green-200 hover:scale-110 hover:bg-green-200 cursor-pointer",
-                    !isCurrent && !isDone && "bg-surface text-muted ring-1 ring-line"
-                  )}
-                  aria-current={isCurrent ? "step" : undefined}
-                >
-                  {isDone ? (
-                    <CircleCheck className="h-4 w-4" aria-hidden="true" />
-                  ) : isCurrent ? (
-                    <s.icon className="h-4 w-4" aria-hidden="true" />
-                  ) : (
-                    i + 1
-                  )}
-                </button>
-                <div className="hidden min-w-0 sm:block">
-                  <p
+              <li key={s.title} className={cn("flex items-start", i < STEPS.length - 1 && "flex-1")}>
+                <div className="flex w-24 flex-col items-center gap-2 text-center sm:w-32">
+                  <button
+                    type="button"
+                    onClick={() => isDone && setStep(i)}
+                    disabled={!isDone}
+                    title={isDone ? `Kembali ke: ${s.title}` : undefined}
                     className={cn(
-                      "truncate text-xs font-bold transition",
-                      isCurrent && "text-navy",
-                      isDone && "text-green-700 group-hover:underline decoration-green-400 underline-offset-2",
-                      !isCurrent && !isDone && "text-muted"
+                      "group flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-sm transition",
+                      isCurrent &&
+                        "bg-navy text-white ring-4 ring-navy/15 scale-110 shadow-md shadow-navy/25",
+                      isDone &&
+                        "bg-green-500 text-white ring-4 ring-green-100 hover:scale-110 hover:bg-green-600 cursor-pointer",
+                      !isCurrent && !isDone && "border-2 border-line bg-white text-muted"
                     )}
+                    aria-current={isCurrent ? "step" : undefined}
                   >
-                    {s.title}
-                  </p>
-                  <p className={cn("truncate text-[11px]", isCurrent ? "text-navy/60" : "text-muted/80")}>{s.desc}</p>
+                    {isDone ? (
+                      <CircleCheck className="h-5 w-5" aria-hidden="true" />
+                    ) : isCurrent ? (
+                      <s.icon className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      i + 1
+                    )}
+                  </button>
+                  <div className="min-w-0">
+                    <p
+                      className={cn(
+                        "truncate text-xs font-bold transition",
+                        isCurrent && "text-navy",
+                        isDone && "text-green-700 group-hover:underline decoration-green-400 underline-offset-2",
+                        !isCurrent && !isDone && "text-muted"
+                      )}
+                    >
+                      {s.title}
+                    </p>
+                    <p className={cn("mt-0.5 hidden truncate text-[11px] leading-tight sm:block", isCurrent ? "text-navy/60" : "text-muted/80")}>
+                      {s.desc}
+                    </p>
+                  </div>
                 </div>
                 {i < STEPS.length - 1 && (
                   <span
                     aria-hidden="true"
-                    className="relative h-1 flex-1 overflow-hidden rounded-full bg-line"
+                    className="relative mx-1 mt-5 h-1 flex-1 overflow-hidden rounded-full bg-line"
                   >
                     <span
                       className={cn(
@@ -358,7 +364,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           })}
         </ol>
         {/* Progress bar */}
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
           <div
             className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface"
             role="progressbar"
