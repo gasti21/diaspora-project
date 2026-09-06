@@ -1,6 +1,6 @@
 export type ProductStatus = "pending" | "published" | "revision" | "rejected";
 
-export type Stage = "Sudah Dijual" | "Prototype" | "Riset";
+export type Stage = "Ide" | "Prototipe" | "Produksi" | "Sudah Dipasarkan";
 
 export type Need =
   | "Investor"

@@ -93,16 +93,17 @@ export const STATUS_META: Record<
 export const CATEGORY_STYLES: Record<string, string> = {
   "makanan-minuman": "bg-amber-50 text-amber-700",
   "aplikasi-software": "bg-blue-50 text-blue-700",
-  "umkm-kerajinan": "bg-orange-50 text-orange-700",
+  "kriya-kerajinan": "bg-orange-50 text-orange-700",
   "fashion-accessories": "bg-pink-50 text-pink-700",
-  "riset-inovasi": "bg-green-50 text-green-700",
+  "teknologi-inovasi": "bg-green-50 text-green-700",
   "pendidikan-edukasi": "bg-indigo-50 text-indigo-700",
 };
 
 export const STAGE_STYLES: Record<string, string> = {
-  "Sudah Dijual": "bg-green-100 text-green-700",
-  Prototype: "bg-blue-100 text-blue-700",
-  Riset: "bg-teal-100 text-teal-700",
+  Ide: "bg-slate-100 text-slate-700",
+  Prototipe: "bg-amber-100 text-amber-700",
+  Produksi: "bg-blue-100 text-blue-700",
+  "Sudah Dipasarkan": "bg-green-100 text-green-700",
 };
 
 /** Palet untuk kategori di luar daftar (dipilih deterministik dari slug). */

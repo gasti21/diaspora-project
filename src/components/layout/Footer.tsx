@@ -46,7 +46,7 @@ export async function Footer() {
           <ul className="space-y-2.5 text-sm text-white/70">
             <li><Link href="/explore?kategori=makanan-minuman" className="transition-colors duration-200 hover:text-white">Makanan &amp; Minuman</Link></li>
             <li><Link href="/explore?kategori=aplikasi-software" className="transition-colors duration-200 hover:text-white">Aplikasi &amp; Software</Link></li>
-            <li><Link href="/explore?kategori=umkm-kerajinan" className="transition-colors duration-200 hover:text-white">UMKM &amp; Kerajinan</Link></li>
+            <li><Link href="/explore?kategori=kriya-kerajinan" className="transition-colors duration-200 hover:text-white">Kriya &amp; Kerajinan</Link></li>
             <li><Link href="/explore" className="transition-colors duration-200 hover:text-white">Lainnya</Link></li>
           </ul>
         </div>

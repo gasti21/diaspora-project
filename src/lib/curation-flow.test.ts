@@ -48,6 +48,6 @@ describe("kontrak alur kurasi produk", () => {
 
 describe("slugify (guard duplikat kategori)", () => {
   it("slug konsisten untuk pengecekan duplikat", () => {
-    expect(slugify("Riset & Inovasi")).toBe(slugify("riset & inovasi"));
+    expect(slugify("Teknologi & Inovasi")).toBe(slugify("teknologi & inovasi"));
   });
 });

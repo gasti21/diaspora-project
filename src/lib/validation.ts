@@ -1,7 +1,7 @@
 import { MAX_IMAGES } from "@/lib/constants";
 import type { Stage, SubmissionPayload } from "@/lib/types";
 
-const STAGE_VALUES: Stage[] = ["Sudah Dijual", "Prototype", "Riset"];
+const STAGE_VALUES: Stage[] = ["Ide", "Prototipe", "Produksi", "Sudah Dipasarkan"];
 
 /**
  * Validasi payload pengajuan/edisi produk.

@@ -153,8 +153,8 @@ export default async function HomePage() {
               "placeholders/makanan-minuman.svg",
               "placeholders/aplikasi-software.svg",
               "placeholders/fashion-accessories.svg",
-              "placeholders/umkm-kerajinan.svg",
-              "placeholders/riset-inovasi.svg",
+              "placeholders/kriya-kerajinan.svg",
+              "placeholders/teknologi-inovasi.svg",
               "placeholders/pendidikan-edukasi.svg",
             ].map((src, i) => (
               <img

@@ -25,8 +25,8 @@ create table if not exists public.products (
   slug text unique not null,
   name text not null,
   category_id uuid references public.categories(id),
-  stage text not null default 'Prototype'
-    check (stage in ('Sudah Dijual', 'Prototype', 'Riset')),
+  stage text not null default 'Prototipe'
+    check (stage in ('Sudah Dipasarkan', 'Prototipe', 'Ide')),
   country text not null,
   city text,
   short_description text not null check (char_length(short_description) <= 220),
@@ -134,9 +134,9 @@ create trigger on_auth_user_created
 insert into public.categories (slug, name) values
   ('makanan-minuman', 'Makanan & Minuman'),
   ('aplikasi-software', 'Aplikasi & Software'),
-  ('umkm-kerajinan', 'UMKM & Kerajinan'),
+  ('kriya-kerajinan', 'Kriya & Kerajinan'),
   ('fashion-accessories', 'Fashion & Accessories'),
-  ('riset-inovasi', 'Riset & Inovasi'),
+  ('teknologi-inovasi', 'Teknologi & Inovasi'),
   ('pendidikan-edukasi', 'Pendidikan & Edukasi')
 on conflict (slug) do nothing;
 
@@ -148,7 +148,7 @@ insert into public.products
 values
   ('cemilan-sehat-nusantara', 'Cemilan Sehat Nusantara',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Sudah Dijual', 'Malaysia', 'Kuala Lumpur',
+   'Sudah Dipasarkan', 'Malaysia', 'Kuala Lumpur',
    'Cemilan sehat terbuat dari bahan alami khas Indonesia tanpa pengawet.',
    'Cemilan Sehat Nusantara adalah camilan yang dibuat dari bahan-bahan alami pilihan khas Indonesia. Diproses secara higienis tanpa bahan pengawet sehingga aman dan sehat untuk dikonsumsi setiap hari.
 
@@ -158,7 +158,7 @@ Kami memiliki beberapa varian rasa dan terus berinovasi untuk menghadirkan camil
 
   ('eduplaner-app', 'EduPlaner App',
    (select id from public.categories where slug = 'aplikasi-software'),
-   'Prototype', 'Jerman', 'Berlin',
+   'Prototipe', 'Jerman', 'Berlin',
    'Aplikasi perencanaan belajar untuk mahasiswa dan pelajar.',
    'EduPlaner adalah aplikasi perencanaan belajar yang membantu mahasiswa dan pelajar mengatur jadwal, tugas, dan target akademik mereka.
 
@@ -168,7 +168,7 @@ Fitur unggulan: pengingat tenggat, statistik kebiasaan belajar, mode fokus, sert
 
   ('batik-nusa-collection', 'Batik Nusa Collection',
    (select id from public.categories where slug = 'fashion-accessories'),
-   'Sudah Dijual', 'Australia', 'Sydney',
+   'Sudah Dipasarkan', 'Australia', 'Sydney',
    'Koleksi batik modern dengan sentuhan desain kontemporer.',
    'Batik Nusa Collection menghadirkan batik asli Indonesia dengan desain modern yang cocok untuk gaya profesional maupun kasual di pasar internasional.
 
@@ -177,8 +177,8 @@ Setiap piece dibuat oleh perajin batik dari Yogyakarta dan Solo dengan pewarna a
    '+61 412-345-678', 'www.batiknusa.com.au', 'published', now() - interval '4 days'),
 
   ('ecostraw-indonesia', 'EcoStraw Indonesia',
-   (select id from public.categories where slug = 'umkm-kerajinan'),
-   'Prototype', 'Belanda', 'Amsterdam',
+   (select id from public.categories where slug = 'kriya-kerajinan'),
+   'Prototipe', 'Belanda', 'Amsterdam',
    'Sedotan ramah lingkungan berbahan dasar bambu.',
    'EcoStraw Indonesia memproduksi sedotan minuman dari bambu pilihan yang ramah lingkungan dan dapat digunakan berulang kali.
 
@@ -187,8 +187,8 @@ Misi kami adalah mengurangi sampah plastik sambil memberdayakan petani bambu lok
    '+31 6-1234-5678', null, 'published', now() - interval '5 days'),
 
   ('smart-hydroponic-system', 'Smart Hydroponic System',
-   (select id from public.categories where slug = 'riset-inovasi'),
-   'Riset', 'Singapura', null,
+   (select id from public.categories where slug = 'teknologi-inovasi'),
+   'Ide', 'Singapura', null,
    'Sistem hidroponik pintar untuk pertanian urban.',
    'Smart Hydroponic System adalah riset teknologi pertanian urban yang menggabungkan IoT dan AI untuk mengoptimalkan pertumbuhan tanaman dalam ruangan dengan efisiensi air hingga 90%.
 
@@ -198,7 +198,7 @@ Saat ini kami mencari mentor dan investor untuk melanjutkan pengembangan prototi
 
   ('buku-anak-dwibahasa', 'Buku Anak Dwibahasa',
    (select id from public.categories where slug = 'pendidikan-edukasi'),
-   'Sudah Dijual', 'Amerika Serikat', 'New York',
+   'Sudah Dipasarkan', 'Amerika Serikat', 'New York',
    'Buku cerita anak dwibahasa Indonesia–Inggris.',
    'Buku Anak Dwibahasa membantu anak-anak diaspora Indonesia mengenal bahasa dan budaya Indonesia melalui cerita bergambar yang menghibur.
 
@@ -208,7 +208,7 @@ Tersedia dalam format cetak dan digital, dengan seri budaya nusantara, adab, dan
 
   ('kopi-rempah-nusantara', 'Kopi Rempah Nusantara',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Sudah Dijual', 'Singapura', null,
+   'Sudah Dipasarkan', 'Singapura', null,
    'Kopi arabika single origin dengan sentuhan rempah Indonesia.',
    'Kopi Rempah Nusantara menghadirkan biji kopi arabika pilihan dari Gayo, Toraja, dan Kintamani yang diproses bersama rempah pilihan seperti kayu manis, kapulaga, dan cengkih.
 
@@ -218,7 +218,7 @@ Roasted fresh setiap minggu di Singapura dan dikirim ke seluruh Asia Tenggara.',
 
   ('teh-herbal-indonesia', 'Teh Herbal Indonesia',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Sudah Dijual', 'Belanda', 'Rotterdam',
+   'Sudah Dipasarkan', 'Belanda', 'Rotterdam',
    'Teh herbal premium dari jamu dan tanaman obat Indonesia.',
    'Teh Herbal Indonesia mengemas kekayaan jamu tradisional dalam bentuk teh modern yang praktis: temulawak, jahe merah, serai, dan rosela.
 
@@ -228,7 +228,7 @@ Semua bahan disuplai langsung dari petani di Jawa Tengah dan diproses tanpa gula
 
   ('keripik-tempe-nusantara', 'Keripik Tempe Nusantara',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Sudah Dijual', 'Jerman', 'Munich',
+   'Sudah Dipasarkan', 'Jerman', 'Munich',
    'Keripik tempe renyah dengan bumbu khas nusantara.',
    'Keripik Tempe Nusantara adalah camilan berbahan tempe fermentasi pilihan, diiris tipis, digoreng renyah, dan dibalut bumbu khas seperti balado, keju, dan seaweed.
 
@@ -238,7 +238,7 @@ Produksi halal dan terdaftar resmi di Jerman.',
 
   ('abon-lele-premium', 'Abon Lele Premium',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Prototype', 'Arab Saudi', 'Riyadh',
+   'Prototipe', 'Arab Saudi', 'Riyadh',
    'Abon lele higienis kaya protein untuk keluarga diaspora.',
    'Abon Lele Premium memanfaatkan lele hasil budidaya bersertifikat yang diolah menjadi abon rendah garam tanpa MSG.
 
@@ -248,7 +248,7 @@ Sedang dalam tahap uji pasar di kalangan komunitas Indonesia di Riyadh sebelum p
 
   ('kue-semprong-tradisional', 'Kue Semprong Tradisional',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Sudah Dijual', 'Malaysia', 'Johor Bahru',
+   'Sudah Dipasarkan', 'Malaysia', 'Johor Bahru',
    'Kue semprong renyah resep turun-temurun dari Riau.',
    'Kue Semprong Tradisional dibuat dengan resep asli turun-temurun menggunakan santan kelapa asli dan telur ayam kampung, tanpa pengenyal.
 
@@ -258,7 +258,7 @@ Cocok untuk hampers, acara hajatan, dan oleh-oleh khas Indonesia.',
 
   ('tenun-ikat-nusantara', 'Tenun Ikat Nusantara',
    (select id from public.categories where slug = 'fashion-accessories'),
-   'Sudah Dijual', 'Australia', 'Melbourne',
+   'Sudah Dipasarkan', 'Australia', 'Melbourne',
    'Tenun ikat asli Sumba dan Toraja untuk fashion etnik modern.',
    'Tenun Ikat Nusantara bekerja sama langsung dengan 40+ penenun di Sumba dan Toraja untuk menghadirkan kain tenun berkualitas tinggi ke pasar Australia.
 
@@ -269,7 +269,7 @@ Setiap pembelian memberikan kontribusi langsung kepada perajin.',
   -- Contoh produk pending untuk demo dashboard admin
   ('keripik-ubi-ungu', 'Keripik Ubi Ungu',
    (select id from public.categories where slug = 'makanan-minuman'),
-   'Prototype', 'Singapura', null,
+   'Prototipe', 'Singapura', null,
    'Keripik ubi ungu premium tanpa bahan pengawet dengan rasa yang renyah dan manis alami.',
    'Keripik Ubi Ungu dibuat dari ubi ungu pilihan yang diiris tipis dan dipanggang, bukan digoreng. Kaya antioksidan dan serat.
 
@@ -279,7 +279,7 @@ Saat ini sedang mencari mitra distribusi untuk masuk ke ritel modern di Singapur
 
   ('tasbihku-arga', 'Tasbihku Arga',
    (select id from public.categories where slug = 'aplikasi-software'),
-   'Prototype', 'Arab Saudi', 'Makkah',
+   'Prototipe', 'Arab Saudi', 'Makkah',
    'Aplikasi digital tasbih dan pengingat ibadah harian untuk muslim diaspora.',
    'Tasbihku Arga adalah aplikasi penghitung tasbih digital lengkap dengan jadwal sholat, Al-Qur''an digital, dan komunitas ibadah.
 
@@ -289,7 +289,7 @@ Butuh investor untuk pengembangan versi iOS dan fitur premium.',
 
   ('gadget-organizer-kulit', 'Gadget Organizer Kulit',
    (select id from public.categories where slug = 'fashion-accessories'),
-   'Sudah Dijual', 'Malaysia', 'Penang',
+   'Sudah Dipasarkan', 'Malaysia', 'Penang',
    'Organizer gadget berbahan kulit asli buatan pengrajin Garut.',
    'Gadget Organizer Kulit memadukan bahan kulit sapi asli Garut dengan desain minimalis untuk menyimpan kabel, charger, dan aksesori.
 

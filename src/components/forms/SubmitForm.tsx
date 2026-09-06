@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
-import { STAGES, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
+import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Product, SubmissionPayload, Stage } from "@/lib/types";
 
@@ -371,20 +371,56 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
             <input className={inputCls(errors.name)} placeholder="Masukkan nama produk" value={form.name} onChange={(e) => set("name", e.target.value)} />
           </Field>
           <Field label="Kategori" required error={errors.categoryId}>
-            <select className={inputCls(errors.categoryId)} value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)}>
-              <option value="">Pilih kategori</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              {categories.map((c) => {
+                const meta = categoryBySlug(c.slug);
+                const Icon = meta?.icon;
+                const active = form.categoryId === c.id;
+                return (
+                  <label
+                    key={c.id}
+                    className={cn(
+                      "flex cursor-pointer flex-col items-center gap-1.5 rounded-xl border px-3 py-3.5 text-center transition select-none",
+                      active
+                        ? "border-navy bg-navy/5 shadow-md shadow-navy/10"
+                        : "border-line bg-white hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-md hover:shadow-navy/5"
+                    )}
+                  >
+                    <input type="radio" className="sr-only" checked={active} onChange={() => set("categoryId", c.id)} />
+                    {Icon && <Icon className={cn("h-6 w-6", active ? "text-navy" : meta?.color)} aria-hidden="true" />}
+                    <span className={cn("text-xs font-semibold leading-tight", active ? "text-navy" : "text-navy/70")}>{c.name}</span>
+                    {active && <Check className="h-4 w-4 text-navy" aria-hidden="true" />}
+                  </label>
+                );
+              })}
+            </div>
           </Field>
           <Field label="Tahap Produk" required error={errors.stage}>
-            <select className={inputCls(errors.stage)} value={form.stage} onChange={(e) => set("stage", e.target.value as Stage)}>
-              <option value="">Pilih tahap produk</option>
-              {STAGES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-2.5">
+              {STAGES.map((s) => {
+                const meta = STAGE_META[s];
+                const Icon = meta.icon;
+                const active = form.stage === s;
+                return (
+                  <label
+                    key={s}
+                    className={cn(
+                      "flex cursor-pointer flex-col gap-1 rounded-xl border px-3.5 py-3 transition select-none",
+                      active
+                        ? "border-navy bg-navy/5 shadow-md shadow-navy/10"
+                        : "border-line bg-white hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-md hover:shadow-navy/5"
+                    )}
+                  >
+                    <input type="radio" className="sr-only" checked={active} onChange={() => set("stage", s)} />
+                    <span className="flex items-center gap-2">
+                      <Icon className={cn("h-5 w-5", active ? "text-navy" : meta.color)} aria-hidden="true" />
+                      <span className={cn("text-xs font-bold", active ? "text-navy" : "text-navy/70")}>{s}</span>
+                    </span>
+                    <span className="text-[11px] leading-snug text-muted">{meta.desc}</span>
+                  </label>
+                );
+              })}
+            </div>
           </Field>
           {/* Lokasi: deteksi GPS otomatis ala Shopee + fallback manual */}
           <LocationPicker

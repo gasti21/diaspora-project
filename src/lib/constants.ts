@@ -1,8 +1,11 @@
 import {
   AppWindow,
+  Factory,
   FlaskConical,
+  Lightbulb,
   GraduationCap,
   Shirt,
+  ShoppingBag,
   ShoppingBasket,
   UtensilsCrossed,
   type LucideIcon,
@@ -12,13 +15,24 @@ import type { Stage, Need, BackgroundType, ProductStatus } from "./types";
 export const CATEGORIES = [
   { slug: "makanan-minuman", name: "Makanan & Minuman", icon: UtensilsCrossed, color: "text-amber-500" },
   { slug: "aplikasi-software", name: "Aplikasi & Software", icon: AppWindow, color: "text-blue-500" },
-  { slug: "umkm-kerajinan", name: "UMKM & Kerajinan", icon: ShoppingBasket, color: "text-orange-500" },
+  { slug: "kriya-kerajinan", name: "Kriya & Kerajinan", icon: ShoppingBasket, color: "text-orange-500" },
   { slug: "fashion-accessories", name: "Fashion & Accessories", icon: Shirt, color: "text-pink-500" },
-  { slug: "riset-inovasi", name: "Riset & Inovasi", icon: FlaskConical, color: "text-green-500" },
+  { slug: "teknologi-inovasi", name: "Teknologi & Inovasi", icon: FlaskConical, color: "text-green-500" },
   { slug: "pendidikan-edukasi", name: "Pendidikan & Edukasi", icon: GraduationCap, color: "text-indigo-500" },
 ] as const satisfies readonly { slug: string; name: string; icon: LucideIcon; color: string }[];
 
-export const STAGES: Stage[] = ["Sudah Dijual", "Prototype", "Riset"];
+export const STAGES: Stage[] = ["Ide", "Prototipe", "Produksi", "Sudah Dipasarkan"];
+
+/** Definisi tiap tahap (ala Indiegogo): ikon + penjelasan satu kalimat. */
+export const STAGE_META: Record<
+  Stage,
+  { icon: typeof Lightbulb; desc: string; color: string }
+> = {
+  Ide: { icon: Lightbulb, desc: "Baru gagasan — belum ada contoh fisiknya", color: "text-slate-500" },
+  Prototipe: { icon: FlaskConical, desc: "Sudah ada contoh yang berfungsi", color: "text-amber-500" },
+  Produksi: { icon: Factory, desc: "Sudah diproduksi dan siap dipesan", color: "text-blue-500" },
+  "Sudah Dipasarkan": { icon: ShoppingBag, desc: "Sudah dijual dan sampai ke konsumen", color: "text-green-500" },
+};
 
 export const NEEDS: Need[] = [
   "Investor",

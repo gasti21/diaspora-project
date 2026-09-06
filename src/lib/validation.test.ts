@@ -6,7 +6,7 @@ import type { SubmissionPayload } from "./types";
 const valid: SubmissionPayload = {
   name: "Batik Nusa",
   categoryId: "cat-1",
-  stage: "Sudah Dijual",
+  stage: "Sudah Dipasarkan",
   country: "Malaysia",
   shortDescription: "Batik premium karya diaspora.",
   longDescription: "Batik tulis premium yang dibuat oleh perajin diaspora di Malaysia.",
