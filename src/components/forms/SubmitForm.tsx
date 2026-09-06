@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, CircleCheck, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
-import { STAGES, NEEDS, BACKGROUND_TYPES, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
+import { STAGES, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Product, SubmissionPayload, Stage } from "@/lib/types";
 
@@ -30,8 +30,6 @@ const initialForm = {
   city: "",
   latitude: null as number | null,
   longitude: null as number | null,
-  yearFounded: "",
-  backgroundTypes: [] as string[],
   additionalNotes: "",
   shortDescription: "",
   longDescription: "",
@@ -65,8 +63,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           stage: initial.stage,
           country: initial.country,
           city: initial.city ?? "",
-          yearFounded: initial.yearFounded ? String(initial.yearFounded) : "",
-          backgroundTypes: initial.backgroundTypes,
           additionalNotes: initial.additionalNotes ?? "",
           shortDescription: initial.shortDescription,
           longDescription: initial.longDescription,
@@ -93,7 +89,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
     setErrors((e) => ({ ...e, [key]: "" }));
   }
 
-  function toggleArray(key: "backgroundTypes" | "needs", value: string) {
+  function toggleArray(key: "needs", value: string) {
     setForm((f) => ({
       ...f,
       [key]: f[key].includes(value)
@@ -212,8 +208,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       city: form.city.trim() || undefined,
       latitude: form.latitude ?? undefined,
       longitude: form.longitude ?? undefined,
-      yearFounded: form.yearFounded ? parseInt(form.yearFounded, 10) : null,
-      backgroundTypes: form.backgroundTypes,
       additionalNotes: form.additionalNotes.trim() || undefined,
       shortDescription: form.shortDescription.trim(),
       longDescription: form.longDescription.trim(),
@@ -404,24 +398,10 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
             }}
             error={errors.country}
           />
-          <Field label="Tahun Berdiri (opsional)">
-            <input className={inputCls()} placeholder="Contoh: 2021" inputMode="numeric" value={form.yearFounded} onChange={(e) => set("yearFounded", e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} />
-          </Field>
-          <Field label="Kisah/Latar Belakang" hint="Apa yang Anda lakukan? (Pilih semua yang sesuai)">
-            <div className="flex flex-wrap gap-2.5">
-              {BACKGROUND_TYPES.map((b) => {
-                const active = form.backgroundTypes.includes(b);
-                return (
-                  <label key={b} className={chipCls(active)}>
-                    <input type="checkbox" className="sr-only" checked={active} onChange={() => toggleArray("backgroundTypes", b)} />
-                    <span aria-hidden="true" className="text-base leading-none">{BACKGROUND_ICONS[b] ?? "🏷️"}</span>
-                    {b}
-                    {active && <Check className="h-4 w-4" aria-hidden="true" />}
-                  </label>
-                );
-              })}
-            </div>
-          </Field>
+          <p className="hidden text-xs text-muted lg:col-span-2 sm:block">
+            <Info className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
+            Tahun berdiri & jenis pelaku kini diatur di Halaman Profil — tampil otomatis di semua produk Anda.
+          </p>
           <Field label="Ceritakan Tambahan" hint="Tulis kebutuhan atau catatan tambahan (opsional)" counter={<Counter value={form.additionalNotes.length} max={1000} />}>
             <textarea rows={3} maxLength={1000} className={cn(inputCls(), "resize-none")} placeholder="Tulis kebutuhan atau catatan tambahan (opsional)" value={form.additionalNotes} onChange={(e) => set("additionalNotes", e.target.value)} />
           </Field>
@@ -718,13 +698,6 @@ function inputCls(error?: string) {
       : "border-line hover:border-navy/30 focus:border-navy focus:ring-4 focus:ring-navy/10"
   );
 }
-
-const BACKGROUND_ICONS: Record<string, string> = {
-  Produsen: "🏭",
-  UMKM: "🛍️",
-  Startup: "🚀",
-  Komunitas: "👥",
-};
 
 function chipCls(active: boolean) {
   return cn(

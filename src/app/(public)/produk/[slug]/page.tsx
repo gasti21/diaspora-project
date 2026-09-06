@@ -14,6 +14,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds, getProductReviews } from "@/lib/data";
+import { getOwnerPublicBio } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { ViewTracker } from "@/components/product/ViewTracker";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -67,6 +68,7 @@ export default async function ProductDetailPage({
   const favoriteIds = viewer ? await listMyFavoriteProductIds(viewer.id) : new Set<string>();
   const related = await getRelatedProducts(product);
   const reviews = await getProductReviews(product.id);
+  const ownerBio = await getOwnerPublicBio(product.id);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -89,7 +91,7 @@ export default async function ProductDetailPage({
           />
 
           <div className="hidden lg:block">
-            <ProductTabs product={product} viewer={viewer} reviews={reviews} />
+            <ProductTabs product={product} viewer={viewer} reviews={reviews} ownerBio={ownerBio} />
           </div>
         </div>
 
@@ -143,7 +145,7 @@ export default async function ProductDetailPage({
 
       {/* Tabs tampil di bawah pada layar kecil */}
       <div className="lg:hidden">
-        <ProductTabs product={product} viewer={viewer} reviews={reviews} />
+        <ProductTabs product={product} viewer={viewer} reviews={reviews} ownerBio={ownerBio} />
       </div>
 
       {/* ===== Produk Terkait ===== */}

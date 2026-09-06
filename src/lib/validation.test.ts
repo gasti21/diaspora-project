@@ -8,7 +8,6 @@ const valid: SubmissionPayload = {
   categoryId: "cat-1",
   stage: "Sudah Dijual",
   country: "Malaysia",
-  backgroundTypes: ["UMKM"],
   shortDescription: "Batik premium karya diaspora.",
   longDescription: "Batik tulis premium yang dibuat oleh perajin diaspora di Malaysia.",
   images: ["https://example.com/a.jpg"],

@@ -111,11 +111,9 @@ export interface SubmissionPayload {
   stage: Stage;
   country: string;
   city?: string;
-  yearFounded?: number | null;
   /** Koordinat GPS dari deteksi lokasi saat pengajuan (opsional). */
   latitude?: number;
   longitude?: number;
-  backgroundTypes: string[];
   additionalNotes?: string;
   shortDescription: string;
   longDescription: string;
@@ -178,5 +176,8 @@ export interface OwnerContact {
     avatarUrl: string | null;
     fullName: string | null;
     memberSince: string | null;
+    /** Bio pelaku: tahun usaha berdiri & jenis pelakunya (dari profil akun). */
+    yearFounded: number | null;
+    backgroundTypes: string[];
   } | null;
 }

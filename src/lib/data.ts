@@ -222,7 +222,7 @@ export async function getPublishedProductContact(
     const { data: profile } = await client
       .from("profiles")
       .select(
-        "instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url, full_name, avatar_url, created_at"
+        "instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url, full_name, avatar_url, created_at, year_founded, background_types"
       )
       .eq("id", data.submitted_by)
       .maybeSingle();
@@ -238,6 +238,8 @@ export async function getPublishedProductContact(
         avatarUrl: profile.avatar_url ?? null,
         fullName: profile.full_name ?? null,
         memberSince: profile.created_at ?? null,
+        yearFounded: profile.year_founded ?? null,
+        backgroundTypes: profile.background_types ?? [],
       };
     }
   }
@@ -364,8 +366,6 @@ export async function updateMySubmission(
       latitude: payload.latitude ?? null,
       longitude: payload.longitude ?? null,
 
-      year_founded: payload.yearFounded || null,
-      background_types: payload.backgroundTypes,
       additional_notes: payload.additionalNotes || null,
       short_description: payload.shortDescription,
       long_description: payload.longDescription,
@@ -435,8 +435,6 @@ export async function createSubmission(
       latitude: payload.latitude ?? null,
       longitude: payload.longitude ?? null,
 
-      year_founded: payload.yearFounded || null,
-      background_types: payload.backgroundTypes,
       additional_notes: payload.additionalNotes || null,
       short_description: payload.shortDescription,
       long_description: payload.longDescription,
@@ -683,6 +681,9 @@ export interface MyProfile {
   avatarUrl: string | null;
   bio: string | null;
   socials: ProfileSocials;
+  /** Bio pelaku: tahun usaha berdiri & jenis pelakunya. */
+  yearFounded: number | null;
+  backgroundTypes: string[];
   /** true = terima email transaksional (default). false = opt-out. */
   notifyEmail: boolean;
   role: "admin" | "user";
@@ -696,7 +697,7 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
   const { data, error } = await client
     .from("profiles")
     .select(
-      "id, email, full_name, avatar_url, bio, role, created_at, notify_email, instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
+      "id, email, full_name, avatar_url, bio, role, created_at, notify_email, year_founded, background_types, instagram_url, whatsapp_url, linkedin_url, twitter_url, facebook_url"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -708,6 +709,8 @@ export async function getMyProfile(userId: string): Promise<MyProfile | null> {
     email: data.email,
     avatarUrl: data.avatar_url,
     bio: data.bio,
+    yearFounded: data.year_founded ?? null,
+    backgroundTypes: data.background_types ?? [],
     notifyEmail: data.notify_email !== false,
     socials: {
       instagram: data.instagram_url,
@@ -734,6 +737,8 @@ export async function updateMyProfile(
     avatarUrl?: string | null;
     socials?: Partial<ProfileSocials>;
     notifyEmail?: boolean;
+    yearFounded?: number | null;
+    backgroundTypes?: string[];
   }
 ): Promise<{ error?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
@@ -755,6 +760,15 @@ export async function updateMyProfile(
     patch.bio = bio || null;
   }
   if (update.avatarUrl !== undefined) patch.avatar_url = update.avatarUrl;
+  if (update.yearFounded !== undefined) {
+    const y = update.yearFounded;
+    if (y !== null && (y < 1900 || y > 2100)) return { error: "Tahun berdiri tidak valid." };
+    patch.year_founded = y;
+  }
+  if (update.backgroundTypes !== undefined) {
+    const allowed = ["Produsen", "UMKM", "Startup", "Komunitas"];
+    patch.background_types = update.backgroundTypes.filter((t) => allowed.includes(t));
+  }
 
   if (update.socials) {
     const columnMap = {
@@ -991,8 +1005,6 @@ export async function adminUpdateProductFields(
       latitude: payload.latitude ?? null,
       longitude: payload.longitude ?? null,
 
-      year_founded: payload.yearFounded || null,
-      background_types: payload.backgroundTypes,
       additional_notes: payload.additionalNotes || null,
       short_description: payload.shortDescription,
       long_description: payload.longDescription,
@@ -2064,4 +2076,31 @@ export async function adminCountUnreadSupport(): Promise<number> {
   return (data ?? []).filter(
     (s) => s.admin_last_read_at === null || s.last_message_at > s.admin_last_read_at
   ).length;
+}
+
+/**
+ * Bio pelaku pemilik produk (tahun berdiri & jenis pelaku) dari profil akun
+ * - dipakai tab Tentang Produk. Null bila pemilik belum mengisi.
+ */
+export async function getOwnerPublicBio(
+  productId: string
+): Promise<{ yearFounded: number | null; backgroundTypes: string[] } | null> {
+  if (!isSupabaseConfigured) return null;
+  const client = createAdminClient();
+  const { data } = await client
+    .from("products")
+    .select("submitted_by")
+    .eq("id", productId)
+    .maybeSingle();
+  if (!data?.submitted_by) return null;
+  const { data: profile } = await client
+    .from("profiles")
+    .select("year_founded, background_types")
+    .eq("id", data.submitted_by)
+    .maybeSingle();
+  if (!profile) return null;
+  return {
+    yearFounded: profile.year_founded ?? null,
+    backgroundTypes: profile.background_types ?? [],
+  };
 }

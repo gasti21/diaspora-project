@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BACKGROUND_TYPES } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import {
   Camera,
-  Check,
   LoaderCircle,
   Lock,
 } from "lucide-react";
@@ -17,6 +19,13 @@ import {
 } from "@/components/member/SocialIcons";
 import { useToast } from "@/components/toast/ToastProvider";
 import type { MyProfile, ProfileSocials } from "@/lib/data";
+
+const BACKGROUND_ICONS: Record<string, string> = {
+  Produsen: "🏭",
+  UMKM: "🛍️",
+  Startup: "🚀",
+  Komunitas: "👥",
+};
 
 const SOCIAL_FIELDS: {
   key: keyof ProfileSocials;
@@ -58,6 +67,8 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
     for (const f of SOCIAL_FIELDS) out[f.key] = socialToInput(profile.socials[f.key]);
     return out;
   });
+  const [yearFounded, setYearFounded] = useState(profile.yearFounded ? String(profile.yearFounded) : "");
+  const [backgroundTypes, setBackgroundTypes] = useState<string[]>(profile.backgroundTypes);
   const [notifyEmail, setNotifyEmail] = useState(profile.notifyEmail);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -105,7 +116,14 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, bio, socials, notifyEmail }),
+        body: JSON.stringify({
+          name,
+          bio,
+          socials,
+          notifyEmail,
+          yearFounded: yearFounded ? parseInt(yearFounded, 10) : null,
+          backgroundTypes,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Gagal menyimpan profil.");
@@ -216,6 +234,62 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
             className={`${inputCls} resize-none`}
           />
         </label>
+
+        {/* Bio pelaku: tahun berdiri + jenis pelaku */}
+        <div className="rounded-2xl border border-line bg-surface/50 p-5">
+          <h2 className="text-sm font-bold text-navy">Tentang Pelaku Usaha</h2>
+          <p className="mt-1 text-xs text-muted">
+            Tampil otomatis di semua produk yang Anda ajukan - cukup isi sekali di sini.
+          </p>
+          <label className="mt-4 block">
+            <span className="mb-1.5 block text-xs font-semibold text-navy">Tahun Berdiri (opsional)</span>
+            <input
+              inputMode="numeric"
+              placeholder="Contoh: 2021"
+              value={yearFounded}
+              onChange={(e) => {
+                setYearFounded(e.target.value.replace(/[^0-9]/g, "").slice(0, 4));
+                touch();
+              }}
+              className={`${inputCls} max-w-40`}
+            />
+          </label>
+          <div className="mt-4">
+            <span className="mb-2 block text-xs font-semibold text-navy">Kisah/Latar Belakang</span>
+            <p className="mb-2 text-xs text-muted">Apa yang Anda lakukan? (Pilih semua yang sesuai)</p>
+            <div className="flex flex-wrap gap-2.5">
+              {BACKGROUND_TYPES.map((b) => {
+                const active = backgroundTypes.includes(b);
+                return (
+                  <label
+                    key={b}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition select-none",
+                      active
+                        ? "border-navy bg-navy text-white shadow-md shadow-navy/20"
+                        : "border-line bg-white text-navy hover:-translate-y-0.5 hover:border-navy/40 hover:shadow-md hover:shadow-navy/5"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={active}
+                      onChange={() => {
+                        setBackgroundTypes((arr) =>
+                          arr.includes(b) ? arr.filter((x) => x !== b) : [...arr, b]
+                        );
+                        touch();
+                      }}
+                    />
+                    <span aria-hidden="true" className="text-base leading-none">{BACKGROUND_ICONS[b]}</span>
+                    {b}
+                    {active && <Check className="h-4 w-4" aria-hidden="true" />}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* Preferensi email (opt-out) */}
       <div className="rounded-2xl border border-line bg-white p-5">
