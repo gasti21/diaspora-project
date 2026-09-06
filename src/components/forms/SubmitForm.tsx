@@ -444,17 +444,17 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         {step === 1 && (
         <>
         <Section number={2} title="Deskripsi Produk">
-          <Field label="Deskripsi Singkat" required error={errors.shortDescription} hint="Jelaskan produk Anda dalam 1–3 kalimat" counter={<Counter value={form.shortDescription.length} max={200} />}>
-            <textarea rows={5} maxLength={220} className={cn(inputCls(errors.shortDescription), "resize-none")} placeholder="Jelaskan produk Anda dalam 1–3 kalimat" value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
+          <Field label="Deskripsi Singkat" required error={errors.shortDescription} counter={<Counter value={form.shortDescription.length} max={200} />}>
+            <textarea rows={5} maxLength={220} className={cn(inputCls(errors.shortDescription), "resize-none")} placeholder="Contoh: Keripik ubi ungu asli, dipanggang tanpa minyak, renyah tahan 3 bulan." value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
           </Field>
-          <Field label="Deskripsi Lengkap" required error={errors.longDescription} hint="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." counter={<Counter value={form.longDescription.length} max={2000} />}>
-            <textarea rows={12} maxLength={2200} className={cn(inputCls(errors.longDescription), "resize-none")} placeholder="Jelaskan produk Anda secara detail, manfaat, keunikan, dan nilai tambah." value={form.longDescription} onChange={(e) => set("longDescription", e.target.value)} />
+          <Field label="Deskripsi Lengkap" required error={errors.longDescription} hint="Ceritakan manfaat, keunikan, bahan, dan cara memesan." counter={<Counter value={form.longDescription.length} max={2000} />}>
+            <textarea rows={12} maxLength={2200} className={cn(inputCls(errors.longDescription), "resize-none")} placeholder={"Contoh:\n\nKeripik ubi ungu ini dibuat dari ubi ungu pilihan petani lokal, dipanggang tanpa minyak sehingga lebih sehat.\n\nKeunikannya: warna alami tanpa pewarna, renyahnya bertahan hingga 3 bulan.\n\nTersedia 3 varian rasa. Pemesanan melalui WhatsApp, minimal 5 pcs."} value={form.longDescription} onChange={(e) => set("longDescription", e.target.value)} />
           </Field>
         </Section>
 
         {/* ===== 3. Gambar & Link ===== */}
         <Section number={3} title="Gambar & Link">
-          <Field label="Foto Produk" required error={errors.images} hint={`Format: JPG, PNG, maks ${IMAGE_MAX_MB}MB per foto (hingga ${MAX_IMAGES} foto)`}>
+          <Field label="Foto Produk" required error={errors.images}>
             <div className="space-y-3">
               {images.length > 0 && (
                 <div className="flex flex-wrap gap-3">
@@ -491,17 +491,17 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
                     <Plus className="h-6 w-6 text-navy" aria-hidden="true" />
                   )}
                   <span className="text-sm font-semibold">{uploading ? "Mengunggah..." : "Upload foto produk"}</span>
-                  <span className="text-xs text-muted">Format: JPG, PNG, maks {IMAGE_MAX_MB}MB</span>
+                  <span className="text-xs text-muted">Tarik & lepas, atau klik untuk memilih - JPG/PNG, maks {IMAGE_MAX_MB}MB ({images.length}/{MAX_IMAGES})</span>
                   <input type="file" accept="image/jpeg,image/png" multiple className="sr-only" onChange={(e) => handleFiles(e.target.files)} disabled={uploading} />
                 </label>
               )}
             </div>
           </Field>
-          <Field label="Link Video (YouTube) / Media Sosial">
-            <input className={inputCls()} placeholder="Masukkan link (opsional)" value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} />
+          <Field label="Link Video / Media Sosial (opsional)">
+            <input className={inputCls()} placeholder="https://youtube.com/watch?v=... atau link TikTok/Instagram" value={form.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} />
           </Field>
-          <Field label="Website (Jika tersedia)">
-            <input className={inputCls()} placeholder="Masukkan link (opsional)" value={form.website} onChange={(e) => set("website", e.target.value)} />
+          <Field label="Website (opsional)">
+            <input className={inputCls()} placeholder="https://tokomu.com" value={form.website} onChange={(e) => set("website", e.target.value)} />
           </Field>
         </Section>
         </>
