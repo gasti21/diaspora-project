@@ -271,10 +271,7 @@ export function ImageCarousel({
           </div>
         )}
 
-        {/* Badge counter */}
-        <span className="pointer-events-none absolute right-3 top-3 z-[2] rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
-          {index + 1}/{count}
-        </span>
+        {/* Badge counter dihapus */}
 
         {/* Panah: muncul saat hover */}
         {count > 1 && (
