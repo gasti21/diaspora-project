@@ -45,6 +45,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
   // Bulk action: set id produk yang dicentang + status aksi massal aktif.
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkNote, setBulkNote] = useState("");
   // Jumlah produk per status - menampilkan angka di chip filter.
   const [counts, setCounts] = useState<{ pending: number; published: number; revision: number; rejected: number } | null>(null);
 
@@ -57,14 +58,14 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
     });
   }
 
-  async function bulkAct(newStatus: ProductStatus) {
+  async function bulkAct(newStatus: ProductStatus, reviewNote?: string) {
     if (checked.size === 0 || bulkBusy) return;
     setBulkBusy(true);
     try {
       const res = await fetch("/api/admin/products/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [...checked], status: newStatus }),
+        body: JSON.stringify({ ids: [...checked], status: newStatus, reviewNote }),
       });
       const json = (await res.json()) as { updated?: number; failed?: string[]; error?: string };
       if (!res.ok) {
@@ -79,6 +80,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
         { title: "Aksi massal selesai" }
       );
       setChecked(new Set());
+      setBulkNote("");
       await load();
       window.dispatchEvent(new Event(STATS_EVENT));
     } catch {
@@ -300,7 +302,13 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
       {checked.size > 0 && (
         <div className="sticky top-16 z-20 flex flex-wrap items-center gap-3 rounded-2xl border border-navy/20 bg-navy px-4 py-3 text-white shadow-lg">
           <span className="text-sm font-bold">{checked.size} produk dipilih</span>
-          <div className="ml-auto flex gap-2">
+          <input
+            value={bulkNote}
+            onChange={(e) => setBulkNote(e.target.value)}
+            placeholder="Catatan untuk revisi/tolak massal (opsional tapi disarankan)…"
+            className="h-9 min-w-0 flex-1 rounded-lg border border-white/25 bg-white/10 px-3 text-xs text-white outline-none placeholder:text-white/50 focus:border-white/60"
+          />
+          <div className="flex gap-2">
             <button
               onClick={() => void bulkAct("published")}
               disabled={bulkBusy}
@@ -310,7 +318,16 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
               {bulkBusy ? "Memproses…" : "Approve Terpilih"}
             </button>
             <button
-              onClick={() => void bulkAct("rejected")}
+              onClick={() => void bulkAct("revision", bulkNote.trim() || undefined)}
+              disabled={bulkBusy}
+              title="Minta revisi massal - wajib isi catatan"
+              className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-xs font-bold transition hover:bg-orange-600 disabled:opacity-50"
+            >
+              <SquarePen className="h-3.5 w-3.5" aria-hidden="true" />
+              Revisi Terpilih
+            </button>
+            <button
+              onClick={() => void bulkAct("rejected", bulkNote.trim() || undefined)}
               disabled={bulkBusy}
               className="flex items-center gap-1.5 rounded-lg bg-red-500 px-3.5 py-2 text-xs font-bold transition hover:bg-red-600 disabled:opacity-50"
             >
@@ -463,20 +480,42 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
             <p className="text-xs text-muted">
               Halaman {list.page} dari {list.totalPages} · {list.total} produk
             </p>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 disabled={list.page <= 1}
                 onClick={() => setPage((p) => p - 1)}
                 className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition hover:bg-surface disabled:opacity-40"
               >
-                ‹ Sebelumnya
+                ‹
               </button>
+              {pageNumbers(list.page, list.totalPages).map((n, i) =>
+                n === "…" ? (
+                  <span key={`e${i}`} className="px-1 text-xs text-muted">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={n}
+                    onClick={() => setPage(n)}
+                    aria-label={`Ke halaman ${n}`}
+                    aria-current={list.page === n ? "page" : undefined}
+                    className={cn(
+                      "h-8 min-w-8 rounded-lg px-2 text-sm font-semibold transition",
+                      list.page === n
+                        ? "bg-navy text-white"
+                        : "border border-line text-navy hover:bg-surface"
+                    )}
+                  >
+                    {n}
+                  </button>
+                )
+              )}
               <button
                 disabled={list.page >= list.totalPages}
                 onClick={() => setPage((p) => p + 1)}
                 className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition hover:bg-surface disabled:opacity-40"
               >
-                Berikutnya ›
+                ›
               </button>
             </div>
           </div>
@@ -492,6 +531,19 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
       />
     </div>
   );
+}
+
+/** Daftar nomor halaman dengan elipsis: 1 … 4 5 6 … 12. */
+function pageNumbers(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const out: (number | "…")[] = [1];
+  const lo = Math.max(2, current - 1);
+  const hi = Math.min(total - 1, current + 1);
+  if (lo > 2) out.push("…");
+  for (let n = lo; n <= hi; n++) out.push(n);
+  if (hi < total - 1) out.push("…");
+  out.push(total);
+  return out;
 }
 
 /** Tombol aksi kecil di baris tabel. */
