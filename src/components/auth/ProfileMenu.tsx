@@ -2,9 +2,33 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CircleUserRound, LoaderCircle, LogOut, Pencil, Settings, X } from "lucide-react";
+import {
+  Activity,
+  CircleUserRound,
+  LayoutDashboard,
+  LoaderCircle,
+  LogOut,
+  MessagesSquare,
+  Package,
+  Pencil,
+  Settings,
+  Tags,
+  Users,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { EditProfileModal, type ProfileData } from "./EditProfileModal";
 import { cn } from "@/lib/utils";
+
+/** Item navigasi admin di dalam dropdown profil (pengganti sidebar). */
+const ADMIN_NAV: { href: string; label: string; icon: LucideIcon; stat?: "pending" | "users" | "support" }[] = [
+  { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/produk", label: "Manajemen Produk", icon: Package, stat: "pending" },
+  { href: "/admin/kategori", label: "Kategori", icon: Tags },
+  { href: "/admin/aktivitas", label: "Aktivitas Kurasi", icon: Activity },
+  { href: "/admin/pengguna", label: "Pengguna & Admin", icon: Users, stat: "users" },
+  { href: "/admin/support", label: "Chat Support", icon: MessagesSquare, stat: "support" },
+];
 
 interface Props {
   /** Mode menentukan link cepat di menu: member vs admin. */
@@ -23,6 +47,8 @@ export function ProfileMenu({ mode, fallback }: Props) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  // Statistik badge navigasi admin (pending/users/support) - hanya mode admin.
+  const [stats, setStats] = useState<{ pending: number; users: number; support: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +56,13 @@ export function ProfileMenu({ mode, fallback }: Props) {
       .then(async (res) => (res.ok ? setProfile(await res.json()) : null))
       .catch(() => {});
   }, [open]);
+
+  useEffect(() => {
+    if (!open || mode !== "admin") return;
+    fetch("/api/admin/stats")
+      .then(async (res) => (res.ok ? setStats(await res.json()) : null))
+      .catch(() => {});
+  }, [open, mode]);
 
   useEffect(() => {
     if (!open) return;
@@ -143,14 +176,38 @@ export function ProfileMenu({ mode, fallback }: Props) {
                 </Link>
               </>
             ) : (
-              <Link
-                href="/admin"
-                onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-navy transition hover:bg-surface"
-              >
-                <Settings className="h-4 w-4 text-muted" aria-hidden="true" />
-                Panel Admin
-              </Link>
+              <>
+                {/* Navigasi panel admin lengkap di dalam menu profil */}
+                <p className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted/70">
+                  Panel Admin
+                </p>
+                {ADMIN_NAV.map((item) => {
+                  const badge = item.stat && stats ? stats[item.stat] : null;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-navy transition hover:bg-surface"
+                    >
+                      <item.icon className="h-4 w-4 text-muted" aria-hidden="true" />
+                      <span className="flex-1">{item.label}</span>
+                      {badge !== null && badge > 0 && (
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                            item.stat === "pending"
+                              ? "bg-brand-soft text-brand"
+                              : "bg-navy/10 text-navy"
+                          )}
+                        >
+                          {badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </>
             )}
 
             <button
