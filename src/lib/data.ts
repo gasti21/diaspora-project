@@ -1027,11 +1027,19 @@ export async function adminUpdateProductFields(
 }
 
 /** Hapus produk permanen (khusus admin). */
-export async function adminDeleteProduct(id: string): Promise<{ error?: string }> {
+export async function adminDeleteProduct(
+  id: string
+): Promise<{ error?: string; productName?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const client = createAdminClient();
+  const { data: found } = await client
+    .from("products")
+    .select("name")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await client.from("products").delete().eq("id", id).select("id").single();
   if (error) return { error: error.message };
+  return { productName: (found as { name?: string } | null)?.name ?? undefined };
   return {};
 }
 
@@ -1225,6 +1233,65 @@ export async function adminGetOverview(): Promise<AdminOverview> {
  * Catatan: MVP tidak menyimpan log terpisah; updated_at + review_note
  * menjadi sumber ringkasan aktivitas yang tersedia.
  */
+export interface AuditLogEntry {
+  id: string;
+  actorId: string;
+  actorName: string;
+  action: "approve" | "revision" | "reject" | "reopen" | "delete" | "bulk_approve" | "bulk_reject";
+  productId: string | null;
+  productName: string;
+  note: string | null;
+  createdAt: string;
+}
+
+/** Catat satu aksi kurasi admin ke log audit. Tidak melempar error - logging
+ *  tidak boleh menggagalkan aksi utamanya. */
+export async function logAdminActivity(entry: {
+  actorId: string;
+  actorName: string;
+  action: AuditLogEntry["action"];
+  productId?: string | null;
+  productName: string;
+  note?: string | null;
+}): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    const supabase = createAdminClient();
+    await supabase.from("admin_activity_log").insert({
+      actor_id: entry.actorId,
+      actor_name: entry.actorName,
+      action: entry.action,
+      product_id: entry.productId ?? null,
+      product_name: entry.productName,
+      note: entry.note ?? null,
+    });
+  } catch {
+    // logging best-effort
+  }
+}
+
+/** Riwayat audit kurasi terbaru (paling baru dulu). */
+export async function adminListAuditLog(limit = 30): Promise<AuditLogEntry[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("admin_activity_log")
+    .select("id, actor_id, actor_name, action, product_id, product_name, note, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data as Record<string, unknown>[]).map((r) => ({
+    id: String(r.id),
+    actorId: String(r.actor_id),
+    actorName: String(r.actor_name),
+    action: r.action as AuditLogEntry["action"],
+    productId: (r.product_id as string) ?? null,
+    productName: String(r.product_name),
+    note: (r.note as string) ?? null,
+    createdAt: String(r.created_at),
+  }));
+}
+
 export async function adminListActivity(limit = 20): Promise<Product[]> {
   if (!isSupabaseConfigured) {
     return SAMPLE_PRODUCTS.slice(0, limit);
@@ -1281,19 +1348,23 @@ export async function adminListUsers(): Promise<AdminUser[]> {
 export async function adminUpdateProduct(
   id: string,
   update: { status: ProductStatus; reviewNote?: string | null }
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; productName?: string }> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("products")
     .update({
       status: update.status,
       review_note: update.reviewNote ?? null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("name")
+    .maybeSingle();
   if (error) return { error: error.message };
+  const productName =
+    (data as { name?: string } | null)?.name ?? undefined;
 
   // Email "produk tayang" ke pemilik (fire-and-forget).
   if (update.status === "published") {
@@ -1325,7 +1396,7 @@ export async function adminUpdateProduct(
     })();
   }
 
-  return {};
+  return { productName };;
 }
 
 export interface AdminTrends {

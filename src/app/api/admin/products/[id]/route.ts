@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { adminUpdateProduct } from "@/lib/data";
+import { adminUpdateProduct, logAdminActivity } from "@/lib/data";
 import { getAdminUser } from "@/lib/auth";
 import { serverError } from "@/lib/api-error";
 import type { ProductStatus } from "@/lib/types";
@@ -37,6 +37,21 @@ export async function PATCH(
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+    await logAdminActivity({
+      actorId: admin.id,
+      actorName: admin.name,
+      action:
+        body.status === "published"
+          ? "approve"
+          : body.status === "revision"
+            ? "revision"
+            : body.status === "rejected"
+              ? "reject"
+              : "reopen",
+      productId: id,
+      productName: result.productName ?? id,
+      note: body.reviewNote?.trim() || null,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return serverError(e, "PATCH /api/admin/products/[id]", "Gagal memperbarui produk.");

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { adminBulkUpdateStatus } from "@/lib/data";
+import { adminBulkUpdateStatus, logAdminActivity } from "@/lib/data";
 import { getAdminUser } from "@/lib/auth";
 import { serverError } from "@/lib/api-error";
 import type { ProductStatus } from "@/lib/types";
@@ -41,6 +41,14 @@ export async function POST(request: NextRequest) {
       reviewNote: body.reviewNote?.trim() || null,
     });
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
+    await logAdminActivity({
+      actorId: admin.id,
+      actorName: admin.name,
+      action: body.status === "published" ? "bulk_approve" : "bulk_reject",
+      productId: null,
+      productName: `${result.updated} produk (aksi massal)`,
+      note: body.reviewNote?.trim() || null,
+    });
     return NextResponse.json({ updated: result.updated, failed: result.failed });
   } catch (e) {
     return serverError(e, "POST /api/admin/products/bulk", "Gagal memproses aksi massal.");

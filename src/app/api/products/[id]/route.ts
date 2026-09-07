@@ -5,6 +5,7 @@ import {
   adminUpdateProductFields,
   getMySubmission,
   updateMySubmission,
+  logAdminActivity,
 } from "@/lib/data";
 import { getAdminUser, getSessionUser } from "@/lib/auth";
 import type { SubmissionPayload } from "@/lib/types";
@@ -87,6 +88,14 @@ export async function DELETE(
   try {
     const result = await adminDeleteProduct(id);
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
+    const admin = await getAdminUser();
+    await logAdminActivity({
+      actorId: admin?.id ?? "",
+      actorName: admin?.name ?? "Admin",
+      action: "delete",
+      productId: id,
+      productName: result.productName ?? id,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return serverError(e, "DELETE /api/products/[id]", "Gagal menghapus produk.");
