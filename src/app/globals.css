@@ -109,3 +109,10 @@ textarea:focus-visible {
 .leaflet-bottom {
   z-index: 500 !important;
 }
+
+
+/* Garis progres navigasi global (RouteProgress). */
+@keyframes routebar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}

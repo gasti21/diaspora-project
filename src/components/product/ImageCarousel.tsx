@@ -266,6 +266,8 @@ export function ImageCarousel({
               alt={`${alt} - foto ${index + 1}`}
               categorySlug={categorySlug}
               fit="contain"
+              width={1280}
+              priority={index === 0}
               className="h-full w-full"
             />
           </div>

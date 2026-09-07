@@ -40,6 +40,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `/produk/${slug}` },
     openGraph: {
       title,
       description,
@@ -70,8 +71,32 @@ export default async function ProductDetailPage({
   const reviews = await getProductReviews(product.id);
   const ownerBio = await getOwnerPublicBio(product.id);
 
+  // Structured data schema.org Product - peluang rich results di Google.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.longDescription.slice(0, 300),
+    image: product.images?.[0] ?? undefined,
+    category: product.categoryName ?? undefined,
+    brand: { "@type": "Brand", name: product.ownerName },
+    ...(reviews.length > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: (
+          reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        ).toFixed(1),
+        reviewCount: reviews.length,
+      },
+    }),
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ViewTracker productId={product.id} />
       <Link
         href="/explore"

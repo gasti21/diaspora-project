@@ -1,0 +1,13 @@
+{
+  "name": "KaryaDiaspora",
+  "short_name": "KaryaDiaspora",
+  "description": "Platform Konektivitas Bisnis Diaspora Indonesia.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fb",
+  "theme_color": "#0f1e3d",
+  "icons": [
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
