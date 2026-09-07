@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   CircleUserRound,
@@ -50,6 +51,7 @@ export function ProfileMenu({ mode, fallback }: Props) {
   // Statistik badge navigasi admin (pending/users/support) - hanya mode admin.
   const [stats, setStats] = useState<{ pending: number; users: number; support: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/profile")
@@ -85,7 +87,9 @@ export function ProfileMenu({ mode, fallback }: Props) {
   async function signOut() {
     setSigningOut(true);
     await fetch("/auth/signout", { method: "POST" });
-    window.location.href = "/";
+    // Navigasi client-side: tanpa reload halaman penuh.
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -245,8 +249,9 @@ export function ProfileMenu({ mode, fallback }: Props) {
           onClose={() => setEditing(false)}
           onSaved={() => {
             setEditing(false);
-            // Segarkan seluruh tampilan agar nama/avatar baru konsisten di mana pun.
-            window.location.reload();
+            // Segarkan server components tanpa reload penuh; ProfileMenu
+            // sendiri otomatis memuat ulang profil saat menu dibuka lagi.
+            router.refresh();
           }}
         />
       )}
