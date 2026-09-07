@@ -145,16 +145,28 @@ export function ProfileMenu({ mode, fallback }: Props) {
 
           {/* Aksi */}
           <div className="p-2">
-            <button
-              onClick={() => {
-                setOpen(false);
-                setEditing(true);
-              }}
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface"
-            >
-              <Pencil className="h-4 w-4 text-muted" aria-hidden="true" />
-              Edit Profil
-            </button>
+            {mode === "admin" ? (
+              /* Admin memakai editor profil lengkap yang sama dengan member. */
+              <Link
+                href="/profil"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface"
+              >
+                <Pencil className="h-4 w-4 text-muted" aria-hidden="true" />
+                Edit Profil
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setEditing(true);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface"
+              >
+                <Pencil className="h-4 w-4 text-muted" aria-hidden="true" />
+                Edit Profil
+              </button>
+            )}
 
             {mode === "member" ? (
               <>
