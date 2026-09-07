@@ -25,6 +25,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "url tidak valid" }, { status: 400 });
   }
 
+  // Anti-SSRF: tolak host internal/privat (localhost, IP privat, link-local,
+  // metadata cloud) - konsisten dengan guard di route screenshot & image.
+  const host = target.hostname.toLowerCase();
+  const isPrivate =
+    host === "localhost" ||
+    host.endsWith(".local") ||
+    host.endsWith(".internal") ||
+    host === "metadata.google.internal" ||
+    /^(10|127)\./.test(host) ||
+    /^169\.254\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+    host === "0.0.0.0" ||
+    host === "[::1]";
+  if (isPrivate) {
+    return NextResponse.json({ error: "Host tidak diizinkan." }, { status: 403 });
+  }
+
   // YouTube: thumbnail bisa langsung dibentuk tanpa scraping
   const yt = raw.match(
     /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/
