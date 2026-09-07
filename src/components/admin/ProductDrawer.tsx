@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { CategoryBadge, NeedTag, StageBadge, StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
-import { formatDate, formatLocation } from "@/lib/utils";
+import { cn, formatDate, formatLocation } from "@/lib/utils";
 import type { Product, ProductStatus } from "@/lib/types";
 
 interface Props {
@@ -83,7 +83,7 @@ export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props
       <aside
         role="dialog"
         aria-label={`Detail produk ${product.name}`}
-        className="animate-drawer-in absolute inset-y-0 right-0 flex w-full max-w-md flex-col overflow-y-auto bg-white shadow-2xl"
+        className="animate-drawer-in absolute inset-y-0 right-0 flex w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl"
       >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-line bg-white/95 px-5 py-4 backdrop-blur">
@@ -103,14 +103,45 @@ export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props
         </div>
 
         <div className="space-y-5 px-5 py-5">
-          {/* Cover */}
-          <div className="h-44 w-full overflow-hidden rounded-xl">
-            <ProductImage
-              src={product.images?.[0] ?? null}
-              alt={product.name}
-              categorySlug={product.categorySlug}
-              className="h-full w-full"
-            />
+          {/* Galeri media: semua foto + indikator video */}
+          <div>
+            <div className="grid grid-cols-4 gap-2">
+              {product.videoUrl && (
+                <a
+                  href={product.videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="relative col-span-2 row-span-2 flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-navy/90 text-white transition hover:bg-navy"
+                  title="Buka video di tab baru"
+                >
+                  <Video className="h-7 w-7" aria-hidden="true" />
+                  <span className="absolute inset-x-0 bottom-0 bg-black/40 py-1 text-center text-[10px] font-bold">
+                    LIHAT VIDEO
+                  </span>
+                </a>
+              )}
+              {(product.images ?? []).slice(0, product.videoUrl ? 6 : 8).map((img, i) => (
+                <div
+                  key={img}
+                  className={cn(
+                    "overflow-hidden rounded-xl bg-surface",
+                    product.videoUrl ? "aspect-square" : "aspect-[4/3]"
+                  )}
+                >
+                  <ProductImage
+                    src={img}
+                    alt={`${product.name} - foto ${i + 1}`}
+                    categorySlug={product.categorySlug}
+                    fit="contain"
+                    width={640}
+                    className="h-full w-full"
+                  />
+                </div>
+              ))}
+            </div>
+            {product.videoUrl && (
+              <p className="mt-1.5 truncate text-[11px] text-muted">{product.videoUrl}</p>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">

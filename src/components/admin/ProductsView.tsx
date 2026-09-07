@@ -45,6 +45,8 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
   // Bulk action: set id produk yang dicentang + status aksi massal aktif.
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  // Jumlah produk per status - menampilkan angka di chip filter.
+  const [counts, setCounts] = useState<{ pending: number; published: number; revision: number; rejected: number } | null>(null);
 
   function toggleCheck(id: string) {
     setChecked((prev) => {
@@ -96,6 +98,15 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
     return () => clearTimeout(t);
   }, [qInput]);
 
+  const refreshCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/stats");
+      if (res.ok) setCounts(await res.json());
+    } catch {
+      // chip jumlah bersifat pelengkap
+    }
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -117,6 +128,10 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    refreshCounts();
+  }, [refreshCounts]);
 
   // simpan filter di URL supaya bisa di-share / di-back
   useEffect(() => {
@@ -155,6 +170,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
         window.dispatchEvent(new Event(STATS_EVENT)); // refresh badge sidebar
         setSelected((prev) => (prev?.id === product.id ? { ...prev, status: next } : prev));
         await load();
+        await refreshCounts();
         return true;
       } catch {
         toast.error("Gagal memperbarui status. Coba lagi.");
@@ -163,7 +179,7 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
         setBusyId(null);
       }
     },
-    [load, toast]
+    [load, toast, refreshCounts]
   );
 
   /** Hapus produk permanen (dari drawer). */
@@ -239,6 +255,20 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
               )}
             >
               {s.label}
+              {(() => {
+                const key = s.key as "pending" | "published" | "revision" | "rejected";
+                if (s.key === "all" || !counts) return null;
+                return (
+                  <span
+                    className={cn(
+                      "ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                      status === s.key ? "bg-white/20 text-white" : "bg-surface text-muted"
+                    )}
+                  >
+                    {counts[key]}
+                  </span>
+                );
+              })()}
             </button>
           ))}
         </div>
