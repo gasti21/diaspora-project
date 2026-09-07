@@ -148,7 +148,7 @@ export function ProfileMenu({ mode, fallback }: Props) {
             {mode === "admin" ? (
               /* Admin memakai editor profil lengkap yang sama dengan member. */
               <Link
-                href="/profil"
+                href="/admin/profil"
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface"
               >

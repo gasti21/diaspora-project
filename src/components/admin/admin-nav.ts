@@ -52,6 +52,7 @@ export const TITLES: Record<string, string> = {
   "/admin/aktivitas": "Aktivitas Kurasi",
   "/admin/pengguna": "Pengguna & Admin",
   "/admin/support": "Chat Support",
+  "/admin/profil": "Profil Saya",
 };
 
 /** Event custom: halaman admin meminta sidebar menyegarkan badge statistik. */
