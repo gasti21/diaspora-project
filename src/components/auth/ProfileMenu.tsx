@@ -152,8 +152,8 @@ export function ProfileMenu({ mode, fallback }: Props) {
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface"
               >
-                <Pencil className="h-4 w-4 text-muted" aria-hidden="true" />
-                Edit Profil
+                <CircleUserRound className="h-4 w-4 text-muted" aria-hidden="true" />
+                Profil Saya
               </Link>
             ) : (
               <button
