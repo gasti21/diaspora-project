@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
+  Star,
   Check,
   Globe,
   LoaderCircle,
@@ -15,7 +16,9 @@ import {
 import { CategoryBadge, NeedTag, StageBadge, StatusBadge } from "@/components/product/Badges";
 import { ProductImage } from "@/components/product/ProductImage";
 import { cn, formatDate, formatLocation } from "@/lib/utils";
-import type { Product, ProductStatus } from "@/lib/types";
+import { useToast } from "@/components/toast/ToastProvider";
+import { timeAgo } from "@/lib/utils";
+import type { Product, ProductReview, ProductStatus } from "@/lib/types";
 
 interface Props {
   product: Product | null;
@@ -28,7 +31,10 @@ interface Props {
 
 /** Slide-over detail produk dari kanan - pusat aksi review admin. */
 export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props) {
+  const toast = useToast();
   const [note, setNote] = useState("");
+  const [reviews, setReviews] = useState<ProductReview[] | null>(null);
+  const [deletingReview, setDeletingReview] = useState<string | null>(null);
   const [noteError, setNoteError] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -39,6 +45,34 @@ export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props
     setNoteError(false);
     setConfirmDelete(false);
   }, [product?.id]);
+
+  // muat ulasan produk untuk panel moderasi
+  useEffect(() => {
+    setReviews(null);
+    if (!product) return;
+    fetch(`/api/products/${product.id}/reviews`)
+      .then(async (res) => (res.ok ? (await res.json()).reviews ?? [] : []))
+      .then((r) => setReviews(r))
+      .catch(() => setReviews([]));
+  }, [product?.id]);
+
+  async function removeReview(id: string) {
+    setDeletingReview(id);
+    try {
+      const res = await fetch(`/api/admin/reviews/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        toast.error(json.error ?? "Gagal menghapus ulasan.");
+        return;
+      }
+      setReviews((prev) => prev?.filter((r) => r.id !== id) ?? prev);
+      toast.success("Ulasan dihapus.");
+    } catch {
+      toast.error("Koneksi bermasalah. Coba lagi.");
+    } finally {
+      setDeletingReview(null);
+    }
+  }
 
   // tutup dengan tombol Escape + kunci scroll body
   useEffect(() => {
@@ -261,6 +295,54 @@ export function ProductDrawer({ product, busy, onClose, onAct, onDelete }: Props
               Edit memperbaiki isi data tanpa mengubah status review. Hapus bersifat
               permanen dan tidak bisa dibatalkan.
             </p>
+          </div>
+
+          {/* Moderasi ulasan */}
+          <div className="border-t border-line pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted">
+              Ulasan ({reviews?.length ?? 0})
+            </h3>
+            {reviews === null ? (
+              <p className="mt-2 text-xs text-muted">Memuat ulasan…</p>
+            ) : reviews.length === 0 ? (
+              <p className="mt-2 text-xs text-muted">Belum ada ulasan untuk produk ini.</p>
+            ) : (
+              <ul className="mt-2 space-y-2">
+                {reviews.map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex items-start gap-2.5 rounded-xl bg-surface/70 p-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-1.5 text-xs font-bold text-navy">
+                        <span className="flex items-center gap-0.5 text-amber-500">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
+                          {r.rating}
+                        </span>
+                        {r.authorName}
+                        <span className="font-normal text-muted">- {timeAgo(r.createdAt)}</span>
+                      </p>
+                      <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-navy/85">
+                        {r.content}
+                      </p>
+                      {r.media.length > 0 && (
+                        <p className="mt-1 text-[10px] text-muted">
+                          {r.media.length} lampiran media
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      title="Hapus ulasan ini"
+                      disabled={deletingReview === r.id}
+                      onClick={() => void removeReview(r.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Aksi review */}

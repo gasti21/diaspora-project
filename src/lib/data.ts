@@ -1619,6 +1619,15 @@ export async function deleteMyProductReview(
   return {};
 }
 
+/** Hapus ulasan apa pun (moderasi admin). */
+export async function adminDeleteReview(reviewId: string): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+  const { error } = await supabase.from("product_reviews").delete().eq("id", reviewId);
+  if (error) return { error: error.message };
+  return {};
+}
+
 /** Upload media ulasan (foto/video) ke Storage bucket `review-media`. */
 export async function uploadReviewMedia(
   file: File,
