@@ -327,146 +327,135 @@ export function ProductsView({ initialStatus, initialQ, initialPage }: Props) {
         </div>
       )}
 
-      {/* Tabel */}
+      {/* Daftar produk gaya kartu */}
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-line bg-surface/60 text-xs uppercase tracking-wide text-muted">
-                <th className="w-10 px-3 py-3">
-                  <input
-                    type="checkbox"
-                    aria-label="Pilih semua produk di halaman ini"
-                    checked={Boolean(list?.data.length) && checked.size === list?.data.length}
-                    onChange={(e) =>
-                      setChecked(e.target.checked ? new Set(list?.data.map((p) => p.id)) : new Set())
-                    }
-                    className="h-4 w-4 cursor-pointer accent-[#d32f2f]"
-                  />
-                </th>
-                <th className="px-4 py-3 font-semibold">Produk</th>
-                <th className="px-4 py-3 font-semibold">Kategori</th>
-                <th className="px-4 py-3 font-semibold">Diajukan</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 text-right font-semibold">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <>
-                  {[0, 1, 2, 3].map((i) => (
-                    <tr key={i} className="border-b border-line/70">
-                      {[0, 1, 2, 3, 4, 5].map((j) => (
-                        <td key={j} className="px-4 py-4">
-                          <div className="h-4 animate-pulse rounded bg-line" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </>
-              )}
-
-              {!loading && list?.data.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-14 text-center">
-                    <Inbox className="mx-auto h-9 w-9 text-muted/40" aria-hidden="true" />
-                    <p className="mt-3 text-sm font-semibold text-navy">
-                      Tidak ada produk pada filter ini
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      Coba ubah kata kunci pencarian atau pilih status lain.
-                    </p>
-                  </td>
-                </tr>
-              )}
-
-              {!loading &&
-                list?.data.map((p) => {
-                  const age = daysSince(p.createdAt);
-                  return (
-                    <tr
-                      key={p.id}
-                      onClick={() => setSelected(p)}
-                      className={cn(
-                        "cursor-pointer border-b border-line/70 transition last:border-0 hover:bg-surface/60",
-                        selected?.id === p.id && "bg-blue-50/50"
-                      )}
-                    >
-                      <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          aria-label={`Pilih ${p.name}`}
-                          checked={checked.has(p.id)}
-                          onChange={() => toggleCheck(p.id)}
-                          className="h-4 w-4 cursor-pointer accent-[#d32f2f]"
-                        />
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg">
-                            <ProductImage
-                              src={p.images?.[0] ?? null}
-                              alt={p.name}
-                              categorySlug={p.categorySlug}
-                              className="h-full w-full"
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="max-w-[220px] truncate font-semibold text-navy">{p.name}</p>
-                            <p className="max-w-[220px] truncate text-xs text-muted">
-                              {p.ownerName} · {p.country}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-muted">{p.categoryName ?? "-"}</td>
-                      <td className="px-4 py-3.5">
-                        <p className="text-navy">{formatDate(p.createdAt)}</p>
-                        <p className="mt-0.5 text-xs text-muted">
-                          {p.status === "pending" && age >= 3 ? (
-                            <span className="font-bold text-amber-600">{age} hari menunggu</span>
-                          ) : (
-                            timeAgo(p.createdAt)
-                          )}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <StatusBadge status={p.status} />
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex justify-end gap-1.5">
-                          <RowAction
-                            title="Approve"
-                            busy={busyId === p.id}
-                            className="bg-green-100 text-green-600 hover:bg-green-200"
-                            onClick={() => act(p, "published")}
-                          >
-                            <Check className="h-4 w-4" aria-hidden="true" />
-                          </RowAction>
-                          <RowAction
-                            title="Minta revisi (isi catatan)"
-                            busy={busyId === p.id}
-                            className="bg-orange-100 text-orange-600 hover:bg-orange-200"
-                            onClick={() => setSelected(p)}
-                          >
-                            <SquarePen className="h-4 w-4" aria-hidden="true" />
-                          </RowAction>
-                          <RowAction
-                            title="Tolak (isi catatan)"
-                            busy={busyId === p.id}
-                            className="bg-red-100 text-red-600 hover:bg-red-200"
-                            onClick={() => setSelected(p)}
-                          >
-                            <X className="h-4 w-4" aria-hidden="true" />
-                          </RowAction>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+        {/* Bar kepala: pilih semua + jumlah */}
+        <div className="flex items-center justify-between border-b border-line bg-surface/60 px-4 py-2.5">
+          <label className="flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-muted">
+            <input
+              type="checkbox"
+              aria-label="Pilih semua produk di halaman ini"
+              checked={Boolean(list?.data.length) && checked.size === list?.data.length}
+              onChange={(e) =>
+                setChecked(e.target.checked ? new Set(list?.data.map((p) => p.id)) : new Set())
+              }
+              className="h-4 w-4 cursor-pointer accent-[#d32f2f]"
+            />
+            Pilih semua
+          </label>
+          {list && (
+            <span className="text-xs font-semibold text-muted">{list.total} produk</span>
+          )}
         </div>
+
+        <ul className="divide-y divide-line/70">
+          {loading &&
+            [0, 1, 2, 3].map((i) => (
+              <li key={i} className="flex items-center gap-4 px-4 py-4">
+                <div className="h-14 w-14 shrink-0 animate-pulse rounded-xl bg-line" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/3 animate-pulse rounded bg-line" />
+                  <div className="h-3 w-1/4 animate-pulse rounded bg-line" />
+                </div>
+                <div className="h-6 w-20 animate-pulse rounded-full bg-line" />
+              </li>
+            ))}
+
+          {!loading && list?.data.length === 0 && (
+            <li className="px-4 py-14 text-center">
+              <Inbox className="mx-auto h-9 w-9 text-muted/40" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold text-navy">
+                Tidak ada produk pada filter ini
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                Coba ubah kata kunci pencarian atau pilih status lain.
+              </p>
+            </li>
+          )}
+
+          {!loading &&
+            list?.data.map((p) => {
+              const age = daysSince(p.createdAt);
+              const urgent = p.status === "pending" && age >= 3;
+              return (
+                <li
+                  key={p.id}
+                  onClick={() => setSelected(p)}
+                  className={cn(
+                    "flex cursor-pointer flex-wrap items-center gap-3 px-4 py-3.5 transition hover:bg-surface/60 sm:flex-nowrap",
+                    selected?.id === p.id && "bg-blue-50/50"
+                  )}
+                >
+                  <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Pilih ${p.name}`}
+                      checked={checked.has(p.id)}
+                      onChange={() => toggleCheck(p.id)}
+                      className="h-4 w-4 cursor-pointer accent-[#d32f2f]"
+                    />
+                  </div>
+
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-line bg-surface">
+                    <ProductImage
+                      src={p.images?.[0] ?? null}
+                      alt={p.name}
+                      categorySlug={p.categorySlug}
+                      fit="contain"
+                      className="h-full w-full"
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-navy">{p.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted">
+                      {p.ownerName} - {p.country}
+                      {p.categoryName ? ` - ${p.categoryName}` : ""}
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted">
+                      {formatDate(p.createdAt)} - {""}
+                      {urgent ? (
+                        <span className="font-bold text-amber-600">{age} hari menunggu</span>
+                      ) : (
+                        timeAgo(p.createdAt)
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2.5">
+                    <StatusBadge status={p.status} />
+                    <div className="flex gap-1.5">
+                      <RowAction
+                        title="Approve"
+                        busy={busyId === p.id}
+                        className="bg-green-100 text-green-600 hover:bg-green-200"
+                        onClick={() => act(p, "published")}
+                      >
+                        <Check className="h-4 w-4" aria-hidden="true" />
+                      </RowAction>
+                      <RowAction
+                        title="Minta revisi (isi catatan)"
+                        busy={busyId === p.id}
+                        className="bg-orange-100 text-orange-600 hover:bg-orange-200"
+                        onClick={() => setSelected(p)}
+                      >
+                        <SquarePen className="h-4 w-4" aria-hidden="true" />
+                      </RowAction>
+                      <RowAction
+                        title="Tolak (isi catatan)"
+                        busy={busyId === p.id}
+                        className="bg-red-100 text-red-600 hover:bg-red-200"
+                        onClick={() => setSelected(p)}
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </RowAction>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+        </ul>
+
 
         {/* Pagination */}
         {list && list.totalPages > 1 && (
