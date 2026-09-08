@@ -367,7 +367,8 @@ export async function updateMySubmission(
       longitude: payload.longitude ?? null,
 
       additional_notes: payload.additionalNotes || null,
-      short_description: null,
+      // Ringkasan otomatis dari paragraf pertama deskripsi lengkap.
+      short_description: (payload.longDescription.trim().split("\n")[0] || "").slice(0, 200) || null,
       long_description: payload.longDescription,
       images: payload.images,
       video_url: payload.videoUrl || null,
@@ -451,7 +452,8 @@ export async function createSubmission(
       longitude: payload.longitude ?? null,
 
       additional_notes: payload.additionalNotes || null,
-      short_description: null,
+      // Ringkasan otomatis dari paragraf pertama deskripsi lengkap.
+      short_description: (payload.longDescription.trim().split("\n")[0] || "").slice(0, 200) || null,
       long_description: payload.longDescription,
       images: payload.images,
       video_url: payload.videoUrl || null,
@@ -1021,7 +1023,8 @@ export async function adminUpdateProductFields(
       longitude: payload.longitude ?? null,
 
       additional_notes: payload.additionalNotes || null,
-      short_description: null,
+      // Ringkasan otomatis dari paragraf pertama deskripsi lengkap.
+      short_description: (payload.longDescription.trim().split("\n")[0] || "").slice(0, 200) || null,
       long_description: payload.longDescription,
       images: payload.images,
       video_url: payload.videoUrl || null,
