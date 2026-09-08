@@ -16,6 +16,7 @@ import {
 } from "@/components/member/SocialIcons";
 import { useToast } from "@/components/toast/ToastProvider";
 import type { MyProfile, ProfileSocials } from "@/lib/data";
+import { cn } from "@/lib/utils";
 
 const SOCIAL_FIELDS: {
   key: keyof ProfileSocials;
@@ -244,7 +245,12 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
         {/* Preferensi email (opt-out) */}
       <div className="rounded-2xl border border-line bg-white p-5">
         <h2 className="text-sm font-bold text-navy">Preferensi Email</h2>
-        <label className="mt-3 flex cursor-pointer items-start gap-3">
+        <label
+          className={cn(
+            "mt-3 flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition",
+            notifyEmail ? "border-navy/30 bg-navy/[0.04]" : "border-line hover:bg-surface"
+          )}
+        >
           <input
             type="checkbox"
             checked={notifyEmail}
@@ -252,11 +258,14 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
               setNotifyEmail(e.target.checked);
               touch();
             }}
-            className="mt-0.5 h-4 w-4 accent-[#d32f2f]"
+            className="mt-0.5 h-4 w-4 cursor-pointer accent-[#d32f2f]"
           />
-          <span className="text-sm leading-relaxed text-muted">
-            <span className="font-semibold text-navy">Terima email notifikasi</span> -
-            kabar produk tayang, balasan chat support, dan info penting akun.
+          <span className="text-sm leading-relaxed">
+            <span className="font-semibold text-navy">Terima email notifikasi</span>
+            <span className="block mt-0.5 text-xs text-muted">
+              Kabar produk tayang, balasan chat support, dan info penting akun
+              dikirim ke {profile.email}.
+            </span>
           </span>
         </label>
       </div>
