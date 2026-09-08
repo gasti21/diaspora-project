@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, ShieldCheck, Star, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -624,12 +624,6 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
               WhatsApp.
             </p>
           </div>
-
-          <p className="flex items-center justify-center gap-1.5 text-xs text-muted">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Informasi Anda aman bersama kami dan hanya digunakan untuk keperluan
-            kurasi produk.
-          </p>
         </Section>
         </>
         )}
