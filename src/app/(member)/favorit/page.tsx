@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Heart, PackagePlus } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
-import { listMyFavoriteProducts, listMyFavoriteProductIds } from "@/lib/data";
+import {  listMyFavoriteProducts, listMyFavoriteProductIds, getFavoriteCounts } from "@/lib/data";
 import { ProductCard } from "@/components/product/ProductCard";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,7 @@ export default async function FavoritPage() {
 
   const products = await listMyFavoriteProducts(user.id);
   const favoriteIds = new Set(products.map((p) => p.id));
+  const favoriteCounts = await getFavoriteCounts(products.map((p) => p.id));
 
   return (
     <div className="space-y-5">
@@ -44,7 +45,7 @@ export default async function FavoritPage() {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
+            <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} />
           ))}
         </div>
       )}

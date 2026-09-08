@@ -15,16 +15,20 @@ import { countryFlag, formatLocation } from "@/lib/utils";
 export function ProductCard({
   product,
   favoriteIds,
+  favoriteCounts,
 }: {
   product: Product;
   /** Set id produk favorit milik user login (server-provided). */
   favoriteIds?: Set<string>;
+  /** Peta jumlah favorit per produk (server-provided). */
+  favoriteCounts?: Record<string, number>;
 }) {
   return (
     <div className="group relative flex w-full flex-col">
       <FavoriteButton
         product={product}
         initialFavorited={favoriteIds ? favoriteIds.has(product.id) : undefined}
+        initialCount={favoriteCounts?.[product.id] ?? 0}
       />
 
       <Link

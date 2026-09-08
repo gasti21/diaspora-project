@@ -601,6 +601,24 @@ export async function getFavoriteMap(
 }
 
 /** Toggle favorit: tambah bila belum ada, hapus bila sudah. */
+/** Jumlah favorit per produk (peta product_id -> jumlah). */
+export async function getFavoriteCounts(
+  productIds: string[]
+): Promise<Record<string, number>> {
+  if (!isSupabaseConfigured || productIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("favorites")
+    .select("product_id")
+    .in("product_id", productIds);
+  if (error) return {};
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as { product_id: string }[]) {
+    counts[row.product_id] = (counts[row.product_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
 export async function toggleFavoriteProduct(
   userId: string,
   productId: string

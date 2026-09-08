@@ -19,6 +19,7 @@ export function FavoriteButton({
   product,
   variant = "card",
   initialFavorited,
+  initialCount = 0,
 }: {
   product: Product;
   variant?: "card" | "detail";
@@ -27,6 +28,8 @@ export function FavoriteButton({
    * fetch per kartu (dipakai halaman yang belum mengoper set favorit).
    */
   initialFavorited?: boolean;
+  /** Jumlah total user yang memfavoritkan produk ini (server-provided). */
+  initialCount?: number;
 }) {
   const toast = useToast();
   const router = useRouter();
@@ -34,6 +37,7 @@ export function FavoriteButton({
   const [state, setState] = useState<"loading" | "ready" | "anon">(
     initialFavorited === undefined ? "loading" : "ready"
   );
+  const [count, setCount] = useState(initialCount);
 
   // Muat status awal dari API (hanya bila server tidak menyediakannya).
   useEffect(() => {
@@ -48,6 +52,7 @@ export function FavoriteButton({
         }
         const json = await res.json();
         setFav(Boolean(json.favorited));
+        if (typeof json.count === "number") setCount(json.count);
         setState("ready");
       })
       .catch(() => alive && setState("anon"));
@@ -61,7 +66,10 @@ export function FavoriteButton({
     const sync = () => {
       fetch(`/api/favorites/${product.id}`)
         .then(async (res) => {
-          if (res.ok) setFav(Boolean((await res.json()).favorited));
+          if (!res.ok) return;
+          const json = await res.json();
+          setFav(Boolean(json.favorited));
+          if (typeof json.count === "number") setCount(json.count);
         })
         .catch(() => {});
     };
@@ -93,6 +101,7 @@ export function FavoriteButton({
         return;
       }
       setFav(Boolean(json.favorited));
+      if (typeof json.count === "number") setCount(json.count);
       toast.success(
         json.favorited
           ? `"${product.name}" ditambahkan ke Favorit Anda.`
@@ -121,6 +130,14 @@ export function FavoriteButton({
       >
         <Heart className={cn("h-5 w-5", fav && "fill-brand text-brand")} aria-hidden="true" />
         {fav ? "Favorit" : "Favoritkan"}
+        <span
+          className={cn(
+            "ml-1 rounded-full px-2 py-0.5 text-xs font-bold tabular-nums",
+            fav ? "bg-brand/10 text-brand" : "bg-navy/5 text-navy/60"
+          )}
+        >
+          {count}
+        </span>
       </button>
     );
   }

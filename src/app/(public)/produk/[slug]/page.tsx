@@ -13,7 +13,7 @@ import { ProductTabs } from "@/components/product/ProductTabs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
-import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds, getProductReviews } from "@/lib/data";
+import {  getProductBySlug, getRelatedProducts, listMyFavoriteProductIds, getProductReviews, getFavoriteCounts } from "@/lib/data";
 import { getOwnerPublicBio } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { ViewTracker } from "@/components/product/ViewTracker";
@@ -68,6 +68,7 @@ export default async function ProductDetailPage({
   const viewer = await getSessionUser();
   const favoriteIds = viewer ? await listMyFavoriteProductIds(viewer.id) : new Set<string>();
   const related = await getRelatedProducts(product);
+  const favoriteCounts = await getFavoriteCounts([product.id, ...related.map((p) => p.id)]);
   const reviews = await getProductReviews(product.id);
   const ownerBio = await getOwnerPublicBio(product.id);
 
@@ -179,7 +180,7 @@ export default async function ProductDetailPage({
           <h2 className="text-2xl font-extrabold">Produk Terkait</h2>
           <div className="mt-6 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {related.map((p) => (
-              <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
+              <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} />
             ))}
           </div>
         </section>

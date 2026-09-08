@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CATEGORIES } from "@/lib/constants";
-import { getLatestProducts, listMyFavoriteProducts, listMyFavoriteProductIds } from "@/lib/data";
+import {  getLatestProducts, listMyFavoriteProducts, listMyFavoriteProductIds, getFavoriteCounts } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import type { Product } from "@/lib/types";
 
@@ -12,10 +12,12 @@ export const dynamic = "force-dynamic";
 function FavoriteSection({
   favorites,
   favoriteIds,
+  favoriteCounts,
   firstName,
 }: {
   favorites: Product[];
   favoriteIds: Set<string>;
+  favoriteCounts: Record<string, number>;
   firstName: string;
 }) {
   return (
@@ -39,7 +41,7 @@ function FavoriteSection({
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {favorites.slice(0, 4).map((p) => (
           <div key={p.id} className="flex">
-            <ProductCard product={p} favoriteIds={favoriteIds} />
+            <ProductCard product={p} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} />
           </div>
         ))}
       </div>
@@ -73,6 +75,7 @@ export default async function HomePage() {
   // Non-login -> homepage persis seperti sebelumnya (nol perubahan).
   const user = await getSessionUser();
   const favoriteIds = user ? await listMyFavoriteProductIds(user.id) : new Set<string>();
+  const favoriteCounts = await getFavoriteCounts(latest.map((p) => p.id));
   let favorites: Product[] = [];
   if (user) {
     try {
@@ -205,7 +208,7 @@ export default async function HomePage() {
 
       {/* ===== Favorit Kamu (hanya member yang login & punya favorit) ===== */}
       {user && favorites.length > 0 && (
-        <FavoriteSection favorites={favorites} favoriteIds={favoriteIds} firstName={firstName} />
+        <FavoriteSection favorites={favorites} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} firstName={firstName} />
       )}
 
       {/* ===== Produk Terbaru ===== */}
@@ -226,7 +229,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {latest.map((p) => (
               <div key={p.id} className="flex">
-                <ProductCard product={p} favoriteIds={favoriteIds} />
+                <ProductCard product={p} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} />
               </div>
             ))}
           </div>

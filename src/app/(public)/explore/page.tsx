@@ -5,7 +5,7 @@ import { SearchBar } from "@/components/catalog/SearchBar";
 import { FilterBar } from "@/components/catalog/FilterBar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { getSessionUser } from "@/lib/auth";
-import { listMyFavoriteProductIds } from "@/lib/data";
+import {  listMyFavoriteProductIds, getFavoriteCounts } from "@/lib/data";
 import { Pagination } from "@/components/catalog/Pagination";
 import { listPublicProducts, listCountries } from "@/lib/data";
 
@@ -49,6 +49,7 @@ export default async function ExplorePage({
     }),
     listCountries(),
   ]);
+  const favoriteCounts = await getFavoriteCounts(data.map((p) => p.id));
 
   return (
     <>
@@ -126,7 +127,7 @@ export default async function ExplorePage({
         ) : (
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {data.map((p) => (
-              <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
+              <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} />
             ))}
           </div>
         )}

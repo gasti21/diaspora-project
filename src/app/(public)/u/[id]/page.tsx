@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarDays, Eye, Package, ShieldCheck } from "lucide-react";
 import { CircleUserRound } from "lucide-react";
-import { getPublicMember, listMemberPublishedProducts, getProductViewCounts, listMyFavoriteProductIds } from "@/lib/data";
+import {  getPublicMember, listMemberPublishedProducts, getProductViewCounts, listMyFavoriteProductIds, getFavoriteCounts } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import type { ProfileSocials } from "@/lib/data";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -54,6 +54,7 @@ export default async function MemberProfilePage({
   const user = await getSessionUser();
   const favoriteIds = user ? await listMyFavoriteProductIds(user.id) : new Set<string>();
   const products = await listMemberPublishedProducts(id);
+  const favoriteCounts = await getFavoriteCounts(products.map((p) => p.id));
   const viewCounts = await getProductViewCounts(products.map((p) => p.id));
   const totalViews = Object.values(viewCounts).reduce((a, b) => a + b, 0);
 
@@ -123,7 +124,7 @@ export default async function MemberProfilePage({
       {products.length > 0 ? (
         <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} />
+            <ProductCard key={p.id} product={p} favoriteIds={favoriteIds} favoriteCounts={favoriteCounts} />
           ))}
         </div>
       ) : (

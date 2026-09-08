@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isProductFavorited, toggleFavoriteProduct } from "@/lib/data";
+import {
+  getFavoriteCounts,
+  isProductFavorited,
+  toggleFavoriteProduct,
+} from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
 
@@ -15,7 +19,12 @@ export async function GET(
   }
   const { productId } = await params;
   try {
-    return NextResponse.json({ favorited: await isProductFavorited(user.id, productId) });
+    const favorited = await isProductFavorited(user.id, productId);
+    const counts = await getFavoriteCounts([productId]);
+    return NextResponse.json({
+      favorited,
+      count: counts[productId] ?? (favorited ? 1 : 0),
+    });
   } catch (e) {
     return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
   }
@@ -47,7 +56,11 @@ export async function POST(
   try {
     const result = await toggleFavoriteProduct(user.id, productId);
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
-    return NextResponse.json({ favorited: result.favorited });
+    const counts = await getFavoriteCounts([productId]);
+    return NextResponse.json({
+      favorited: result.favorited,
+      count: counts[productId] ?? 0,
+    });
   } catch (e) {
     return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
   }
