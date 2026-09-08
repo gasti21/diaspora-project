@@ -63,7 +63,7 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  let product = await getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) {
     // Slug lama -> redirect permanen ke slug baru (nama produk pernah diganti).
     const client = createAdminClient();
