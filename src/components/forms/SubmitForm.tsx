@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, Star, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, Star, TriangleAlert, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { LocationPicker } from "./LocationPicker";
 import { STAGES, STAGE_META, categoryBySlug, NEEDS, IMAGE_MAX_MB, IMAGE_TYPES, MAX_IMAGES } from "@/lib/constants";
@@ -79,6 +79,7 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [done, setDone] = useState(false);
   const [step, setStep] = useState(0);
   const toast = useToast();
@@ -201,14 +202,14 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
       toast.error("Masih ada data yang belum lengkap. Periksa kembali ya.");
       return;
     }
-    if (
-      isEdit &&
-      !window.confirm(
-        "Kirim ulang produk untuk review?\n\nProduk akan keluar sementara dari tayangan sampai disetujui ulang."
-      )
-    )
+    if (isEdit) {
+      setConfirmOpen(true);
       return;
+    }
+    void doSubmit();
+  }
 
+  async function doSubmit() {
     const payload: SubmissionPayload = {
       name: form.name.trim(),
       categoryId: form.categoryId,
@@ -681,6 +682,52 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
           </button>
         )}
       </div>
+      {/* Dialog konfirmasi kirim ulang (mode edit) */}
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-[1200] flex items-center justify-center bg-navy/50 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-resubmit-title"
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-line bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                <TriangleAlert className="h-5 w-5 text-amber-600" aria-hidden="true" />
+              </span>
+              <div>
+                <h3 id="confirm-resubmit-title" className="text-base font-bold text-navy">
+                  Kirim ulang untuk review?
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                  Produk akan keluar sementara dari tayangan sampai disetujui ulang oleh admin.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-navy transition hover:bg-surface"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setConfirmOpen(false);
+                  void doSubmit();
+                }}
+                className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:opacity-60"
+              >
+                {submitting && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                Ya, Kirim Ulang
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
