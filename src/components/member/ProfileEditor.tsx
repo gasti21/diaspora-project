@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Camera,
@@ -61,8 +61,34 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Verifikasi live tiap tautan sosmed: cek akun benar-benar ada di platform.
+  const [verify, setVerify] = useState<
+    Partial<Record<keyof ProfileSocials, { state: string; url: string | null; input: string }>>
+  >({});
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // verifikasi live (debounce 700ms) - lewati whatsapp (wa.me tak bisa dicek)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      for (const f of SOCIAL_FIELDS) {
+        const val = socials[f.key].trim();
+        const prev = verify[f.key];
+        if (!val || (prev && prev.input === val)) continue;
+        setVerify((v) => ({ ...v, [f.key]: { state: "checking", url: null, input: val } }));
+        fetch(`/api/social/verify?platform=${f.key}&value=${encodeURIComponent(val)}`)
+          .then(async (res) => (res.ok ? res.json() : { state: "unknown", url: null }))
+          .then((d) =>
+            setVerify((v) => ({
+              ...v,
+              [f.key]: { state: d.state, url: d.url, input: val },
+            }))
+          )
+          .catch(() => setVerify((v) => ({ ...v, [f.key]: { state: "unknown", url: null, input: val } })));
+      }
+    }, 700);
+    return () => clearTimeout(t);
+  }, [socials]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function touch() {
     setDirty(true);
@@ -257,6 +283,33 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
                   placeholder={f.placeholder}
                   className={`${inputCls} pl-9`}
                 />
+                {(() => {
+                  const v = verify[f.key];
+                  if (!v || !socials[f.key].trim()) return null;
+                  if (v.state === "checking")
+                    return <span className="mt-1 block text-[10px] text-muted">Memeriksa akun di {f.label}…</span>;
+                  if (v.state === "ok" && v.url)
+                    return (
+                      <span className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-green-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Akun terhubung -
+                        <a href={v.url} target="_blank" rel="noreferrer" className="underline hover:text-navy">{f.label}</a>
+                      </span>
+                    );
+                  if (v.state === "not_found")
+                    return (
+                      <span className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-brand">
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand" /> Akun tidak ditemukan di {f.label} - periksa ejaan
+                      </span>
+                    );
+                  if (v.url)
+                    return (
+                      <span className="mt-1 block text-[10px] text-muted">
+                        {f.label} tidak bisa diperiksa otomatis -
+                        <a href={v.url} target="_blank" rel="noreferrer" className="underline hover:text-navy"> pastikan sendiri di sini</a>
+                      </span>
+                    );
+                  return null;
+                })()}
               </label>
             ))}
           </div>
