@@ -6,7 +6,6 @@ import {
   Camera,
   Check,
   LoaderCircle,
-  Lock,
 } from "lucide-react";
 import {
   FacebookIcon,
@@ -190,18 +189,12 @@ export function ProfileEditor({ profile }: { profile: MyProfile }) {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted">
-              Email
-              <Lock className="h-3 w-3" aria-hidden="true" />
-            </span>
+            <span className="mb-1.5 block text-xs font-semibold text-muted">Email</span>
             <input
               value={profile.email}
               readOnly
               className={`${inputCls} cursor-not-allowed bg-surface text-muted`}
             />
-            <span className="mt-1 block text-[11px] text-muted/80">
-              Dikelola melalui akun Google Anda.
-            </span>
           </label>
         </div>
 
