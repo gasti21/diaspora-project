@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, Link2 } from "lucide-react";
 import { BRAND, BrandIcon } from "@/components/branding/BrandIcon";
 import { shareUrls } from "@/lib/utils";
@@ -34,11 +34,27 @@ const ITEMS = [
 
 export function ShareButtons({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
-  const links = shareUrls(url, title);
+
+  // Di dev/local, url dari server memakai base localhost.
+  // Ganti origin dengan origin asli halaman agar tautan share selalu valid.
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined") return url;
+    try {
+      const u = new URL(url);
+      if (u.origin !== window.location.origin) {
+        return `${window.location.origin}${u.pathname}${u.search}${u.hash}`;
+      }
+      return u.toString();
+    } catch {
+      return url;
+    }
+  }, [url]);
+
+  const links = shareUrls(shareUrl, title);
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -85,7 +101,7 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
             copied ? "font-medium text-green-700" : "text-muted"
           }`}
         >
-          {copied ? "Tautan produk tersalin ke clipboard" : url}
+          {copied ? "Tautan produk tersalin ke clipboard" : shareUrl}
         </span>
         <span
           className={`shrink-0 text-xs font-semibold transition ${
