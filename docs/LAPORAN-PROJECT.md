@@ -1,6 +1,13 @@
 # 📋 Laporan Lengkap Project KaryaDiaspora
 
-> **Tanggal:** 2 September 2026
+> **Tanggal:** 2 September 2026 · **Diperbarui:** 8 September 2026
+> **Catatan pembaruan:** bagian 5–8 di bawah mencerminkan kondisi per
+> 2 September 2026. Sejak itu banyak yang sudah tuntas: semua file mengambang
+> sudah di-commit, chat support realtime selesai (Fase 2), ditambah ulasan
+> produk, manajemen pengajuan member, peta lokasi, OG image, notifikasi email
+> Resend, dan realtime auto-update UI. Ringkasan arsitektur terkini ada di
+> [ARCHITECTURE.md](ARCHITECTURE.md); status fase ada di
+> [RENCANA-KERJA.md](RENCANA-KERJA.md).
 > **Project:** KaryaDiaspora — Platform Konektivitas Bisnis Diaspora Indonesia (MVP)
 > **Lingkup:** Audit menyeluruh codebase + riwayat pengerjaan sesi (perbaikan error page, bug database, fitur profil, popup avatar)
 

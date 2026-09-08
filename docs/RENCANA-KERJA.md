@@ -1,7 +1,12 @@
 # 🎯 Rencana Kerja — KaryaDiaspora
 
-> **Tanggal:** 2 September 2026
-> **Status:** Fase 1 ✅ SELESAI · Fase 2 ✅ SELESAI (2 Sep 2026) · Fase 3 belum dieksekusi
+> **Tanggal:** 2 September 2026 · **Diperbarui:** 8 September 2026
+> **Status:** Fase 1 ✅ SELESAI · Fase 2 ✅ SELESAI (2 Sep 2026) · **Fase 3 belum dieksekusi**
+> **Tambahan pasca-Fase 2 (kini sudah live):** ulasan produk (0013), manajemen
+> pengajuan member (edit/tarik), tahap produk 4 level + rename kategori (0017),
+> peta Leaflet + geocoding, notifikasi email Resend (0012), koordinat produk
+> (0015), auto-close & proteksi (0019–0022), realtime auto-update UI (0023),
+> redirect slug lama (0024), CI GitHub Actions.
 > **Keputusan:** urutan sesuai rencana (Fase 1 → 2); error 500 = generik di production, detail di dev
 > **Keputusan Fase 2:** hybrid realtime (Supabase Realtime + poll fallback 30 dtk) · halaman `/support` biasa (tanpa floating button) · auto-close 48 jam lazy-eval · judul sesi dari pesan pertama (tanpa field subject)
 > **Prinsip:** 3 fase berurutan, tiap fase independen — bisa berhenti kapan pun dan app tetap sehat.

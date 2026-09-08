@@ -1,33 +1,36 @@
-# 📋 PLAN — Fix Round-4 (KaryaDiaspora)
+# 📋 PLAN — KaryaDiaspora
 
-> Status: **✅ SELESAI DIEKSEKUSI — 31 Agu 2026** (CSP avatar, anti-spam view + 0009 live, guard profil, admin queries)
-> Git: identitas **Hakimiqbal / moeh.iqbal.hakim@gmail.com** → push ke `origin build`.
+> **Status terkini (8 Sep 2026):** semua round perbaikan & Fase 1–2 SELESAI.
+> Detail fase aktif ada di `docs/RENCANA-KERJA.md`, arsitektur di
+> `docs/ARCHITECTURE.md`.
 
-## 1. Fix regresi CSP — avatar Google rusak 🟠 (prioritas 1)
-- [x] Tambah `https://lh3.googleusercontent.com` + `https://*.googleusercontent.com` ke `img-src` di `next.config.ts`
-- Latar: CSP round-1 memblokir avatar user login Google → semua foto profil broken
+## ✅ Selesai (riwayat, jangan diulang)
 
-## 2. Anti-spam view counter 🟡 (prioritas 2)
-- [x] `ViewTracker` → panggil API route `/api/products/[id]/view` yang rate-limited (5/menit/IP), bukan RPC langsung dari browser
-- [x] `data.ts`: fungsi `recordProductView` via service-role insert (bypass RLS, tanpa RPC publik)
-- [x] Migration 0009: `drop function public.record_product_view` (tutup pintu spam RPC langsung)
-- [x] Jalankan migration ke DB live + verifikasi
-- Latar: RPC security-definer bisa dipanggil anon tanpa limit → view bisa digelembungkan bot
+### Round-4 — 31 Agu 2026
+- [x] CSP avatar Google (`lh3.googleusercontent.com` di `next.config.ts`)
+- [x] Anti-spam view counter: API route `/api/products/[id]/view` rate-limited
+      (5/menit/IP), service-role insert; RPC publik `record_product_view` dihapus (0009)
+- [x] Guard profil member kosong: `/u/[id]` → `notFound()` bila tanpa produk
+- [x] `adminGetOverview` & `adminListActivity` → `createAdminClient()`
 
-## 3. Guard profil member kosong 🟢 (prioritas 3)
-- [x] `/u/[id]`: `notFound()` jika `productCount === 0`
+### Pasca-Round-4 (Sep 2026) — fitur besar yang sudah live
+- [x] Fase 1 RENCANA-KERJA: commit mengambang, error handling seragam (`api-error.ts`), dead code dihapus
+- [x] Fase 2 RENCANA-KERJA: chat support realtime (`support_sessions`/`support_messages`, 0011), UI user `/support` + inbox admin, auto-close 48 jam
+- [x] Ulasan produk ala Tokopedia (0013): rating + teks + media, bucket `review-media`
+- [x] Manajemen pengajuan member: edit & tarik pengajuan sendiri (0020–0022)
+- [x] Tahap produk 4 level ala Indiegogo + rename kategori (0017)
+- [x] Peta Leaflet + proxy tile + geocoding; koordinat produk (0015)
+- [x] Notifikasi email Resend (0012), profil bio & sosmed (0010, 0016)
+- [x] Realtime auto-update UI (0023) + redirect slug lama (0024)
+- [x] CI GitHub Actions (lint + `tsc --noEmit` + Vitest)
 
-## 4. Konsistensi admin queries — defense-in-depth 🟢 (prioritas 4)
-- [x] `adminGetOverview` & `adminListActivity`: user client + RLS → `createAdminClient()`
+## 🎯 Berikutnya (Fase 3 — pra-deploy, lihat docs/RENCANA-KERJA.md)
 
-## 5. Validasi & rilis
-- [x] `tsc --noEmit` · `npm test` · `npm run build`
-- [x] Commit + push ke `origin build` · update status plan
+- [ ] Upstash Redis untuk rate limit (in-memory Map tak efektif di serverless)
+- [ ] Sentry di `error.tsx` (slot komentar sudah disiapkan)
+- [ ] Test API route: guard non-admin 403 di endpoint admin, guard member
+- [ ] Deploy Vercel (jalankan `setup-all.sql` di DB production)
 
-## ❌ Tidak disentuh
-- Deploy Vercel (belum siap) · Fitur Fase 2 · Upstash Redis
-
----
-## 📜 Riwayat selesai (jangan diulang)
+## 📜 Riwayat lebih lama (jangan diulang)
 - Round-1 (`051ea81`): anti-scraping kontak (0005), anti-spoofing email, owner-only admin, CSP
 - Round-2 (`f68edb6`): 0006 eskalasi role · 0007 storage · 0008 favorites/views/RPC · error leak
