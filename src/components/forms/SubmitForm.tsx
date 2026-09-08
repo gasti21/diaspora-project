@@ -177,25 +177,19 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
     return true;
   }
 
-  function goNext() {
-    if (!validateStep(step)) return;
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function goBack() {
-    setStep((s) => Math.max(s - 1, 0));
-    stepChangedAt.current = Date.now();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   // Ganti langkah -> tombol submit muncul tepat di posisi "Lanjut".
   // Abaikan submit sesaat setelah pindah langkah agar klik ganda tak terkirim tidak sengaja.
   const stepChangedAt = useRef(0);
 
   function goNext() {
-    if (!validate()) return;
+    if (!validateStep(step)) return;
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    stepChangedAt.current = Date.now();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goBack() {
+    setStep((s) => Math.max(s - 1, 0));
     stepChangedAt.current = Date.now();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
