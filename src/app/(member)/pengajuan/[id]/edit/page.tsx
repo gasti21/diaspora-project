@@ -27,28 +27,9 @@ export default async function EditSubmissionPage({
 
   if (!product) notFound();
 
-  // Alur edit hanya untuk pengajuan yang diminta revisi.
-  if (product.status !== "revision") {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50">
-          <TriangleAlert className="h-7 w-7 text-amber-500" aria-hidden="true" />
-        </span>
-        <h1 className="mt-4 text-xl font-extrabold">Halaman Ini Tidak Tersedia</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">
-          Pengajuan hanya bisa diperbaiki saat statusnya{" "}
-          <span className="font-semibold text-amber-600">Perlu Revisi</span>.
-          Status pengajuan ini saat ini bukan revisi.
-        </p>
-        <Link
-          href="/pengajuan"
-          className="mt-6 inline-block rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-dark"
-        >
-          Kembali ke Pengajuan Saya
-        </Link>
-      </div>
-    );
-  }
+  // Edit dibuka untuk semua status. Published yang disimpan ulang otomatis
+  // kembali ke antrian review (lihat updateMySubmission).
+  const reReview = product.status === "published";
 
   return (
     <div>
@@ -61,9 +42,16 @@ export default async function EditSubmissionPage({
         </Link>
         <h1 className="mt-4 text-3xl font-extrabold">Perbaiki Pengajuan</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          Data Anda sudah terisi dari pengajuan sebelumnya - cukup perbaiki bagian
-          yang diminta reviewer, lalu kirim ulang untuk ditinjau.
+          Data Anda sudah terisi dari pengajuan sebelumnya - perbaiki bagian yang
+          diperlukan, lalu simpan.
         </p>
+        {reReview && (
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Produk ini sedang tayang. Menyimpan perubahan akan{' '}
+            <span className="font-bold">mengembalikannya ke antrian review</span> sebelum
+            tayang kembali.
+          </p>
+        )}
         {product.reviewNote && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
             <span className="font-bold">Catatan reviewer: </span>

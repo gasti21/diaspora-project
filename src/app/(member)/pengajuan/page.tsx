@@ -12,6 +12,7 @@ import {
 import { getSessionUser } from "@/lib/auth";
 import { listMySubmissions, getProductViewCounts } from "@/lib/data";
 import { StatusBadge } from "@/components/product/Badges";
+import { MemberSubmissionActions } from "@/components/member/MemberSubmissionActions";
 import { ProductImage } from "@/components/product/ProductImage";
 import { cn, formatDate } from "@/lib/utils";
 import type { ProductStatus } from "@/lib/types";
@@ -160,25 +161,12 @@ export default async function PengajuanPage({
                     </p>
                   )}
 
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    {p.status === "published" ? (
-                      <Link
-                        href={`/produk/${p.slug}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-navy transition hover:text-brand"
-                      >
-                        Lihat halaman publik
-                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                      </Link>
-                    ) : p.status !== "pending" ? (
-                      <Link
-                        href={p.status === "revision" ? `/pengajuan/${p.id}/edit` : "/submit"}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-navy transition hover:text-brand"
-                      >
-                        <PackagePlus className="h-3.5 w-3.5" aria-hidden="true" />
-                        {p.status === "revision" ? "Perbaiki & ajukan ulang" : "Ajukan produk baru"}
-                      </Link>
-                    ) : null}
-                  </div>
+                  <MemberSubmissionActions
+                    id={p.id}
+                    name={p.name}
+                    slug={p.slug}
+                    status={p.status}
+                  />
                 </div>
               </div>
             </li>

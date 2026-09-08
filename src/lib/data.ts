@@ -391,6 +391,21 @@ export async function updateMySubmission(
   return {};
 }
 
+/** Tarik pengajuan sendiri (hapus permanen) - hanya milik sendiri. */
+export async function deleteMySubmission(userId: string, id: string): Promise<{ error?: string }> {
+  if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+  const supabase = await createClient();
+  const { error, data } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id)
+    .eq("submitted_by", userId)
+    .select("id");
+  if (error) return { error: error.message };
+  if (!data || data.length === 0) return { error: "Pengajuan tidak ditemukan." };
+  return {};
+}
+
 /** Daftar negara unik dari produk published - untuk filter Lokasi. */
 export async function listCountries(): Promise<string[]> {
   if (!isSupabaseConfigured) {
