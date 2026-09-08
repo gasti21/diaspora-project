@@ -246,8 +246,8 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
         <p className="mt-3 text-sm leading-relaxed text-muted">
           {isEdit ? "Pengajuan Anda kembali " : "Produk Anda berstatus "}
           <span className="font-semibold text-amber-600">Pending</span>{" "}
-          dan akan ditinjau ulang oleh admin kami. Kami akan menghubungi Anda
-          melalui email atau WhatsApp.
+          dan akan ditinjau ulang oleh admin kami. Pantau statusnya di halaman
+          pengajuan Anda.
         </p>
         <div className="mt-7 flex justify-center gap-3">
           <Link href={doneHref} className="rounded-lg bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-dark">
@@ -620,8 +620,8 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
                   : "“Submit Produk Sekarang”"}
               </span>
               . {isEdit ? "Pengajuan Anda" : "Produk Anda"} akan ditinjau admin
-              (1&ndash;3 hari), lalu kami menghubungi Anda via email atau
-              WhatsApp.
+              (1&ndash;3 hari). Statusnya bisa dipantau di halaman Pengajuan
+              Saya.
             </p>
           </div>
         </Section>
