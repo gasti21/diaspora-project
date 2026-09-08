@@ -355,9 +355,16 @@ export async function updateMySubmission(
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // Nama berubah -> slug diregenerasi; slug lama disimpan untuk redirect.
+  const { data: current } = await supabase
     .from("products")
-    .update({
+    .select("name, slug")
+    .eq("id", id)
+    .eq("submitted_by", userId)
+    .maybeSingle();
+  if (!current) return { error: "Pengajuan tidak ditemukan." };
+
+  const update: Record<string, unknown> = {
       name: payload.name.trim(),
       category_id: payload.categoryId,
       stage: payload.stage,
@@ -382,7 +389,17 @@ export async function updateMySubmission(
       status: "pending",
       review_note: null,
       updated_at: new Date().toISOString(),
-    })
+  };
+
+  if (payload.name.trim() !== current.name) {
+    const base = slugify(payload.name) || "produk";
+    update.slug = `${base}-${Date.now().toString(36)}`;
+    update.previous_slug = current.slug;
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .update(update)
     .eq("id", id)
     .eq("submitted_by", userId)
     .select("id")

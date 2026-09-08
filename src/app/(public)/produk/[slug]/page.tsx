@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect, RedirectType } from "next/navigation";
 import {
   ChevronLeft,
   Search,
@@ -13,7 +13,8 @@ import { ProductTabs } from "@/components/product/ProductTabs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ShareButtons } from "@/components/product/ShareButtons";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
-import {  getProductBySlug, getRelatedProducts, listMyFavoriteProductIds, getProductReviews, getFavoriteCounts } from "@/lib/data";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getProductBySlug, getRelatedProducts, listMyFavoriteProductIds, getProductReviews, getFavoriteCounts } from "@/lib/data";
 import { getOwnerPublicBio } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import { ViewTracker } from "@/components/product/ViewTracker";
@@ -62,7 +63,18 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  let product = await getProductBySlug(slug);
+  if (!product) {
+    // Slug lama -> redirect permanen ke slug baru (nama produk pernah diganti).
+    const client = createAdminClient();
+    const { data: moved } = await client
+      .from("products")
+      .select("slug")
+      .eq("previous_slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
+    if (moved) redirect(`/produk/${moved.slug}`, RedirectType.replace);
+  }
   if (!product) notFound();
 
   const viewer = await getSessionUser();
