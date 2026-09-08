@@ -1,6 +1,7 @@
 import { getSessionUser, getAdminUser } from "@/lib/auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import AdminAccessDenied from "@/components/admin/AdminAccessDenied";
+import RealtimeRefresher from "@/components/RealtimeRefresher";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <AdminShell
       admin={{ name: admin.name, email: admin.email, avatarUrl: admin.avatarUrl }}
     >
+      <RealtimeRefresher scope="admin" />
       {children}
     </AdminShell>
   );

@@ -4,6 +4,7 @@ import { listMySubmissions } from "@/lib/data";
 import { MemberShell } from "@/components/member/MemberShell";
 import { Navbar } from "@/components/layout/Navbar";
 import { LogoMark } from "@/components/branding/Logo";
+import RealtimeRefresher from "@/components/RealtimeRefresher";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,7 @@ export default async function MemberLayout({ children }: { children: React.React
 
   return (
     <div className="flex min-h-screen flex-col">
+      <RealtimeRefresher scope="member" />
       <Navbar notifications={notifications} />
       <MemberShell>{children}</MemberShell>
     </div>
