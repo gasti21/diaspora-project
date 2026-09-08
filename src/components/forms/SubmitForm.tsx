@@ -1,7 +1,7 @@
 "use client";
 
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, CircleCheck, Globe, ImagePlus, Info, LoaderCircle, Package, Pencil, Plus, Send, Star, X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -185,15 +185,35 @@ export function SubmitForm({ categories, user, initial, editId, doneHref = "/pen
 
   function goBack() {
     setStep((s) => Math.max(s - 1, 0));
+    stepChangedAt.current = Date.now();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Ganti langkah -> tombol submit muncul tepat di posisi "Lanjut".
+  // Abaikan submit sesaat setelah pindah langkah agar klik ganda tak terkirim tidak sengaja.
+  const stepChangedAt = useRef(0);
+
+  function goNext() {
+    if (!validate()) return;
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    stepChangedAt.current = Date.now();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault();
+    if (Date.now() - stepChangedAt.current < 700) return; // klik sisa pindah langkah
     if (!validate()) {
       toast.error("Masih ada data yang belum lengkap. Periksa kembali ya.");
       return;
     }
+    if (
+      isEdit &&
+      !window.confirm(
+        "Kirim ulang produk untuk review?\n\nProduk akan keluar sementara dari tayangan sampai disetujui ulang."
+      )
+    )
+      return;
 
     const payload: SubmissionPayload = {
       name: form.name.trim(),
