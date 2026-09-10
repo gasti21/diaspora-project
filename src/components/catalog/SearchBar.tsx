@@ -24,32 +24,30 @@ export function SearchBar({
     router.push(params.size ? `/explore?${params}` : "/explore");
   }
 
-  const iconSize = size === "lg" ? "h-5 w-5" : "h-4 w-4";
-
   return (
     <form
       onSubmit={submit}
-      className={`flex w-full overflow-hidden rounded-xl border border-line bg-white shadow-sm ${
-        size === "lg" ? "h-13" : "h-11"
+      className={`flex w-full items-center overflow-hidden rounded-md border border-slate-200 bg-white transition-colors focus-within:border-brand ${
+        size === "lg" ? "h-12" : "h-10"
       }`}
       role="search"
     >
-      <span className="flex items-center pl-4 text-muted">
-        <Search className={size === "lg" ? "h-4.5 w-4.5" : "h-4 w-4"} />
+      <span className="flex items-center pl-3.5 text-slate-400">
+        <Search className={size === "lg" ? "h-4 w-4" : "h-3.5 w-3.5"} aria-hidden="true" />
       </span>
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         aria-label="Cari produk"
-        className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted"
+        className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
       />
       <button
         type="submit"
         aria-label="Cari"
-        className="flex items-center justify-center bg-navy px-5 text-white transition hover:bg-navy-dark"
+        className="flex h-full items-center justify-center bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
       >
-        <Search className={iconSize} />
+        Cari
       </button>
     </form>
   );
