@@ -6,6 +6,17 @@
 
 ## ✅ Selesai (riwayat, jangan diulang)
 
+### Round-5 — 8 Sep 2026 (bug fix + infrastruktur)
+- [x] Fix kritis: `GET /api/admin/manage` selalu 500 karena `if (error)` tanpa `{}` → kini 403 untuk non-admin (bug membuat menu Kelola Admin mati total)
+- [x] Fix dead code & syntax: unreachable `return {}` di `adminDeleteProduct`, semicolon ganda di `adminUpdateProduct`
+- [x] Fix navigasi: link "Kelola favorit" di landing (`/dashboard/favorit` → `/favorit`)
+- [x] Render bio pelaku (Tahun Berdiri & Jenis Pelaku) di tab "Tentang Produk" (`ProductTabs.tsx`) — data sudah ditarik tapi tidak pernah ditampilkan
+- [x] Pembersihan ESLint: unused imports, eslint-disable redundan, `next-env.d.ts` di-ignore → 0 error, 24/24 test pass
+- [x] Fix redirect OAuth: `auth/callback`, `auth/signout`, `middleware` kini pakai `SITE_URL` (bukan `request.url`/`origin`) — memperbaiki `localhost:3000` error saat akses via tunnel
+- [x] Infrastruktur: PM2 diarahkan ke clone kerja `/home/ubuntu/repos/diaspora-project` (sebelumnya me-serve clone lama `/tmp/diaspora-project` tanpa fitur baru)
+- [x] Supabase Auth config: `site_url` + `uri_allow_list` diset ke tunnel URL
+- [x] **Link preview:** `https://breach-tap-kilometers-answer.trycloudflare.com`
+
 ### Round-4 — 31 Agu 2026
 - [x] CSP avatar Google (`lh3.googleusercontent.com` di `next.config.ts`)
 - [x] Anti-spam view counter: API route `/api/products/[id]/view` rate-limited
@@ -26,11 +37,15 @@
 
 ## 🎯 Berikutnya (Fase 3 — pra-deploy, lihat docs/RENCANA-KERJA.md)
 
+- [ ] Rombak total UI (public/member/admin) — design system anti-slop mengikuti prinsip Superdesign
 - [ ] Upstash Redis untuk rate limit (in-memory Map tak efektif di serverless)
 - [ ] Sentry di `error.tsx` (slot komentar sudah disiapkan)
 - [ ] Test API route: guard non-admin 403 di endpoint admin, guard member
 - [ ] Deploy Vercel (jalankan `setup-all.sql` di DB production)
 
 ## 📜 Riwayat lebih lama (jangan diulang)
-- Round-1 (`051ea81`): anti-scraping kontak (0005), anti-spoofing email, owner-only admin, CSP
-- Round-2 (`f68edb6`): 0006 eskalasi role · 0007 storage · 0008 favorites/views/RPC · error leak
+
+- Round-4 (31 Agu 2026): CSP avatar Google, anti-spam view counter (0009), guard profil member kosong, admin queries konsisten.
+- Round-3 (2 Sep 2026): Chat support realtime (0011), ulasan produk (0013), profil sosmed ternormalisasi (0010).
+- Round-2 (`f68edb6`, 29 Agu 2026): 0006 eskalasi role · 0007 storage · 0008 favorites/views/RPC · error leak.
+- Round-1 (`051ea81`, 25 Agu 2026): anti-scraping kontak (0005), anti-spoofing email, owner-only admin, CSP.

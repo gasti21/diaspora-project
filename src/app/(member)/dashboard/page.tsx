@@ -7,7 +7,6 @@ import {
   Eye,
   FileText,
   PackagePlus,
-  Send,
 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 import { listMySubmissions, getProductViewCounts } from "@/lib/data";

@@ -115,7 +115,6 @@ export function EditProfileModal({ profile, onClose, onSaved }: Props) {
           <div className="flex flex-col items-center gap-3">
             <span className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy">
               {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
               ) : (
                 <CircleUserRound className="h-10 w-10" aria-hidden="true" />

@@ -53,6 +53,35 @@ export function ProductTabs({
 
         {tab === "Tentang Produk" && (
           <div className="space-y-5">
+            {/* Kartu pelaku: tahun berdiri & jenis pelaku (dari profil pemilik) */}
+            {ownerBio && (ownerBio.yearFounded || ownerBio.backgroundTypes.length > 0) && (
+              <div className="rounded-xl border border-line bg-white p-5">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Tentang Pelaku
+                </h3>
+                <dl className="mt-3 space-y-2 text-sm">
+                  {ownerBio.yearFounded && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted">Tahun Berdiri</dt>
+                      <dd className="font-semibold">{ownerBio.yearFounded}</dd>
+                    </div>
+                  )}
+                  {ownerBio.backgroundTypes.length > 0 && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="shrink-0 text-muted">Jenis Pelaku</dt>
+                      <dd className="flex flex-wrap justify-end gap-1.5">
+                        {ownerBio.backgroundTypes.map((t) => (
+                          <span key={t} className="rounded-md bg-surface px-2 py-0.5 text-xs font-medium text-navy">
+                            {t}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
+
             {/* Satu kartu spesifikasi gabungan (tanpa duplikasi tahun/lokasi) */}
             <dl className="divide-y divide-line rounded-xl border border-line bg-white px-5">
               {[

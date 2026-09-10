@@ -4,7 +4,6 @@ import { notFound, redirect, RedirectType } from "next/navigation";
 import {
   ChevronLeft,
   Search,
-  type LucideIcon,
 } from "lucide-react";
 import { ImageCarousel } from "@/components/product/ImageCarousel";
 import { CategoryBadge, StageBadge, NeedTag } from "@/components/product/Badges";

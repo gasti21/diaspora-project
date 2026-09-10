@@ -7,7 +7,6 @@ import {
   Check,
   ChevronDown,
   Copy,
-  ExternalLink,
   Globe,
   Mail,
   MapPin,
@@ -207,7 +206,6 @@ export function ContactModal({
               aria-hidden="true"
             >
               {contact.profile?.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={contact.profile.avatarUrl}
                   alt=""
@@ -249,7 +247,6 @@ export function ContactModal({
                     aria-hidden="true"
                   >
                     {contact.profile?.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={contact.profile.avatarUrl}
                         alt=""

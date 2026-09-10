@@ -1093,7 +1093,6 @@ export async function adminDeleteProduct(
   const { error } = await client.from("products").delete().eq("id", id).select("id").single();
   if (error) return { error: error.message };
   return { productName: (found as { name?: string } | null)?.name ?? undefined };
-  return {};
 }
 
 /** Ambil satu produk apa pun statusnya (untuk halaman edit admin). */
@@ -1449,7 +1448,7 @@ export async function adminUpdateProduct(
     })();
   }
 
-  return { productName };;
+  return { productName };
 }
 
 export interface AdminTrends {

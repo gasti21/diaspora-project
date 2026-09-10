@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  ArrowUpRight,
   CheckCircle2,
   ClipboardList,
   Eye,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Heart, PackagePlus } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
-import {  listMyFavoriteProducts, listMyFavoriteProductIds, getFavoriteCounts } from "@/lib/data";
+import { listMyFavoriteProducts, getFavoriteCounts } from "@/lib/data";
 import { ProductCard } from "@/components/product/ProductCard";
 
 export const dynamic = "force-dynamic";

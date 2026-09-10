@@ -23,9 +23,10 @@ export async function GET() {
     .eq("role", "admin")
     .order("created_at", { ascending: true });
 
-  if (error)
+  if (error) {
     console.error("API error:", error.message);
     return NextResponse.json({ error: "Terjadi kesalahan pada server. Silakan coba lagi." }, { status: 500 });
+  }
 
   const admins = (data ?? []).map((row) => ({
     id: row.id,

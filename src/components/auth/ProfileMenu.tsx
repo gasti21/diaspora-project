@@ -15,7 +15,6 @@ import {
   Settings,
   Tags,
   Users,
-  X,
   type LucideIcon,
 } from "lucide-react";
 import { EditProfileModal, type ProfileData } from "./EditProfileModal";
@@ -107,7 +106,6 @@ export function ProfileMenu({ mode, fallback }: Props) {
         )}
       >
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center bg-navy text-sm font-bold text-white">
@@ -127,7 +125,6 @@ export function ProfileMenu({ mode, fallback }: Props) {
           <div className="flex flex-col items-center border-b border-line px-4 pb-4 pt-5 text-center">
             <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-line bg-surface text-navy">
               {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
               ) : (
                 <CircleUserRound className="h-8 w-8" aria-hidden="true" />

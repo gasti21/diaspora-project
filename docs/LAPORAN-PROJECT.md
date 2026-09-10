@@ -8,8 +8,11 @@
 > Resend, dan realtime auto-update UI. Ringkasan arsitektur terkini ada di
 > [ARCHITECTURE.md](ARCHITECTURE.md); status fase ada di
 > [RENCANA-KERJA.md](RENCANA-KERJA.md).
+> **Round-5 (8 Sep 2026):** fix bug admin API, cleanup linting, fix redirect
+> OAuth localhost, PM2 diarahkan ke clone kerja, dan live preview via tunnel —
+> detail di bawah & di PLAN.md.
 > **Project:** KaryaDiaspora — Platform Konektivitas Bisnis Diaspora Indonesia (MVP)
-> **Lingkup:** Audit menyeluruh codebase + riwayat pengerjaan sesi (perbaikan error page, bug database, fitur profil, popup avatar)
+> **Lingkup:** Audit menyeluruh codebase, fix bug API admin, perbaikan tampilan bio pelaku, pembersihan linting, dan verifikasi running via Cloudflare Tunnel.
 
 ---
 

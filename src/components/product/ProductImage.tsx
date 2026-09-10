@@ -46,7 +46,6 @@ export function ProductImage({ src, alt, categorySlug, className, width = 640, p
   const resolved = stage === 2 || !src ? fallback : stage === 1 ? src : toRenderUrl(src, width);
 
   return usePlainImg ? (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={resolved}
       alt={alt}

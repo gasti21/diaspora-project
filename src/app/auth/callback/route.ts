@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
 
-/** Callback OAuth Google: tukar kode menjadi sesi lalu arahkan sesuai role. */
+/**
+ * Callback OAuth Google: tukar kode menjadi sesi lalu arahkan sesuai role.
+ *
+ * Penting: `origin` dari request URL bisa `localhost:3000` saat dijalankan
+ * di balik reverse proxy / tunnel (cloudflared meneruskan request sebagai
+ * http://localhost:3000 ke origin). Untuk konsistensi redirect di semua
+ * environment, gunakan SITE_URL dari env sebagai basis origin yang stabil.
+ */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = SITE_URL.replace(/\/$/, "");
   const code = searchParams.get("code");
   const next = searchParams.get("next");
 

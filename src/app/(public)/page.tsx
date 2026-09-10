@@ -32,7 +32,7 @@ function FavoriteSection({
           </p>
         </div>
         <Link
-          href="/dashboard/favorit"
+          href="/favorit"
           className="text-sm font-medium text-brand hover:underline"
         >
           Kelola favorit

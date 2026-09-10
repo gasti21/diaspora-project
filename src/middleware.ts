@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
 
 /**
  * Middleware Supabase Auth: memastikan cookie sesi selalu segar.
@@ -41,9 +41,14 @@ export async function middleware(request: NextRequest) {
   // Halaman "guest-only": marketing/onboarding untuk tamu. User yang sudah
   // login dialihkan langsung ke katalog (Explore) - tidak ada alasan melihat
   // landing page, tentang, atau kontak publik.
+  //
+  // Penting: gunakan SITE_URL sebagai basis redirect, BUKAN request.url.
+  // Di balik reverse proxy / tunnel, request.url origin = localhost:3000
+  // sehingga redirect ke localhost:3000/explore gagal di browser pengunjung.
   const GUEST_ONLY = ["/", "/tentang", "/kontak"];
   if (user && GUEST_ONLY.includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/explore", request.url));
+    const origin = SITE_URL.replace(/\/$/, "");
+    return NextResponse.redirect(new URL("/explore", origin));
   }
 
   return response;

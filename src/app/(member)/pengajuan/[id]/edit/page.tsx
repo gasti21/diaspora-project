@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft, TriangleAlert } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 import { getMySubmission, listCategories } from "@/lib/data";
 import { SubmitForm } from "@/components/forms/SubmitForm";

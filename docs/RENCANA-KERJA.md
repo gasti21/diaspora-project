@@ -130,4 +130,20 @@ Ringkasan penilaian (detail lengkap di `docs/LAPORAN-PROJECT.md`):
 
 ---
 
+## Pembaruan — 8 Sep 2026: Bug Fix Round-5 & Preview Lokal
+
+| # | Item | Status |
+|---|---|---|
+| 5.1 | **Fix 500 API admin** — `GET /api/admin/manage` selalu 500 karena `if (error)` tanpa `{}`. Diperbaiki, kini 403 untuk non-admin | ✅ |
+| 5.2 | **Dead code & link rusak** — hapus unreachable return di `adminDeleteProduct`; perbaiki link favorit di landing (`/dashboard/favorit` → `/favorit`) | ✅ |
+| 5.3 | **Render bio pelaku** — tab "Tentang Produk" kini menampilkan Tahun Berdiri & Jenis Pelaku dari profil pemilik (`ownerBio`) | ✅ |
+| 5.4 | **Pembersihan linting** — hapus unused imports, tambah `next-env.d.ts` ke ESLint ignore; `eslint .` = 0 error, 24/24 test | ✅ |
+| 5.5 | **Preview lokal via Cloudflare Tunnel** — aplikasi jalan di port 3000, diexpose di `https://breach-tap-kilometers-answer.trycloudflare.com` | ✅ |
+| 5.6 | **Perbaikan PM2** — PM2 me-serve clone lama `/tmp/diaspora-project` (tanpa fitur favorit/support/admin). Sudah di-arahkan ke clone kerja `/home/ubuntu/repos/diaspora-project` | ✅ |
+| 5.7 | **OAuth Supabase** — `site_url` & `uri_allow_list` diperbarui agar login Google bisa pakai tunnel URL | ✅ |
+
+**Catatan:** masih development — belum deploy ke Vercel. Rate-limit in-memory dan Sentry tetap pekerjaan Fase 3.
+
+---
+
 *Dokumen rencana ini dibuat dari hasil audit langsung codebase (auth, RLS, rate-limit, validasi, middleware, security headers, endpoint) pada 2 September 2026.*
