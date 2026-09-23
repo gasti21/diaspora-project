@@ -10,7 +10,7 @@ import {
 } from "@/lib/data";
 import { getSessionUser } from "@/lib/auth";
 import type { Product } from "@/lib/types";
-import { ArrowRight, Globe2, Sparkles, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Globe2, Sparkles, ShieldCheck, CheckCircle2, Building2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -26,19 +26,19 @@ function FavoriteSection({
   firstName: string;
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6">
       <div className="mb-6 flex items-end justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
             Favorit Tersimpan — <span className="text-brand">{firstName}</span>
           </h2>
           <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-            {favorites.length} produk siap diakses kembali dari mana saja
+            {favorites.length} produk tersimpan di daftar favoritmu
           </p>
         </div>
         <Link
           href="/favorit"
-          className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-brand transition-colors hover:text-brand-dark sm:text-sm"
+          className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand-dark sm:text-sm"
         >
           Lihat Semua
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -56,28 +56,28 @@ function FavoriteSection({
 const STEPS = [
   {
     num: "01",
-    title: "Submit Karya & Bisnis",
-    desc: "Isi informasi produk, foto, tahap pengembangan, serta kontak pemilik cukup dengan login Google.",
+    title: "Submit Produk & Karya",
+    desc: "Isi form singkat mengenai produk, foto, dan informasi kontak Anda.",
   },
   {
     num: "02",
-    title: "Kurasi & Verifikasi",
-    desc: "Tim kurator memeriksa keabsahan data dan kesesuaian kategori sebelum ditayangkan.",
+    title: "Kurasi Tim Admin",
+    desc: "Verifikasi kelayakan dan kesesuaian kategori oleh kurator resmi.",
   },
   {
     num: "03",
-    title: "Tayang di Katalog Global",
-    desc: "Produk Anda masuk katalog publik yang dapat diakses oleh jejaring diaspora seluruh dunia.",
+    title: "Publikasi Global",
+    desc: "Karya Anda tayang di katalog publik yang diakses oleh jaringan diaspora.",
   },
   {
     num: "04",
-    title: "Koneksi & Kolaborasi",
-    desc: "Pengunjung, investor, atau calon pembeli menghubungi Anda secara langsung via WhatsApp & Email.",
+    title: "Terhubung & Kolaborasi",
+    desc: "Pengunjung menghubungi Anda langsung via Email & WhatsApp.",
   },
 ];
 
 export default async function HomePage() {
-  const latest = await getLatestProducts(6);
+  const latest = await getLatestProducts(8);
 
   const user = await getSessionUser();
   const favoriteIds = user ? await listMyFavoriteProductIds(user.id) : new Set<string>();
@@ -91,140 +91,120 @@ export default async function HomePage() {
     }
   }
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? "";
-
-  // Ambil 1 produk unggulan untuk Hero Showcase jika ada
   const heroFeatured = latest[0] ?? null;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-slate-900">
+    <div className="min-h-screen bg-[#FAF9F6] text-slate-900">
       {/* ===== HERO SECTION ===== */}
-      <section className="relative border-b border-slate-200 bg-white py-14 sm:py-20 lg:py-24">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
             
-            {/* Teks Hero Sisi Kiri */}
+            {/* Kiri: Messaging & Search */}
             <div className="lg:col-span-7">
-              <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs">
                 <Globe2 className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
-                Jejaring Bisnis &amp; Inovasi Diaspora
+                <span>Direktori Resmi PPID DPBD</span>
               </div>
 
-              <h1 className="mt-6 text-3xl font-extrabold leading-[1.12] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-                Direktori Resmi Produk &amp; Karya{" "}
-                <span className="relative inline-block text-brand">
-                  Diaspora Indonesia
-                </span>
+              <h1 className="mt-5 text-3xl font-extrabold leading-[1.15] tracking-tight text-slate-900 sm:text-5xl lg:text-5xl">
+                Konektivitas Bisnis &amp; Karya{" "}
+                <span className="text-brand">Diaspora Indonesia</span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                Pusat konektivitas bisnis, aplikasi, riset, dan produk kreatif karya
-                anak bangsa di seluruh penjuru dunia. Dikurasi oleh Tim IT &amp; Data PPID DPBD.
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
+                Platform etalase produk, aplikasi, bisnis, dan riset karya anak bangsa
+                di seluruh dunia. Ditemukan publik, terhubung secara langsung.
               </p>
 
               {/* Box Search Utama */}
-              <div className="mt-8 max-w-xl">
-                <SearchBar placeholder="Cari produk, kategori (misal: Makanan), atau negara..." />
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span className="font-semibold text-slate-700">Populer:</span>
-                  {CATEGORIES.slice(0, 4).map((c) => (
-                    <Link
-                      key={c.slug}
-                      href={`/explore?kategori=${c.slug}`}
-                      className="rounded border border-slate-200 bg-slate-50 px-2 py-0.5 transition-colors hover:border-slate-300 hover:text-brand"
-                    >
-                      {c.name}
-                    </Link>
-                  ))}
-                </div>
+              <div className="mt-7 max-w-xl">
+                <SearchBar placeholder="Cari karya, kategori (misal: Kuliner), atau negara..." />
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link
                   href="/submit"
-                  className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-6 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
+                  className="inline-flex h-10 items-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-brand-dark"
                 >
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
-                  Daftarkan Karya Anda
+                  Submit Produk Anda
                 </Link>
                 <Link
                   href="/explore"
-                  className="inline-flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                 >
-                  Jelajahi Katalog
+                  Explore Katalog
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
 
-              {/* Proof Badges */}
-              <div className="mt-10 flex flex-wrap items-center gap-6 border-t border-slate-100 pt-6 text-xs text-slate-500">
-                <div className="flex items-center gap-2">
+              {/* Guarantees / Proof */}
+              <div className="mt-8 flex flex-wrap items-center gap-6 border-t border-slate-100 pt-6 text-xs font-medium text-slate-500">
+                <span className="flex items-center gap-1.5">
                   <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                  <span>Kurasi Admin Terverifikasi</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-brand" />
-                  <span>Koneksi Langsung ke Pemilik</span>
-                </div>
+                  Dikurasi Tim IT PPID
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-brand" />
+                  Kontak Pemilik Transparan
+                </span>
               </div>
             </div>
 
-            {/* Visual Showcase Kanan (Bento Highlight) */}
+            {/* Kanan: Visual Card Product Showcase (Clean White Card) */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-lg border border-slate-200 bg-slate-900 p-6 text-white shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
                   <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                      Showcase Unggulan
+                    <span className="h-2 w-2 rounded-full bg-brand" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Highlight Minggu Ini
                     </span>
                   </div>
-                  <span className="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-mono text-slate-300">
-                    FEATURED
+                  <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                    VERIFIED
                   </span>
                 </div>
 
                 {heroFeatured ? (
-                  <div className="mt-5 space-y-4">
-                    <div className="aspect-[16/10] overflow-hidden rounded border border-slate-800 bg-slate-950">
+                  <div className="mt-4 space-y-3.5">
+                    <div className="aspect-[16/10] overflow-hidden rounded bg-slate-100">
                       <img
                         src={heroFeatured.images[0] ?? "/placeholders/makanan-minuman.svg"}
                         alt={heroFeatured.name}
-                        className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                        className="h-full w-full object-cover"
                       />
                     </div>
                     <div>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium text-slate-400">
-                          {heroFeatured.categoryName} · {heroFeatured.country}
-                        </span>
-                        <span className="rounded bg-brand/20 px-2 py-0.5 text-[11px] font-semibold text-red-400">
-                          {heroFeatured.stage}
-                        </span>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>{heroFeatured.categoryName}</span>
+                        <span className="font-semibold text-slate-700">{heroFeatured.country}</span>
                       </div>
-                      <h3 className="mt-2 text-xl font-extrabold text-white">
+                      <h3 className="mt-1 text-lg font-bold text-slate-900 line-clamp-1">
                         {heroFeatured.name}
                       </h3>
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-300">
+                      <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
                         {heroFeatured.shortDescription || heroFeatured.longDescription}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-slate-800/80 pt-4 text-xs">
-                      <span className="text-slate-400">
-                        Oleh: <strong className="text-slate-200">{heroFeatured.ownerName}</strong>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
+                      <span className="text-slate-500">
+                        Oleh: <strong className="text-slate-800">{heroFeatured.ownerName}</strong>
                       </span>
                       <Link
                         href={`/produk/${heroFeatured.slug}`}
-                        className="inline-flex items-center gap-1 font-semibold text-brand transition-colors hover:text-red-400"
+                        className="font-semibold text-brand hover:underline"
                       >
-                        Detail Karya →
+                        Lihat Detail →
                       </Link>
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-8 py-12 text-center text-slate-500">
-                    Belum ada produk unggulan
+                  <div className="py-12 text-center text-xs text-slate-400">
+                    Belum ada produk untuk ditampilkan
                   </div>
                 )}
               </div>
@@ -234,66 +214,64 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ===== IMPACT STATS BAR ===== */}
-      <section className="border-b border-slate-200 bg-white py-8">
+      {/* ===== STATISTIK BAR ===== */}
+      <section className="border-b border-slate-200 bg-white py-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
-              { label: "Negara Terjangkau", val: "18+" },
-              { label: "Kategori Bisnis", val: "6 Sektor" },
+              { label: "Negara Diaspora", val: "18+" },
+              { label: "Kategori Produk", val: "6 Sektor" },
               { label: "Karya Terdaftar", val: "100+" },
               { label: "Akses Kontak", val: "Langsung" },
-            ].map((stat) => (
-              <div key={stat.label} className="border-l-2 border-brand pl-4">
-                <p className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-                  {stat.val}
+            ].map((s) => (
+              <div key={s.label} className="border-l-2 border-brand/80 pl-3.5">
+                <p className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+                  {s.val}
                 </p>
-                <p className="mt-0.5 text-xs font-medium text-slate-500">{stat.label}</p>
+                <p className="mt-0.5 text-xs text-slate-500">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== KATEGORI BENTO GRID ===== */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      {/* ===== KATEGORI SEKTOR ===== */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+        <div className="mb-6 flex items-end justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
             <span className="text-xs font-semibold uppercase tracking-widest text-brand">
-              Eksplorasi Sektor
+              Kategori
             </span>
-            <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-              Kategori Produk &amp; Inovasi
+            <h2 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+              Jelajahi Berdasarkan Sektor
             </h2>
           </div>
           <Link
             href="/explore"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand-dark"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline sm:text-sm"
           >
-            Lihat Katalog Lengkap
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            Semua Kategori
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
           {CATEGORIES.map((c) => {
+            const bgSoft = c.color.replace("text-", "bg-").replace("500", "50");
             return (
               <Link
                 key={c.slug}
                 href={`/explore?kategori=${c.slug}`}
-                className="group flex items-start gap-4 rounded-lg border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300 hover:bg-slate-50/50"
+                className="group flex flex-col items-center rounded-lg border border-slate-200 bg-white p-4 text-center transition-colors hover:border-slate-300 hover:bg-slate-50"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 transition-colors group-hover:border-brand/40 group-hover:bg-brand/5">
-                  <c.icon className="h-6 w-6 text-slate-700 transition-colors group-hover:text-brand" />
+                <div
+                  className={`flex h-11 w-11 items-center justify-center rounded-md ${bgSoft} transition-transform group-hover:scale-105`}
+                >
+                  <c.icon className={`h-5 w-5 ${c.color}`} aria-hidden="true" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-brand transition-colors">
-                    {c.name}
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-500 leading-relaxed line-clamp-2">
-                    Jelajahi karya &amp; peluang kolaborasi di sektor {c.name.toLowerCase()}.
-                  </p>
-                </div>
+                <span className="mt-3 text-xs font-bold leading-tight text-slate-800">
+                  {c.name}
+                </span>
               </Link>
             );
           })}
@@ -311,23 +289,23 @@ export default async function HomePage() {
       )}
 
       {/* ===== PRODUK TERBARU ===== */}
-      <section id="produk-terbaru" className="border-t border-b border-slate-200 bg-white py-16 scroll-mt-20">
+      <section id="produk-terbaru" className="border-t border-b border-slate-200 bg-white py-14 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mb-8 flex items-end justify-between gap-4">
+          <div className="mb-6 flex items-end justify-between gap-4 border-b border-slate-200 pb-4">
             <div>
               <span className="text-xs font-semibold uppercase tracking-widest text-brand">
-                Katalog Publik
+                Katalog Terbaru
               </span>
-              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-                Pengajuan Terbaru
+              <h2 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+                Karya &amp; Produk Terkini
               </h2>
             </div>
             <Link
               href="/explore"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand-dark"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline sm:text-sm"
             >
-              Semua Produk
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              Lihat Semua ({latest.length})
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
 
@@ -340,49 +318,47 @@ export default async function HomePage() {
       </section>
 
       {/* ===== ALUR CARA KERJA ===== */}
-      <section id="cara-kerja" className="py-20 scroll-mt-20">
+      <section id="cara-kerja" className="py-16 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="max-w-2xl">
+          <div className="max-w-xl">
             <span className="text-xs font-semibold uppercase tracking-widest text-brand">
-              Panduan Platform
+              Alur Platform
             </span>
-            <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              Alur Publikasi &amp; Kurasi
+            <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              Cara Kerja Publikasi
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
-              Proses sederhana dari pengajuan hingga terhubung dengan publik internasional.
+            <p className="mt-2 text-xs leading-relaxed text-slate-600 sm:text-sm">
+              4 langkah mudah mendaftarkan dan mempublikasikan karya Anda di katalog diaspora.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s) => (
               <div
                 key={s.num}
-                className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-6 transition-colors hover:border-slate-300"
+                className="rounded-lg border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300"
               >
-                <div>
-                  <span className="text-2xl font-black text-brand">{s.num}</span>
-                  <h3 className="mt-3 text-base font-bold text-slate-900">{s.title}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{s.desc}</p>
-                </div>
+                <span className="text-xl font-extrabold text-brand">{s.num}</span>
+                <h3 className="mt-2 text-sm font-bold text-slate-900">{s.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{s.desc}</p>
               </div>
             ))}
           </div>
 
-          {/* Bottom Call to Action Card */}
-          <div className="mt-12 rounded-lg border border-slate-900 bg-slate-900 p-8 text-white sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+          {/* CTA Box Sederhana & Elegan */}
+          <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:flex-row sm:items-center sm:p-8">
             <div>
-              <h3 className="text-2xl font-extrabold">Punya Produk atau Karya Diaspora?</h3>
-              <p className="mt-1 text-sm text-slate-300">
-                Daftarkan karya Anda hari ini dan perluas jangkauan ke jejaring internasional.
+              <h3 className="text-lg font-bold text-slate-900">Punya Karya atau Produk Diaspora?</h3>
+              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                Publikasikan karya Anda agar dikenal oleh jejaring diaspora internasional.
               </p>
             </div>
             <Link
               href="/submit"
-              className="inline-flex shrink-0 h-11 items-center gap-2 rounded-md bg-brand px-6 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+              className="inline-flex shrink-0 h-10 items-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
             >
-              Ajukan Produk
-              <ArrowRight className="h-4 w-4" />
+              <Building2 className="h-4 w-4" />
+              Ajukan Sekarang
             </Link>
           </div>
         </div>
